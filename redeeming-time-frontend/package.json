@@ -1,6 +1,7 @@
 {
   "name": "redeeming-time-frontend",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
   "workspaces": [
     "apps/*",
@@ -9,6 +10,18 @@
   "scripts": {
     "build:web": "npm --workspace @redeeming-time/web run build",
     "typecheck:app": "npm --workspace @redeeming-time/app run typecheck",
-    "typecheck:shared": "npm --workspace @redeeming-time/shared run typecheck"
+    "typecheck:shared": "npm --workspace @redeeming-time/shared run typecheck",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^25.0.1",
+    "msw": "^2.6.8",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "react-native-web": "^0.21.0"
   }
 }

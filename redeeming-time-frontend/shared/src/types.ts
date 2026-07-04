@@ -82,3 +82,40 @@ export interface PlannerSnapshot {
   events: Event[];
   tasks: Task[];
 }
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export interface CalendarPayload {
+  title: string;
+  description: string;
+  theme_color: string;
+}
+
+export interface CategoryPayload {
+  calendar: number;
+  name: string;
+  color_code: string;
+}
+
+export interface EventPayload {
+  calendar: number;
+  category: number | null;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  is_all_day: boolean;
+  rrule: string;
+}
+
+export interface TaskPayload {
+  calendar: number;
+  title: string;
+  target_date: string;
+  priority: TaskPriority;
+  order: number;
+}

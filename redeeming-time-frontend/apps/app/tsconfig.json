@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
@@ -10,7 +12,13 @@
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "types": ["nativewind/types"]
+    "types": [
+      "nativewind/types"
+    ]
   },
-  "include": ["App.tsx", "nativewind-env.d.ts"]
+  "include": [
+    "App.tsx",
+    "nativewind-env.d.ts"
+  ],
+  "extends": "expo/tsconfig.base"
 }

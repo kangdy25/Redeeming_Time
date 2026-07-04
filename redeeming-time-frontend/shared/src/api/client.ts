@@ -1,4 +1,16 @@
-import type { Calendar, Category, Event, PlannerSnapshot, Task } from '../types';
+import type {
+  Calendar,
+  CalendarPayload,
+  Category,
+  CategoryPayload,
+  Event,
+  EventPayload,
+  PlannerSnapshot,
+  RegisterPayload,
+  Task,
+  TaskPayload,
+  User,
+} from '../types';
 import { useAuthStore } from '../stores/authStore';
 
 const runtimeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
@@ -18,7 +30,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(detail || `Request failed with ${response.status}`);
+    let message = detail || `Request failed with ${response.status}`;
+    try {
+      const parsed = JSON.parse(detail) as { detail?: string; [key: string]: unknown };
+      message = parsed.detail ?? JSON.stringify(parsed);
+    } catch {
+      message = detail || `Request failed with ${response.status}`;
+    }
+    throw new Error(message);
   }
 
   if (response.status === 204) {
@@ -29,15 +48,40 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const apiClient = {
+  register: (payload: RegisterPayload) =>
+    request<User>('/users/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   token: (email: string, password: string) =>
     request<{ access: string; refresh: string }>('/auth/token/', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
   calendars: () => request<Calendar[]>('/calendars/'),
+  createCalendar: (payload: CalendarPayload) =>
+    request<Calendar>('/calendars/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   categories: () => request<Category[]>('/categories/'),
+  createCategory: (payload: CategoryPayload) =>
+    request<Category>('/categories/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   events: () => request<Event[]>('/events/'),
+  createEvent: (payload: EventPayload) =>
+    request<Event>('/events/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   tasks: () => request<Task[]>('/tasks/'),
+  createTask: (payload: TaskPayload) =>
+    request<Task>('/tasks/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   updateTask: (task: Task) =>
     request<Task>(`/tasks/${task.id}/`, {
       method: 'PATCH',

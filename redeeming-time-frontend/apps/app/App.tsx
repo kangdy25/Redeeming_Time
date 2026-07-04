@@ -53,7 +53,7 @@ function TaskRow({ task }: { task: Task }) {
   );
 }
 
-function PlannerScreen() {
+export function PlannerScreen() {
   const snapshot = usePlannerSnapshot();
   const calendars = usePlannerStore((state) => state.calendars);
   const events = usePlannerStore((state) => state.events);
