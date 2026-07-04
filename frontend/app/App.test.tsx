@@ -2,9 +2,9 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { PlannerScreen } from './App';
-import { renderWithProviders } from '../../test.utils';
+import { renderWithProviders } from '../test.utils';
 import { useAuthStore, usePlannerStore, apiClient } from '@redeeming-time/shared';
-import { mockDb, server } from '../../test.setup';
+import { mockDb, server } from '../test.setup';
 import { http, HttpResponse } from 'msw';
 
 describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F9 & T3-T4)', () => {
@@ -268,35 +268,37 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
     });
 
     test('TC-T2-F8-02: Midnight Boundary Transition', async () => {
-      vi.useFakeTimers();
-      // 1. Set the initial system time to late July 4th, 2026
-      vi.setSystemTime(new Date('2026-07-04T23:59:00Z'));
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        // 1. Set the initial system time to late July 4th, 2026
+        vi.setSystemTime(new Date('2026-07-04T23:59:00Z'));
 
-      // 2. Load a task due on July 4th
-      mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Midnight Bound Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
-      ];
+        // 2. Load a task due on July 4th
+        mockDb.tasks = [
+          { id: 200, calendar: 1, creator: 1, title: 'Midnight Bound Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        ];
 
-      // 3. Render the screen and verify the task is NOT marked as overdue
-      const { rerender } = renderWithProviders(<PlannerScreen />);
-      await waitFor(() => {
-        expect(screen.queryByText('↷')).toBeNull();
-        expect(screen.queryByText(/rollover ready/)).toBeNull();
-      });
+        // 3. Render the screen and verify the task is NOT marked as overdue
+        const { rerender } = renderWithProviders(<PlannerScreen />);
+        await waitFor(() => {
+          expect(screen.queryByText('↷')).toBeNull();
+          expect(screen.queryByText(/rollover ready/)).toBeNull();
+        });
 
-      // 4. Advance system time past midnight to July 5th
-      vi.setSystemTime(new Date('2026-07-05T00:01:00Z'));
+        // 4. Advance system time past midnight to July 5th
+        vi.setSystemTime(new Date('2026-07-05T00:01:00Z'));
 
-      // 5. Re-render the screen to pick up the updated system clock
-      rerender(<PlannerScreen />);
+        // 5. Re-render the screen to pick up the updated system clock
+        rerender(<PlannerScreen />);
 
-      // 6. Verify that it now displays the overdue/rollover indicators
-      await waitFor(() => {
-        expect(screen.getByText('↷')).toBeInTheDocument();
-        expect(screen.getByText(/rollover ready/)).toBeInTheDocument();
-      });
-
-      vi.useRealTimers();
+        // 6. Verify that it now displays the overdue/rollover indicators
+        await waitFor(() => {
+          expect(screen.getByText('↷')).toBeInTheDocument();
+          expect(screen.getByText(/rollover ready/)).toBeInTheDocument();
+        });
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     test('TC-T2-F8-03: Distant Past Rollover Boundary', async () => {

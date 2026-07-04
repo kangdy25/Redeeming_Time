@@ -15,8 +15,21 @@ import { useAuthStore } from '../stores/authStore';
 
 const runtimeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
 
-export const API_BASE_URL =
-  runtimeEnv.EXPO_PUBLIC_API_BASE_URL ?? runtimeEnv.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+function inferApiBaseUrl() {
+  const explicitUrl = runtimeEnv.EXPO_PUBLIC_API_BASE_URL ?? runtimeEnv.VITE_API_BASE_URL;
+  if (explicitUrl) {
+    return explicitUrl.replace(/\/$/, '');
+  }
+
+  const location = (globalThis as { location?: { hostname?: string; protocol?: string } }).location;
+  if (location?.hostname && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+    return `${location.protocol}//${location.hostname}:8000/api`;
+  }
+
+  return 'http://localhost:8000/api';
+}
+
+export const API_BASE_URL = inferApiBaseUrl();
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {

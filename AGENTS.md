@@ -9,7 +9,7 @@ This repository currently contains planning and architecture documentation for R
 - `docs/agent-harness-spec.md`: agent sandbox, hooks, and skills contract.
 - `docs/erd.md`: Mermaid ERD for the planner domain model.
 
-When implementation begins, follow the README layout: `redeeming-time-backend/` for the Django REST Framework API and `redeeming-time-frontend/` for the React/Vite and Expo workspace. Shared frontend stores and hooks should live under `redeeming-time-frontend/shared/`.
+When implementation begins, follow the README layout: `backend/` for the Django REST Framework API and `frontend/` for the React/Vite and Expo workspace. Shared frontend stores and hooks should live under `frontend/shared/`.
 
 ## Build, Test, and Development Commands
 

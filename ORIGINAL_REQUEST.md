@@ -4,20 +4,20 @@
 
 Implement a premium, Next-Gen Minimalist Dark UI/UX frontend for Redeeming Time across the Web and Mobile codebases, incorporating client-side routing, bento layouts, and interactive task rollover shields.
 
-Working directory: /Users/kangdy25/Programming/Web/Redeeming_Time/redeeming-time-frontend
+Working directory: /Users/kangdy25/Programming/Web/Redeeming_Time/frontend
 Integrity mode: development
 
 ## Requirements
 
 ### R1. Web Premium Bento Grid Dashboard
-- Transform the desktop web dashboard layout (`apps/web`) using a Bento Grid paradigm.
+- Transform the desktop web dashboard layout (`web`) using a Bento Grid paradigm.
 - Apply a deep slate dark theme (background `#09090B`, cards `#18181B`, thin zinc-800 borders).
 - Categories must map to high-contrast neon badge tags (e.g. Electric Indigo, Emerald Muted).
 - Schedule congestion (via backend density metrics) must glow softly instead of using alert text.
 - Implement calendar month/week switcher tabs.
 
 ### R2. Web URL Routing & Auth Redirection
-- Install `react-router-dom` in `apps/web/`.
+- Install `react-router-dom` in `web/`.
 - Set up route definitions: `/login`, `/register`, and `/dashboard` (root `/`).
 - Unauthenticated users trying to access `/` must be redirected to `/login`.
 - Successful registration or login must store the JWT and redirect the user to `/dashboard`.
@@ -27,7 +27,7 @@ Integrity mode: development
 - The shield must identify uncompleted tasks from yesterday or earlier, display their names/counts, and provide a single-click action to roll all overdue tasks to today.
 
 ### R4. Mobile Single-Screen Dark Dashboard
-- Implement a matching dark dashboard in `apps/app/` using NativeWind.
+- Implement a matching dark dashboard in `app/` using NativeWind.
 - Optimize for single-handed thumb navigation by placing calendar switching, task listing, and floating action creators (tasks/events) at the bottom section of the screen.
 
 ## Acceptance Criteria

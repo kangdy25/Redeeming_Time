@@ -3,9 +3,9 @@
 This document confirms that the testing harness is fully implemented and contains exactly **104 test cases** spanning **9 features** across **4 tiers**.
 
 ## Test Execution Commands
-- **Run all tests**: `npm run test` (executed from `redeeming-time-frontend/`)
-- **Web App specific tests**: `npx vitest run apps/web`
-- **Mobile App specific tests**: `npx vitest run apps/app`
+- **Run all tests**: `npm run test` (executed from `frontend/`)
+- **Web App specific tests**: `npx vitest run web`
+- **Mobile App specific tests**: `npx vitest run app`
 
 ---
 

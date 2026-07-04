@@ -1,20 +1,20 @@
 # Project: Redeeming Time UI/UX & Routing
 
 ## Architecture
-- **Web Frontend (`apps/web`)**: Client-side routing with `react-router-dom`, Bento Grid dashboard layout, Slate dark theme, glassmorphic Rollover Shield.
-- **Mobile Frontend (`apps/app`)**: Expo React Native app, NativeWind-based dark dashboard layout, optimized bottom-oriented navigation.
+- **Web Frontend (`web`)**: Client-side routing with `react-router-dom`, Bento Grid dashboard layout, Slate dark theme, glassmorphic Rollover Shield.
+- **Mobile Frontend (`app`)**: Expo React Native app, NativeWind-based dark dashboard layout, optimized bottom-oriented navigation.
 - **Shared Package (`shared`)**: Code reuse for Zustand stores, API Client (`apiClient`), query hooks (`useToggleTask`, etc.), and types.
-- **Backend (`redeeming-time-backend`)**: Django REST Framework REST API, supporting simplejwt authentication and Agent skills endpoint.
+- **Backend (`backend`)**: Django REST Framework REST API, supporting simplejwt authentication and Agent skills endpoint.
 
 ## Code Layout
-- `redeeming-time-frontend/apps/web/`: React web application.
-- `redeeming-time-frontend/apps/app/`: Expo mobile application.
-- `redeeming-time-frontend/shared/`: Shared state and API services.
+- `frontend/web/`: React web application.
+- `frontend/app/`: Expo mobile application.
+- `frontend/shared/`: Shared state and API services.
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | E2E Testing Track | Write comprehensive E2E test suite in `apps/web` and `apps/app` | None | IN_PROGRESS (Conv: b9b35cd2-4229-47c8-8b52-171daebb9e28) |
+| 1 | E2E Testing Track | Write comprehensive E2E test suite in `web` and `app` | None | IN_PROGRESS (Conv: b9b35cd2-4229-47c8-8b52-171daebb9e28) |
 | 2 | Web Routing & Auth | Implement client routing, protect `/dashboard` under `/`, handle jwt and redirection | None | IN_PROGRESS (Conv: 3b214209-9dab-4f1f-a489-828315377911) |
 | 3 | Web Bento Dashboard | Multi-column bento grid, slate dark colors, neon category badges, week/month toggles, ambient glow warnings | M2 | IN_PROGRESS (Conv: 3b214209-9dab-4f1f-a489-828315377911) |
 | 4 | Rollover Shield | Translucent glassmorphic overlay for task list, triggers overdue tasks rollover to today | M3 | IN_PROGRESS (Conv: 3b214209-9dab-4f1f-a489-828315377911) |

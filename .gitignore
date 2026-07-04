@@ -3,8 +3,9 @@
 __pycache__/
 *.env
 db.sqlite3
-/redeeming-time-backend/venv/
-/redeeming-time-backend/.venv/
+venv/
+.venv/
+.uv-cache/
 
 # Node / React / RN
 node_modules/

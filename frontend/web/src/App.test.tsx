@@ -2,9 +2,9 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import App from './App';
-import { renderWithProviders } from '../../../test.utils';
+import { renderWithProviders } from '../../test.utils';
 import { useAuthStore, usePlannerStore, apiClient } from '@redeeming-time/shared';
-import { mockDb, server } from '../../../test.setup';
+import { mockDb, server } from '../../test.setup';
 import { http, HttpResponse } from 'msw';
 
 describe('Web App Core Features and Boundaries (F1-F6)', () => {

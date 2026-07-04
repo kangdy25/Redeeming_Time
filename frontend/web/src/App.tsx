@@ -240,6 +240,7 @@ function CalendarControls({
   const [eventEnd, setEventEnd] = useState(localInputValue(today, 10));
   const [taskTitle, setTaskTitle] = useState('Review today before evening');
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
+  const [formMessage, setFormMessage] = useState('');
 
   const handleVisualDateChange = (newDateVal: string) => {
     const currentStartTime = eventStart.substring(11, 16) || '09:00';
@@ -262,50 +263,64 @@ function CalendarControls({
 
   async function addCalendar(event: FormEvent) {
     event.preventDefault();
+    setFormMessage('');
     try {
       const calendar = await createCalendar.mutateAsync({
         title: calendarTitle,
         description: 'Primary planning space',
+        theme_color: '#1F9D8A',
       });
       setActiveCalendarId(calendar.id);
-    } catch {}
+      setFormMessage('캘린더가 추가되었습니다.');
+    } catch (error) {
+      setFormMessage(error instanceof Error ? error.message : '캘린더 추가에 실패했습니다.');
+    }
   }
 
   async function addCategory(event: FormEvent) {
     event.preventDefault();
     const calId = selectedCalendarId || calendars[0]?.id || 1;
+    setFormMessage('');
     try {
       await createCategory.mutateAsync({
         calendar: calId,
         name: categoryName,
         color_code: categoryColor,
       });
-    } catch {}
+      setFormMessage('카테고리가 추가되었습니다.');
+    } catch (error) {
+      setFormMessage(error instanceof Error ? error.message : '카테고리 추가에 실패했습니다.');
+    }
   }
 
   async function addEvent(event: FormEvent) {
     event.preventDefault();
     const calId = selectedCalendarId || calendars[0]?.id || 1;
     const dbCats = (globalThis as any).mockDb?.categories;
-    const activeCategories = categories.length > 0 ? categories : (dbCats ?? []);
+    const activeCategories = selectedCategories.length > 0 ? selectedCategories : (dbCats ?? []);
     const targetCategories = activeCategories.filter((category: any) => category.calendar === calId);
+    setFormMessage('');
     try {
       await createEvent.mutateAsync({
         calendar: calId,
         category: targetCategories[0]?.id ?? null,
         title: eventTitle,
         description: '',
-        start_time: isoDate(new Date(eventStart)),
-        end_time: isoDate(new Date(eventEnd)),
+        start_time: toApiDateTime(eventStart),
+        end_time: toApiDateTime(eventEnd),
         is_all_day: false,
         rrule: '',
       });
-    } catch {}
+      setFormMessage('일정이 추가되었습니다.');
+    } catch (error) {
+      setFormMessage(error instanceof Error ? error.message : '일정 추가에 실패했습니다.');
+    }
   }
 
   async function addTask(event: FormEvent) {
     event.preventDefault();
     const calId = selectedCalendarId || calendars[0]?.id || 1;
+    setFormMessage('');
     try {
       await createTask.mutateAsync({
         calendar: calId,
@@ -314,7 +329,10 @@ function CalendarControls({
         priority,
         order: 0,
       });
-    } catch {}
+      setFormMessage('할일이 추가되었습니다.');
+    } catch (error) {
+      setFormMessage(error instanceof Error ? error.message : '할일 추가에 실패했습니다.');
+    }
   }
 
   return (
@@ -489,6 +507,7 @@ function CalendarControls({
           </form>
         </div>
       </div>
+      {formMessage && <p className="form-message">{formMessage}</p>}
     </section>
   );
 }

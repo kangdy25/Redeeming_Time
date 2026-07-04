@@ -53,10 +53,21 @@ export function useCreateTask() {
 export function useToggleTask() {
   const queryClient = useQueryClient();
   const toggleTaskCompletion = usePlannerStore((state) => state.toggleTaskCompletion);
+  const syncPlanner = usePlannerStore((state) => state.syncPlanner);
 
   return useMutation({
     mutationFn: (task: Task) => apiClient.updateTask({ ...task, is_completed: !task.is_completed }),
-    onMutate: (task) => toggleTaskCompletion(task.id),
+    onMutate: (task) => {
+      void queryClient.cancelQueries({ queryKey: ['planner-snapshot'] });
+      const previousTasks = usePlannerStore.getState().tasks;
+      toggleTaskCompletion(task.id);
+      return { previousTasks };
+    },
+    onError: (_error, _task, context) => {
+      if (context?.previousTasks) {
+        syncPlanner({ tasks: context.previousTasks });
+      }
+    },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['planner-snapshot'] }),
   });
 }

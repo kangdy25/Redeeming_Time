@@ -3,8 +3,8 @@
 This document details the E2E/integration testing infrastructure configured for the Redeeming Time frontend workspace.
 
 ## 1. Unified Test Runner (`vitest`)
-Vitest is configured at the workspace root to orchestrate testing across all sub-packages (`apps/web`, `apps/app`, `shared`).
-- **Configuration File**: `redeeming-time-frontend/vitest.config.ts`
+Vitest is configured at the workspace root to orchestrate testing across all sub-packages (`web`, `app`, `shared`).
+- **Configuration File**: `frontend/vitest.config.ts`
 - **Environment**: JSDOM (simulated browser DOM environment).
 - **Aliases**: `react-native` is aliased to `react-native-web` to resolve components cleanly under JSDOM.
 

@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: redeeming-time-postgres
+    environment:
+      POSTGRES_DB: redeeming_time
+      POSTGRES_USER: redeeming_time
+      POSTGRES_PASSWORD: redeeming_time
+    ports:
+      - "5432:5432"
+    volumes:
+      - redeeming_time_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redeeming_time -d redeeming_time"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  redeeming_time_postgres_data:

@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@redeeming-time/shared": "file:../../shared",
+    "@redeeming-time/shared": "file:../shared",
     "@tanstack/react-query": "^5.90.0",
     "expo": "^54.0.0",
     "nativewind": "^4.1.0",

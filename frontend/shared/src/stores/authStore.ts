@@ -6,7 +6,20 @@ interface TokenStorage {
   removeItem: (key: string) => void;
 }
 
-const getStorage = () => (globalThis as { localStorage?: TokenStorage }).localStorage;
+function isTokenStorage(storage: unknown): storage is TokenStorage {
+  return (
+    typeof storage === 'object' &&
+    storage !== null &&
+    typeof (storage as TokenStorage).getItem === 'function' &&
+    typeof (storage as TokenStorage).setItem === 'function' &&
+    typeof (storage as TokenStorage).removeItem === 'function'
+  );
+}
+
+const getStorage = () => {
+  const storage = (globalThis as { localStorage?: unknown }).localStorage;
+  return isTokenStorage(storage) ? storage : undefined;
+};
 const accessKey = 'redeeming-time.access-token';
 const refreshKey = 'redeeming-time.refresh-token';
 

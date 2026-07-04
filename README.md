@@ -83,10 +83,9 @@ Going beyond simple text generation, this ecosystem builds an internal AI agent 
 ## 📁 Directory Structure
 
 ```text
-├── redeeming-time-backend/     # Django DRF API Service
-└── redeeming-time-frontend/    # Frontend Monorepo Workspace
-    ├── apps/
-    │   ├── web/              # React + Vite + Tailwind CSS (Desktop Web Planner)
-    │   └── app/              # React Native + NativeWind (Mobile App Planner)
+├── backend/                   # Django DRF API Service
+└── frontend/                  # Frontend Monorepo Workspace
+    ├── web/                  # React + Vite + Tailwind CSS (Desktop Web Planner)
+    ├── app/                  # React Native + NativeWind (Mobile App Planner)
     └── shared/               # Shared Zustand Stores & TanStack Query Custom Hooks
 ```

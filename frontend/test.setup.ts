@@ -48,9 +48,12 @@ vi.mock('react-native', () => {
     
   const TouchableOpacity = ({ children, onPress, className, style, ...props }: any) => 
     React.createElement('button', { ...props, onClick: onPress, className, style }, children);
+
+  const TextInput = ({ onChangeText, value, ...props }: any) =>
+    React.createElement('input', { ...props, value, onChange: (event: any) => onChangeText?.(event.target.value) });
     
-  const ScrollView = ({ children, className, style, ...props }: any) => 
-    React.createElement('div', { ...props, className, style: { overflowY: 'auto', ...style } }, children);
+  const ScrollView = ({ children, className, contentContainerStyle, style, ...props }: any) => 
+    React.createElement('div', { ...props, className, style: { overflowY: 'auto', ...style, ...contentContainerStyle } }, children);
     
   const SafeAreaView = ({ children, className, style, ...props }: any) => 
     React.createElement('div', { ...props, className, style }, children);
@@ -58,6 +61,7 @@ vi.mock('react-native', () => {
   return {
     View,
     Text,
+    TextInput,
     TouchableOpacity,
     ScrollView,
     SafeAreaView,
