@@ -1,0 +1,14 @@
+{
+  "name": "redeeming-time-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "shared"
+  ],
+  "scripts": {
+    "build:web": "npm --workspace @redeeming-time/web run build",
+    "typecheck:app": "npm --workspace @redeeming-time/app run typecheck",
+    "typecheck:shared": "npm --workspace @redeeming-time/shared run typecheck"
+  }
+}

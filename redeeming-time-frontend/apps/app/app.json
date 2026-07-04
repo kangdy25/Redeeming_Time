@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Redeeming Time",
+    "slug": "redeeming-time",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "redeemingtime",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F4F7F8"
+      }
+    }
+  }
+}
