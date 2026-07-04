@@ -1,0 +1,17 @@
+# Python / Django
+*.pyc
+__pycache__/
+*.env
+db.sqlite3
+/redeeming-time-backend/venv/
+/redeeming-time-backend/.venv/
+
+# Node / React / RN
+node_modules/
+.expo/
+dist/
+.eslintcache
+
+# OS
+.DS_Store
+Thumbs.db
