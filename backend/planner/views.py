@@ -14,6 +14,7 @@ from .services import user_can_edit_calendar, user_is_calendar_owner
 
 
 class CalendarViewSet(viewsets.ModelViewSet):
+    queryset = Calendar.objects.all()
     serializer_class = CalendarSerializer
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
@@ -26,6 +27,7 @@ class CalendarViewSet(viewsets.ModelViewSet):
 
 
 class CalendarMemberViewSet(viewsets.ModelViewSet):
+    queryset = CalendarMember.objects.all()
     serializer_class = CalendarMemberSerializer
     permission_classes = [permissions.IsAuthenticated, IsCalendarOwner]
 
@@ -40,6 +42,7 @@ class CalendarMemberViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
@@ -54,6 +57,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
     serializer_class = EventSerializer
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
@@ -68,6 +72,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
 class EventAttendeeViewSet(viewsets.ModelViewSet):
+    queryset = EventAttendee.objects.all()
     serializer_class = EventAttendeeSerializer
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
@@ -82,6 +87,7 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
 
 
 class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 

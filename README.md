@@ -31,7 +31,7 @@ While focusing on the foundational values of schedule management and to-do execu
 ### Back-end & Database
 
 - **Framework:** Python / Django REST Framework (DRF)
-- **Database:** PostgreSQL (Leveraging Django ORM for highly optimized time-series ranges and aggregation queries)
+- **Database:** SQLite for local quickstart, PostgreSQL for production-style development and deployment
 - **Authentication:** JWT (JSON Web Token), Social Identity Providers (Google, Kakao OAuth 2.0)
 
 ### Infrastructure
@@ -88,4 +88,63 @@ Going beyond simple text generation, this ecosystem builds an internal AI agent 
     ├── web/                  # React + Vite + Tailwind CSS (Desktop Web Planner)
     ├── app/                  # React Native + NativeWind (Mobile App Planner)
     └── shared/               # Shared Zustand Stores & TanStack Query Custom Hooks
+```
+
+## Local Development
+
+### Backend API
+
+```bash
+cd backend
+uv run manage.py migrate
+uv run manage.py runserver
+```
+
+The backend defaults to local SQLite via `backend/.env`, so the API can boot without Docker. Once running, open:
+
+- API root: `http://127.0.0.1:8000/api/`
+- Swagger UI: `http://127.0.0.1:8000/api/docs/`
+- OpenAPI schema: `http://127.0.0.1:8000/api/schema/`
+
+If port `8000` is already in use, run the server on another port:
+
+```bash
+uv run manage.py runserver 127.0.0.1:8001
+```
+
+For PostgreSQL-backed development, start the container and set `DATABASE_URL` in `backend/.env` to the Postgres URL from `backend/.env.example` or `compose.yaml`.
+
+```bash
+docker compose up -d postgres
+```
+
+### Frontend Workspaces
+
+```bash
+cd frontend
+npm --workspace @redeeming-time/web run dev
+```
+
+The Vite web app starts on the URL printed by Vite, usually `http://localhost:5173/`.
+
+For the Expo app:
+
+```bash
+cd frontend
+npm --workspace @redeeming-time/app run start
+```
+
+### Verification
+
+```bash
+cd backend
+uv run manage.py test
+```
+
+```bash
+cd frontend
+npm run test
+npm run build:web
+npm run typecheck:app
+npm run typecheck:shared
 ```

@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from accounts.serializers import UserSerializer
@@ -67,6 +68,7 @@ class EventSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    @extend_schema_field(serializers.DictField)
     def get_congestion_warning(self, obj):
         return analyze_schedule_density(obj.calendar, obj.start_time, obj.end_time, excluded_event_id=obj.id)
 

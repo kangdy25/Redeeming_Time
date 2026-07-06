@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 function dateLabel(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(value));
 }
 
 function EventCard({ event }: { event: Event }) {
@@ -135,6 +135,7 @@ export function PlannerScreen() {
   const tasks = usePlannerStore((state) => state.tasks);
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
   const setActiveCalendarId = usePlannerStore((state) => state.setActiveCalendarId);
+  const syncStatus = snapshot.isFetching ? 'Syncing' : snapshot.isError || !isAuthenticated ? 'API offline' : 'Synced';
 
   useEffect(() => {
     if (calendars.length > 0 && !activeCalendarId) {
@@ -159,7 +160,7 @@ export function PlannerScreen() {
           <Text className="text-xs font-black uppercase text-sea">Redeeming Time</Text>
           <Text className="mt-1 text-4xl font-black text-ink">Today’s Planner</Text>
           <Text className="mt-2 text-sm font-semibold text-slate-600">
-            {calendars.length} calendars · {!isAuthenticated ? 'Sign in required' : snapshot.isFetching ? 'Syncing' : snapshot.isError ? 'API offline' : 'Synced'}
+            {calendars.length} calendars · {syncStatus}
           </Text>
         </View>
 

@@ -41,6 +41,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'] if DEBUG else [])
 INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
     'rest_framework_simplejwt',
     'accounts',
     'planner',
@@ -152,10 +153,18 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
     'AUTH_HEADER_TYPES': ('Bearer', 'Agent'),
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Redeeming Time API',
+    'DESCRIPTION': 'Django REST Framework API for the Redeeming Time planner.',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }

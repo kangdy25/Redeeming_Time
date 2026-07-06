@@ -49,7 +49,7 @@ vi.mock('react-native', () => {
   const TouchableOpacity = ({ children, onPress, className, style, ...props }: any) => 
     React.createElement('button', { ...props, onClick: onPress, className, style }, children);
 
-  const TextInput = ({ onChangeText, value, ...props }: any) =>
+  const TextInput = ({ onChangeText, value, keyboardType, secureTextEntry, ...props }: any) =>
     React.createElement('input', { ...props, value, onChange: (event: any) => onChangeText?.(event.target.value) });
     
   const ScrollView = ({ children, className, contentContainerStyle, style, ...props }: any) => 

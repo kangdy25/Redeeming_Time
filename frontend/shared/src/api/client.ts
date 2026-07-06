@@ -12,6 +12,7 @@ import type {
   User,
 } from '../types';
 import { useAuthStore } from '../stores/authStore';
+import { usePlannerStore } from '../stores/plannerStore';
 
 const runtimeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
 
@@ -72,29 +73,41 @@ export const apiClient = {
       body: JSON.stringify({ email, password }),
     }),
   calendars: () => request<Calendar[]>('/calendars/'),
-  createCalendar: (payload: CalendarPayload) =>
-    request<Calendar>('/calendars/', {
+  createCalendar: async (payload: CalendarPayload) => {
+    const calendar = await request<Calendar>('/calendars/', {
       method: 'POST',
       body: JSON.stringify(payload),
-    }),
+    });
+    usePlannerStore.getState().syncPlanner({ calendars: [...usePlannerStore.getState().calendars, calendar] });
+    return calendar;
+  },
   categories: () => request<Category[]>('/categories/'),
-  createCategory: (payload: CategoryPayload) =>
-    request<Category>('/categories/', {
+  createCategory: async (payload: CategoryPayload) => {
+    const category = await request<Category>('/categories/', {
       method: 'POST',
       body: JSON.stringify(payload),
-    }),
+    });
+    usePlannerStore.getState().syncPlanner({ categories: [...usePlannerStore.getState().categories, category] });
+    return category;
+  },
   events: () => request<Event[]>('/events/'),
-  createEvent: (payload: EventPayload) =>
-    request<Event>('/events/', {
+  createEvent: async (payload: EventPayload) => {
+    const event = await request<Event>('/events/', {
       method: 'POST',
       body: JSON.stringify(payload),
-    }),
+    });
+    usePlannerStore.getState().syncPlanner({ events: [...usePlannerStore.getState().events, event] });
+    return event;
+  },
   tasks: () => request<Task[]>('/tasks/'),
-  createTask: (payload: TaskPayload) =>
-    request<Task>('/tasks/', {
+  createTask: async (payload: TaskPayload) => {
+    const task = await request<Task>('/tasks/', {
       method: 'POST',
       body: JSON.stringify(payload),
-    }),
+    });
+    usePlannerStore.getState().syncPlanner({ tasks: [...usePlannerStore.getState().tasks, task] });
+    return task;
+  },
   updateTask: (task: Task) =>
     request<Task>(`/tasks/${task.id}/`, {
       method: 'PATCH',

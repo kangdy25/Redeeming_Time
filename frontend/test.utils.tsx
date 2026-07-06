@@ -1,8 +1,10 @@
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
+import { cleanup, render as rtlRender } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export function renderWithProviders(ui: React.ReactElement) {
+  cleanup();
+
   const testQueryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -16,12 +18,18 @@ export function renderWithProviders(ui: React.ReactElement) {
     },
   });
 
-  return {
-    ...rtlRender(
+  function Providers({ children }: { children: React.ReactNode }) {
+    return (
       <QueryClientProvider client={testQueryClient}>
-        {ui}
+        {children}
       </QueryClientProvider>
-    ),
+    );
+  }
+
+  const rendered = rtlRender(ui, { wrapper: Providers });
+
+  return {
+    ...rendered,
     queryClient: testQueryClient,
   };
 }
