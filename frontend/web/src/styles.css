@@ -1138,6 +1138,59 @@ button, input, select, textarea {
   font-weight: 900;
 }
 
+.quick-task-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px 72px;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.quick-task-form input,
+.quick-task-form select {
+  min-width: 0;
+  height: 42px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  outline: none;
+}
+
+.quick-task-form input:focus,
+.quick-task-form select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.quick-task-form button {
+  height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.quick-task-form button:disabled,
+.quick-task-form input:disabled,
+.quick-task-form select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quick-task-message {
+  margin: 8px 2px 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .task-board-list {
   display: flex;
   flex-direction: column;
@@ -2247,6 +2300,10 @@ button, input, select, textarea {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .quick-task-form {
+    grid-template-columns: 1fr;
   }
 
   .task-sidebar-header {

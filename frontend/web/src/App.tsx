@@ -584,10 +584,14 @@ function taskBoardDateLabel(value: string) {
   return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(date);
 }
 
-function TaskBoard({ tasks }: { tasks: Task[] }) {
+function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number }) {
   const toggleTask = useToggleTask();
+  const createTask = useCreateTask();
   const today = isoDate(new Date());
   const [selectedDate, setSelectedDate] = useState(today);
+  const [quickTaskTitle, setQuickTaskTitle] = useState('');
+  const [quickTaskPriority, setQuickTaskPriority] = useState<TaskPriority>('MEDIUM');
+  const [quickTaskMessage, setQuickTaskMessage] = useState('');
   const miniCalendarAnchor = new Date(`${selectedDate}T00:00:00`);
   const miniCells = useMemo(() => monthCells(miniCalendarAnchor), [selectedDate]);
   const sortedTasks = [...tasks].sort((a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order);
@@ -600,6 +604,34 @@ function TaskBoard({ tasks }: { tasks: Task[] }) {
     counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
     return counts;
   }, {});
+
+  async function addQuickTask(event: FormEvent) {
+    event.preventDefault();
+    const title = quickTaskTitle.trim();
+    if (!title) {
+      setQuickTaskMessage('할일 제목을 입력해 주세요.');
+      return;
+    }
+    if (!calendarId) {
+      setQuickTaskMessage('먼저 캘린더 워크스페이스를 만들어 주세요.');
+      return;
+    }
+
+    setQuickTaskMessage('');
+    try {
+      await createTask.mutateAsync({
+        calendar: calendarId,
+        title,
+        target_date: selectedDate,
+        priority: quickTaskPriority,
+        order: selectedTasks.length,
+      });
+      setQuickTaskTitle('');
+      setQuickTaskMessage('할일이 추가되었습니다.');
+    } catch (error) {
+      setQuickTaskMessage(error instanceof Error ? error.message : '할일 추가에 실패했습니다.');
+    }
+  }
 
   return (
     <section className="task-board">
@@ -690,6 +722,32 @@ function TaskBoard({ tasks }: { tasks: Task[] }) {
             <span>{selectedTasks.length}개 중 {selectedTasks.length - selectedOpenTasks.length}개 완료</span>
             <strong>{selectedOpenTasks.length}개 남음</strong>
           </div>
+
+          <form className="quick-task-form" onSubmit={addQuickTask}>
+            <input
+              aria-label="Quick Task"
+              placeholder={`${taskBoardDateLabel(selectedDate)}에 할일 추가`}
+              value={quickTaskTitle}
+              onChange={(event) => setQuickTaskTitle(event.target.value)}
+              disabled={!calendarId || createTask.isPending}
+            />
+            <select
+              aria-label="Quick Task Priority"
+              value={quickTaskPriority}
+              onChange={(event) => setQuickTaskPriority(event.target.value as TaskPriority)}
+              disabled={!calendarId || createTask.isPending}
+            >
+              {priorities.map((priority) => (
+                <option value={priority} key={priority}>
+                  {priority.charAt(0) + priority.slice(1).toLowerCase()}
+                </option>
+              ))}
+            </select>
+            <button type="submit" disabled={!calendarId || createTask.isPending}>
+              추가
+            </button>
+          </form>
+          {quickTaskMessage && <p className="quick-task-message">{quickTaskMessage}</p>}
 
           <div className="task-board-list">
             {selectedTasks.map((task) => {
@@ -1055,7 +1113,7 @@ function DashboardPage() {
         <main className="main-content">
           <div className={`center-panel mobile-panel-calendar ${mobilePanel === 'calendar' ? 'mobile-panel-active' : ''}`}>
             {activeSection === 'tasks' ? (
-              <TaskBoard tasks={tasks} />
+              <TaskBoard tasks={tasks} calendarId={currentCalendarId} />
             ) : (
               <section className="planner-panel calendar-area">
                 <div className="calendar-heading">
