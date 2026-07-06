@@ -590,13 +590,11 @@ function taskBoardDateLabel(value: string) {
 
 function TaskBoard({
   tasks,
-  events,
   calendarId,
   selectedDate,
   setSelectedDate,
 }: {
   tasks: Task[];
-  events: Event[];
   calendarId: number;
   selectedDate: string;
   setSelectedDate: (date: string) => void;
@@ -621,8 +619,6 @@ function TaskBoard({
   const completionRate = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
   const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
   const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
-  const selectedDateObject = new Date(`${selectedDate}T00:00:00`);
-  const selectedEvents = events.filter((event) => sameDate(event, selectedDateObject));
   const taskCountByDate = tasks.reduce<Record<string, number>>((counts, task) => {
     counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
     return counts;
@@ -792,25 +788,6 @@ function TaskBoard({
           <div className="todo-summary-line">
             <span>{selectedTasks.length}개 중 {selectedTasks.length - selectedOpenTasks.length}개 완료</span>
             <strong>{selectedOpenTasks.length}개 남음</strong>
-          </div>
-
-          <div className="linked-schedule">
-            <div className="linked-schedule-header">
-              <span>선택 날짜 일정</span>
-              <strong>{selectedEvents.length}개</strong>
-            </div>
-            {selectedEvents.length > 0 ? (
-              <div className="linked-schedule-list">
-                {selectedEvents.slice(0, 4).map((event) => (
-                  <div className="linked-event" style={{ borderLeftColor: '#1F9D8A' }} key={event.id}>
-                    <strong>{event.title}</strong>
-                    <span>{new Date(event.start_time).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>선택한 날짜에 일정이 없습니다.</p>
-            )}
           </div>
 
           <form className="quick-task-form" onSubmit={addQuickTask}>
@@ -1185,7 +1162,6 @@ function DashboardPage() {
             {activeSection === 'tasks' ? (
               <TaskBoard
                 tasks={tasks}
-                events={events}
                 calendarId={currentCalendarId}
                 selectedDate={taskBoardDate}
                 setSelectedDate={setTaskBoardDate}

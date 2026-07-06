@@ -639,6 +639,20 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
+    test('TC-T1-F5-03c: Task Board Does Not Render Schedule Data', async () => {
+      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
+      renderWithProviders(<App />);
+
+      await screen.findByText('Overloaded Focus block');
+      fireEvent.click(screen.getByRole('button', { name: /할일 보드/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('할일 연속성')).toBeInTheDocument();
+        expect(screen.queryByText('선택 날짜 일정')).not.toBeInTheDocument();
+        expect(screen.queryByText('Overloaded Focus block')).not.toBeInTheDocument();
+      });
+    });
+
     test('TC-T1-F5-04: Maximum Pill Constraint', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       // Schedule 5 events on July 4th
