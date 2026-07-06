@@ -968,6 +968,63 @@ button, input, select, textarea {
   color: #FF5A5F;
 }
 
+.rollover-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.rollover-action-bar div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rollover-action-bar span {
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rollover-action-bar strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.rollover-action-bar button {
+  min-height: 40px;
+  flex-shrink: 0;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.rollover-action-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rollover-message {
+  margin: -8px 4px 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .task-workspace {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
@@ -2347,6 +2404,15 @@ button, input, select, textarea {
 
   .task-board-stats strong {
     font-size: 21px;
+  }
+
+  .rollover-action-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rollover-action-bar button {
+    width: 100%;
   }
 
   .task-workspace {

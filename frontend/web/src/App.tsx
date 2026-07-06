@@ -611,10 +611,13 @@ function TaskBoard({
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [quickTaskPriority, setQuickTaskPriority] = useState<TaskPriority>('MEDIUM');
   const [quickTaskMessage, setQuickTaskMessage] = useState('');
+  const [rolloverMessage, setRolloverMessage] = useState('');
+  const [isRollingOver, setIsRollingOver] = useState(false);
   const miniCells = useMemo(() => monthCells(miniMonth), [miniMonth]);
   const sortedTasks = [...tasks].sort((a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order);
   const completedCount = tasks.filter((task) => task.is_completed).length;
-  const overdueCount = tasks.filter((task) => !task.is_completed && task.target_date < today).length;
+  const overdueTasks = tasks.filter((task) => !task.is_completed && task.target_date < today);
+  const overdueCount = overdueTasks.length;
   const completionRate = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
   const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
   const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
@@ -668,6 +671,25 @@ function TaskBoard({
     setMiniMonth(new Date(date.getFullYear(), date.getMonth(), 1));
   }
 
+  async function rolloverOverdueTasks() {
+    if (overdueTasks.length === 0) {
+      setRolloverMessage('이월할 할일이 없습니다.');
+      return;
+    }
+
+    setRolloverMessage('');
+    setIsRollingOver(true);
+    try {
+      await Promise.all(overdueTasks.map((task) => apiClient.updateTaskTargetDate(task, today)));
+      jumpToToday();
+      setRolloverMessage(`${overdueTasks.length}개 할일을 오늘로 옮겼습니다.`);
+    } catch (error) {
+      setRolloverMessage(error instanceof Error ? error.message : '이월 처리에 실패했습니다.');
+    } finally {
+      setIsRollingOver(false);
+    }
+  }
+
   return (
     <section className="task-board">
       <div className="task-board-hero">
@@ -697,6 +719,16 @@ function TaskBoard({
           </div>
         </div>
       </div>
+      <div className="rollover-action-bar">
+        <div>
+          <span>Rollover</span>
+          <strong>{overdueCount > 0 ? `${overdueCount}개 할일이 오늘로 이어질 수 있습니다.` : '이월 대기 중인 할일이 없습니다.'}</strong>
+        </div>
+        <button type="button" onClick={rolloverOverdueTasks} disabled={overdueCount === 0 || isRollingOver}>
+          {isRollingOver ? '이월 중...' : '이월 할일 오늘로'}
+        </button>
+      </div>
+      {rolloverMessage && <p className="rollover-message">{rolloverMessage}</p>}
 
       <div className="task-workspace">
         <aside className="mini-calendar-panel">

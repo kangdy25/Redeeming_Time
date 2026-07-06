@@ -113,6 +113,16 @@ export const apiClient = {
       method: 'PATCH',
       body: JSON.stringify({ is_completed: task.is_completed }),
     }),
+  updateTaskTargetDate: async (task: Task, targetDate: string) => {
+    const updatedTask = await request<Task>(`/tasks/${task.id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ target_date: targetDate }),
+    });
+    usePlannerStore.getState().syncPlanner({
+      tasks: usePlannerStore.getState().tasks.map((item) => (item.id === updatedTask.id ? updatedTask : item)),
+    });
+    return updatedTask;
+  },
   plannerSnapshot: async (): Promise<PlannerSnapshot> => {
     const [calendars, categories, events, tasks] = await Promise.all([
       apiClient.calendars(),
