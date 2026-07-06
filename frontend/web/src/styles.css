@@ -773,6 +773,7 @@ button, input, select, textarea {
   position: relative;
   box-sizing: border-box;
   transition: background-color 0.2s ease;
+  cursor: pointer;
 }
 
 .date-cell:hover {
@@ -855,6 +856,7 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .week-day:hover {
@@ -1148,6 +1150,74 @@ button, input, select, textarea {
   color: var(--color-text-primary);
   font-size: 14px;
   font-weight: 900;
+}
+
+.linked-schedule {
+  margin-top: 12px;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.linked-schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.linked-schedule-header span,
+.linked-schedule-header strong {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.linked-schedule-header span {
+  color: var(--color-text-secondary);
+}
+
+.linked-schedule-header strong {
+  color: var(--color-accent);
+}
+
+.linked-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.linked-event {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-left: 4px solid;
+  border-radius: 8px;
+  background: var(--color-bg-input);
+}
+
+.linked-event strong {
+  min-width: 0;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linked-event span,
+.linked-schedule p {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.linked-schedule p {
+  margin: 10px 0 0;
 }
 
 .quick-task-form {

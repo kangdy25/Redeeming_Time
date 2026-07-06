@@ -522,7 +522,7 @@ function CalendarControls({
   );
 }
 
-function MonthGrid({ events, anchor }: { events: Event[]; anchor: Date }) {
+function MonthGrid({ events, anchor, onDateSelect }: { events: Event[]; anchor: Date; onDateSelect?: (date: string) => void }) {
   const cells = useMemo(() => monthCells(anchor), [anchor]);
   const currentMonth = anchor.getMonth();
   const todayStr = isoDate(new Date());
@@ -537,7 +537,11 @@ function MonthGrid({ events, anchor }: { events: Event[]; anchor: Date }) {
         const isToday = cellDateStr === todayStr;
 
         return (
-          <div className={`date-cell ${date.getMonth() === currentMonth ? '' : 'muted-cell'} ${isCongested ? 'congested' : ''} ${isToday ? 'today-cell' : ''}`} key={date.toISOString()}>
+          <div
+            className={`date-cell ${date.getMonth() === currentMonth ? '' : 'muted-cell'} ${isCongested ? 'congested' : ''} ${isToday ? 'today-cell' : ''}`}
+            key={date.toISOString()}
+            onClick={() => onDateSelect?.(cellDateStr)}
+          >
             <div className="date-number">{date.getDate()}</div>
             <div className="event-stack">
               {dayEvents.slice(0, 3).map((event) => (
@@ -552,7 +556,7 @@ function MonthGrid({ events, anchor }: { events: Event[]; anchor: Date }) {
   );
 }
 
-function WeekRail({ events, anchor }: { events: Event[]; anchor: Date }) {
+function WeekRail({ events, anchor, onDateSelect }: { events: Event[]; anchor: Date; onDateSelect?: (date: string) => void }) {
   const weekStart = new Date(anchor);
   weekStart.setDate(anchor.getDate() - anchor.getDay());
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -566,7 +570,7 @@ function WeekRail({ events, anchor }: { events: Event[]; anchor: Date }) {
       {days.map((date) => {
         const isCongested = isDayCongested(date, events);
         return (
-          <div className={`week-day ${isCongested ? 'congested' : ''}`} key={date.toISOString()}>
+          <div className={`week-day ${isCongested ? 'congested' : ''}`} key={date.toISOString()} onClick={() => onDateSelect?.(isoDate(date))}>
             <span>{weekdayLabels[date.getDay()]}</span>
             <strong>{date.getDate()}</strong>
             {events.filter((event) => sameDate(event, date)).slice(0, 2).map((event) => (
@@ -584,13 +588,24 @@ function taskBoardDateLabel(value: string) {
   return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(date);
 }
 
-function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number }) {
+function TaskBoard({
+  tasks,
+  events,
+  calendarId,
+  selectedDate,
+  setSelectedDate,
+}: {
+  tasks: Task[];
+  events: Event[];
+  calendarId: number;
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+}) {
   const toggleTask = useToggleTask();
   const createTask = useCreateTask();
   const today = isoDate(new Date());
-  const [selectedDate, setSelectedDate] = useState(today);
   const [miniMonth, setMiniMonth] = useState(() => {
-    const date = new Date(`${today}T00:00:00`);
+    const date = new Date(`${selectedDate}T00:00:00`);
     return new Date(date.getFullYear(), date.getMonth(), 1);
   });
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
@@ -603,10 +618,17 @@ function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number })
   const completionRate = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
   const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
   const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
+  const selectedDateObject = new Date(`${selectedDate}T00:00:00`);
+  const selectedEvents = events.filter((event) => sameDate(event, selectedDateObject));
   const taskCountByDate = tasks.reduce<Record<string, number>>((counts, task) => {
     counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
     return counts;
   }, {});
+
+  useEffect(() => {
+    const date = new Date(`${selectedDate}T00:00:00`);
+    setMiniMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+  }, [selectedDate]);
 
   async function addQuickTask(event: FormEvent) {
     event.preventDefault();
@@ -738,6 +760,25 @@ function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number })
           <div className="todo-summary-line">
             <span>{selectedTasks.length}개 중 {selectedTasks.length - selectedOpenTasks.length}개 완료</span>
             <strong>{selectedOpenTasks.length}개 남음</strong>
+          </div>
+
+          <div className="linked-schedule">
+            <div className="linked-schedule-header">
+              <span>선택 날짜 일정</span>
+              <strong>{selectedEvents.length}개</strong>
+            </div>
+            {selectedEvents.length > 0 ? (
+              <div className="linked-schedule-list">
+                {selectedEvents.slice(0, 4).map((event) => (
+                  <div className="linked-event" style={{ borderLeftColor: event.category_detail?.color_code ?? '#1F9D8A' }} key={event.id}>
+                    <strong>{event.title}</strong>
+                    <span>{new Date(event.start_time).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>선택한 날짜에 일정이 없습니다.</p>
+            )}
           </div>
 
           <form className="quick-task-form" onSubmit={addQuickTask}>
@@ -884,6 +925,7 @@ function DashboardPage() {
   const [settingsActiveTab, setSettingsActiveTab] = useState<'calendar' | 'category' | 'event' | 'task'>('calendar');
   const [mobilePanel, setMobilePanel] = useState<'calendar' | 'menu' | 'tasks'>('calendar');
   const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'routine' | 'inbox'>('calendar');
+  const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
 
   useEffect(() => {
     if (theme === 'light') {
@@ -912,6 +954,12 @@ function DashboardPage() {
   const activeCalendar = calendars.find((c) => c.id === currentCalendarId);
   const selectedCalendarColor = activeCalendar?.theme_color ?? '#6366F1';
   const activeCalendarTitle = activeCalendar?.title;
+
+  function openTaskBoardForDate(date: string) {
+    setTaskBoardDate(date);
+    setActiveSection('tasks');
+    setMobilePanel('calendar');
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -1130,7 +1178,13 @@ function DashboardPage() {
         <main className="main-content">
           <div className={`center-panel mobile-panel-calendar ${mobilePanel === 'calendar' ? 'mobile-panel-active' : ''}`}>
             {activeSection === 'tasks' ? (
-              <TaskBoard tasks={tasks} calendarId={currentCalendarId} />
+              <TaskBoard
+                tasks={tasks}
+                events={events}
+                calendarId={currentCalendarId}
+                selectedDate={taskBoardDate}
+                setSelectedDate={setTaskBoardDate}
+              />
             ) : (
               <section className="planner-panel calendar-area">
                 <div className="calendar-heading">
@@ -1172,9 +1226,9 @@ function DashboardPage() {
 
                 <div className="calendar-body">
                   {activeView === 'week' ? (
-                    <WeekRail events={events} anchor={anchor} />
+                    <WeekRail events={events} anchor={anchor} onDateSelect={openTaskBoardForDate} />
                   ) : (
-                    <MonthGrid events={events} anchor={anchor} />
+                    <MonthGrid events={events} anchor={anchor} onDateSelect={openTaskBoardForDate} />
                   )}
                 </div>
               </section>
