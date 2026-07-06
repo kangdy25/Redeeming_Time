@@ -453,7 +453,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T1-F4-03: Event Category Binding', async () => {
+    test('TC-T1-F4-03: Event Todo Category Separation', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
@@ -463,7 +463,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       await waitFor(() => {
         const studyEvent = mockDb.events.find(e => e.title === 'Study Session');
         expect(studyEvent).toBeDefined();
-        expect(studyEvent?.category).toBe(10); // linked to category 10 (Deep Work)
+        expect(studyEvent?.category).toBeNull();
       });
     });
 
@@ -614,6 +614,28 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Overloaded Focus block')).toBeInTheDocument();
+      });
+    });
+
+    test('TC-T1-F5-03b: Date Click Opens Event Composer', async () => {
+      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
+      renderWithProviders(<App />);
+
+      await waitFor(() => {
+        expect(document.querySelectorAll('.date-cell').length).toBe(42);
+      });
+
+      const julyFourthCell = Array.from(document.querySelectorAll('.date-cell')).find((cell) => {
+        return !cell.classList.contains('muted-cell') && cell.querySelector('.date-number')?.textContent === '4';
+      });
+
+      expect(julyFourthCell).toBeDefined();
+      fireEvent.click(julyFourthCell as Element);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Add Event' })).toBeInTheDocument();
+        expect(screen.queryByText('할일 연속성')).not.toBeInTheDocument();
+        expect((screen.getByLabelText('일정 날짜') as HTMLInputElement).value).toBe('2026-07-04');
       });
     });
 
@@ -823,14 +845,14 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T1-F6-05: Category-Colored Event Labels', async () => {
+    test('TC-T1-F6-05: Calendar Event Labels Use Event Color', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
         const eventLabel = satColumn.querySelector('small');
-        expect(eventLabel).toHaveStyle({ color: 'rgb(225, 29, 72)' }); // #E11D48
+        expect(eventLabel).toHaveStyle({ color: 'rgb(20, 184, 166)' }); // #14B8A6
       });
     });
 

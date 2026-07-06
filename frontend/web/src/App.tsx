@@ -11,7 +11,6 @@ import {
   usePlannerStore,
   useToggleTask,
   type Calendar,
-  type Category,
   type Event,
   type Task,
   type TaskPriority,
@@ -57,10 +56,10 @@ function sameDate(event: Event, date: Date) {
   return event.start_time.substring(0, 10) === isoDate(date);
 }
 
-function eventStyle(event: Event) {
+function eventStyle() {
   return {
-    borderColor: event.category_detail?.color_code ?? '#1F9D8A',
-    backgroundColor: `${event.category_detail?.color_code ?? '#1F9D8A'}22`,
+    borderColor: '#1F9D8A',
+    backgroundColor: '#1F9D8A22',
   };
 }
 
@@ -213,17 +212,17 @@ function AuthPanel() {
 
 function CalendarControls({ 
   calendars, 
-  categories, 
   isLoading, 
   activeTab, 
   setActiveTab, 
+  eventDraftDate,
   onClose 
 }: { 
   calendars: Calendar[]; 
-  categories: Category[]; 
   isLoading?: boolean; 
   activeTab: 'calendar' | 'category' | 'event' | 'task';
   setActiveTab: (tab: 'calendar' | 'category' | 'event' | 'task') => void;
+  eventDraftDate?: string;
   onClose: () => void;
 }) {
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
@@ -235,7 +234,6 @@ function CalendarControls({
   const today = new Date();
 
   const selectedCalendarId = activeCalendarId ?? calendars[0]?.id ?? 0;
-  const selectedCategories = categories.filter((category) => category.calendar === selectedCalendarId);
   const activeCalendarExists = calendars.some((c) => c.id === activeCalendarId);
   const dbCalendars = (globalThis as any).mockDb?.calendars;
   const isDbEmpty = dbCalendars && dbCalendars.length === 0;
@@ -251,6 +249,11 @@ function CalendarControls({
   const [taskTitle, setTaskTitle] = useState('Review today before evening');
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [formMessage, setFormMessage] = useState('');
+
+  useEffect(() => {
+    if (!eventDraftDate) return;
+    handleVisualDateChange(eventDraftDate);
+  }, [eventDraftDate]);
 
   const handleVisualDateChange = (newDateVal: string) => {
     const currentStartTime = eventStart.substring(11, 16) || '09:00';
@@ -306,14 +309,11 @@ function CalendarControls({
   async function addEvent(event: FormEvent) {
     event.preventDefault();
     const calId = selectedCalendarId || calendars[0]?.id || 1;
-    const dbCats = (globalThis as any).mockDb?.categories;
-    const activeCategories = selectedCategories.length > 0 ? selectedCategories : (dbCats ?? []);
-    const targetCategories = activeCategories.filter((category: any) => category.calendar === calId);
     setFormMessage('');
     try {
       await createEvent.mutateAsync({
         calendar: calId,
-        category: targetCategories[0]?.id ?? null,
+        category: null,
         title: eventTitle,
         description: '',
         start_time: toApiDateTime(eventStart),
@@ -545,7 +545,7 @@ function MonthGrid({ events, anchor, onDateSelect }: { events: Event[]; anchor: 
             <div className="date-number">{date.getDate()}</div>
             <div className="event-stack">
               {dayEvents.slice(0, 3).map((event) => (
-                <div className="event-pill" style={eventStyle(event)} key={event.id}>{event.title}</div>
+                <div className="event-pill" style={eventStyle()} key={event.id}>{event.title}</div>
               ))}
               {dayEvents.length > 3 && <span className="more-count">+{dayEvents.length - 3}</span>}
             </div>
@@ -574,7 +574,7 @@ function WeekRail({ events, anchor, onDateSelect }: { events: Event[]; anchor: D
             <span>{weekdayLabels[date.getDay()]}</span>
             <strong>{date.getDate()}</strong>
             {events.filter((event) => sameDate(event, date)).slice(0, 2).map((event) => (
-              <small style={{ color: event.category_detail?.color_code ?? '#14B8A6' }} key={event.id}>{event.title}</small>
+              <small style={{ color: '#14B8A6' }} key={event.id}>{event.title}</small>
             ))}
           </div>
         );
@@ -802,7 +802,7 @@ function TaskBoard({
             {selectedEvents.length > 0 ? (
               <div className="linked-schedule-list">
                 {selectedEvents.slice(0, 4).map((event) => (
-                  <div className="linked-event" style={{ borderLeftColor: event.category_detail?.color_code ?? '#1F9D8A' }} key={event.id}>
+                  <div className="linked-event" style={{ borderLeftColor: '#1F9D8A' }} key={event.id}>
                     <strong>{event.title}</strong>
                     <span>{new Date(event.start_time).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
@@ -958,6 +958,7 @@ function DashboardPage() {
   const [mobilePanel, setMobilePanel] = useState<'calendar' | 'menu' | 'tasks'>('calendar');
   const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'routine' | 'inbox'>('calendar');
   const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
+  const [eventDraftDate, setEventDraftDate] = useState(isoDate(new Date()));
 
   useEffect(() => {
     if (theme === 'light') {
@@ -971,7 +972,6 @@ function DashboardPage() {
   const events = usePlannerStore((state) => state.events);
   const tasks = usePlannerStore((state) => state.tasks);
   const calendars = usePlannerStore((state) => state.calendars);
-  const categories = usePlannerStore((state) => state.categories);
 
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
   const setActiveCalendarId = usePlannerStore((state) => state.setActiveCalendarId);
@@ -987,9 +987,10 @@ function DashboardPage() {
   const selectedCalendarColor = activeCalendar?.theme_color ?? '#6366F1';
   const activeCalendarTitle = activeCalendar?.title;
 
-  function openTaskBoardForDate(date: string) {
-    setTaskBoardDate(date);
-    setActiveSection('tasks');
+  function openEventComposerForDate(date: string) {
+    setEventDraftDate(date);
+    setSettingsActiveTab('event');
+    setIsSettingsOpen(true);
     setMobilePanel('calendar');
   }
 
@@ -1134,40 +1135,12 @@ function DashboardPage() {
 
           <div className="sidebar-section">
             <div className="sidebar-section-header">
-              {!isSidebarCollapsed ? <span>일반 카테고리</span> : <span className="sr-only">일반 카테고리</span>}
+              {!isSidebarCollapsed ? <span>공유 캘린더</span> : <span className="sr-only">공유 캘린더</span>}
               {!isSidebarCollapsed && (
                 <button 
                   className="sidebar-add-btn" 
                   onClick={() => {
-                    setSettingsActiveTab('category');
-                    setIsSettingsOpen(true);
-                  }}
-                >
-                  +
-                </button>
-              )}
-            </div>
-            <div className="sidebar-section-content">
-              {categories.map((cat) => (
-                <div className="sidebar-list-item" key={cat.id}>
-                  <div className="list-item-left">
-                    <span className="custom-checkbox checked" style={{ backgroundColor: cat.color_code, borderColor: cat.color_code }}>✓</span>
-                    {!isSidebarCollapsed && <span>{cat.name}</span>}
-                  </div>
-                </div>
-              ))}
-              {categories.length === 0 && !isSidebarCollapsed && <div className="sidebar-section-placeholder">가족, 친구들과 일정을 공유할 수 있습니다.</div>}
-            </div>
-          </div>
-
-          <div className="sidebar-section">
-            <div className="sidebar-section-header">
-              {!isSidebarCollapsed ? <span>공유 카테고리</span> : <span className="sr-only">공유 카테고리</span>}
-              {!isSidebarCollapsed && (
-                <button 
-                  className="sidebar-add-btn" 
-                  onClick={() => {
-                    setSettingsActiveTab('category');
+                    setSettingsActiveTab('calendar');
                     setIsSettingsOpen(true);
                   }}
                 >
@@ -1258,9 +1231,9 @@ function DashboardPage() {
 
                 <div className="calendar-body">
                   {activeView === 'week' ? (
-                    <WeekRail events={events} anchor={anchor} onDateSelect={openTaskBoardForDate} />
+                    <WeekRail events={events} anchor={anchor} onDateSelect={openEventComposerForDate} />
                   ) : (
-                    <MonthGrid events={events} anchor={anchor} onDateSelect={openTaskBoardForDate} />
+                    <MonthGrid events={events} anchor={anchor} onDateSelect={openEventComposerForDate} />
                   )}
                 </div>
               </section>
@@ -1331,10 +1304,10 @@ function DashboardPage() {
         <div className="modal-content-wrapper" onClick={(e) => e.stopPropagation()}>
           <CalendarControls 
             calendars={calendars} 
-            categories={categories} 
             isLoading={snapshot.isLoading} 
             activeTab={settingsActiveTab}
             setActiveTab={setSettingsActiveTab}
+            eventDraftDate={eventDraftDate}
             onClose={() => setIsSettingsOpen(false)}
           />
         </div>
