@@ -589,11 +589,14 @@ function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number })
   const createTask = useCreateTask();
   const today = isoDate(new Date());
   const [selectedDate, setSelectedDate] = useState(today);
+  const [miniMonth, setMiniMonth] = useState(() => {
+    const date = new Date(`${today}T00:00:00`);
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  });
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [quickTaskPriority, setQuickTaskPriority] = useState<TaskPriority>('MEDIUM');
   const [quickTaskMessage, setQuickTaskMessage] = useState('');
-  const miniCalendarAnchor = new Date(`${selectedDate}T00:00:00`);
-  const miniCells = useMemo(() => monthCells(miniCalendarAnchor), [selectedDate]);
+  const miniCells = useMemo(() => monthCells(miniMonth), [miniMonth]);
   const sortedTasks = [...tasks].sort((a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order);
   const completedCount = tasks.filter((task) => task.is_completed).length;
   const overdueCount = tasks.filter((task) => !task.is_completed && task.target_date < today).length;
@@ -633,6 +636,16 @@ function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number })
     }
   }
 
+  function moveMiniMonth(offset: number) {
+    setMiniMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+  }
+
+  function jumpToToday() {
+    const date = new Date(`${today}T00:00:00`);
+    setSelectedDate(today);
+    setMiniMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+  }
+
   return (
     <section className="task-board">
       <div className="task-board-hero">
@@ -668,9 +681,13 @@ function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number })
           <div className="mini-calendar-header">
             <div>
               <span>Calendar</span>
-              <h3>{miniCalendarAnchor.getFullYear()}년 {miniCalendarAnchor.getMonth() + 1}월</h3>
+              <h3>{miniMonth.getFullYear()}년 {miniMonth.getMonth() + 1}월</h3>
             </div>
-            <button type="button" onClick={() => setSelectedDate(today)}>오늘</button>
+            <div className="mini-month-controls">
+              <button type="button" onClick={() => moveMiniMonth(-1)} aria-label="Previous task month">◀</button>
+              <button type="button" onClick={jumpToToday}>오늘</button>
+              <button type="button" onClick={() => moveMiniMonth(1)} aria-label="Next task month">▶</button>
+            </div>
           </div>
           <div className="mini-calendar-grid">
             {weekdayLabels.map((day) => (
@@ -681,7 +698,7 @@ function TaskBoard({ tasks, calendarId }: { tasks: Task[]; calendarId: number })
               const taskCount = taskCountByDate[dateValue] ?? 0;
               const isSelected = dateValue === selectedDate;
               const isToday = dateValue === today;
-              const isMuted = date.getMonth() !== miniCalendarAnchor.getMonth();
+              const isMuted = date.getMonth() !== miniMonth.getMonth();
 
               return (
                 <button

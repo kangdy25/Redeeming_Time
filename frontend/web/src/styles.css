@@ -1026,6 +1026,18 @@ button, input, select, textarea {
   cursor: pointer;
 }
 
+.mini-month-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mini-month-controls button {
+  min-width: 36px;
+  padding: 0 10px;
+}
+
 .mini-calendar-header button:hover,
 .todo-panel-header button:hover:not(:disabled) {
   border-color: var(--color-border-hover);
@@ -2286,6 +2298,12 @@ button, input, select, textarea {
   .mini-calendar-header button,
   .todo-panel-header button {
     width: 100%;
+  }
+
+  .mini-month-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 42px 1fr 42px;
   }
 
   .mini-calendar-grid {
