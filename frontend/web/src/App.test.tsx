@@ -653,6 +653,40 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
+    test('TC-T1-F5-03d: Korean Legal Holidays Render as Schedule Events', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-05-05T12:00:00Z'));
+      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
+
+      renderWithProviders(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText('어린이날')).toBeInTheDocument();
+        expect(screen.getByText('노동절')).toBeInTheDocument();
+        expect(screen.getByText('부처님오신날')).toBeInTheDocument();
+      });
+
+      const childrenDayCell = Array.from(document.querySelectorAll('.date-cell')).find((cell) => {
+        return !cell.classList.contains('muted-cell') && cell.querySelector('.date-number')?.textContent === '5';
+      });
+
+      expect(childrenDayCell).toBeDefined();
+      expect(childrenDayCell).toHaveClass('holiday-cell');
+      expect(childrenDayCell).not.toHaveClass('congested');
+
+      vi.useRealTimers();
+    });
+
+    test('TC-T1-F5-03e: Holiday Sidebar Section Is Removed', async () => {
+      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
+      renderWithProviders(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('공휴일')).not.toBeInTheDocument();
+        expect(screen.queryByText('Korea')).not.toBeInTheDocument();
+      });
+    });
+
     test('TC-T1-F5-04: Maximum Pill Constraint', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       // Schedule 5 events on July 4th

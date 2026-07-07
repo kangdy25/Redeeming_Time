@@ -18,6 +18,30 @@ import {
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const priorities: TaskPriority[] = ['HIGH', 'MEDIUM', 'LOW', 'NONE'];
+const KOREA_HOLIDAY_COLOR = '#EF4444';
+const KOREA_LEGAL_HOLIDAYS_2026 = [
+  { date: '2026-01-01', title: '신정' },
+  { date: '2026-02-16', title: '설날 연휴' },
+  { date: '2026-02-17', title: '설날' },
+  { date: '2026-02-18', title: '설날 연휴' },
+  { date: '2026-03-01', title: '삼일절' },
+  { date: '2026-03-02', title: '삼일절 대체공휴일' },
+  { date: '2026-05-01', title: '노동절' },
+  { date: '2026-05-05', title: '어린이날' },
+  { date: '2026-05-24', title: '부처님오신날' },
+  { date: '2026-05-25', title: '부처님오신날 대체공휴일' },
+  { date: '2026-06-03', title: '제9회 전국동시지방선거' },
+  { date: '2026-06-06', title: '현충일' },
+  { date: '2026-08-15', title: '광복절' },
+  { date: '2026-08-17', title: '광복절 대체공휴일' },
+  { date: '2026-09-24', title: '추석 연휴' },
+  { date: '2026-09-25', title: '추석' },
+  { date: '2026-09-26', title: '추석 연휴' },
+  { date: '2026-10-03', title: '개천절' },
+  { date: '2026-10-05', title: '개천절 대체공휴일' },
+  { date: '2026-10-09', title: '한글날' },
+  { date: '2026-12-25', title: '성탄절' },
+];
 
 function isoDate(date: Date) {
   const year = date.getFullYear();
@@ -56,10 +80,35 @@ function sameDate(event: Event, date: Date) {
   return event.start_time.substring(0, 10) === isoDate(date);
 }
 
-function eventStyle() {
+function isKoreaHolidayEvent(event: Event) {
+  return event.id <= -260000;
+}
+
+function createKoreaHolidayEvents(calendarId: number): Event[] {
+  if (!calendarId) return [];
+
+  return KOREA_LEGAL_HOLIDAYS_2026.map((holiday, index) => ({
+    id: -260000 - index,
+    calendar: calendarId,
+    category: null,
+    category_detail: null,
+    creator: null,
+    title: holiday.title,
+    description: '대한민국 법정공휴일',
+    start_time: `${holiday.date}T00:00:00.000Z`,
+    end_time: `${holiday.date}T23:59:59.000Z`,
+    is_all_day: true,
+    rrule: '',
+    created_at: `${holiday.date}T00:00:00.000Z`,
+    updated_at: `${holiday.date}T00:00:00.000Z`,
+  }));
+}
+
+function eventStyle(event: Event) {
+  const eventColor = isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : '#1F9D8A';
   return {
-    borderColor: '#1F9D8A',
-    backgroundColor: '#1F9D8A22',
+    borderColor: eventColor,
+    backgroundColor: `${eventColor}22`,
   };
 }
 
@@ -77,7 +126,7 @@ function initialDashboardAnchor() {
  * Checks if a specific day is experiencing schedule congestion.
  */
 function isDayCongested(date: Date, events: Event[]): boolean {
-  const dayEvents = events.filter((event) => sameDate(event, date));
+  const dayEvents = events.filter((event) => sameDate(event, date) && !isKoreaHolidayEvent(event));
   if (dayEvents.length === 0) return false;
 
   // 1. API Congestion flag check
@@ -535,17 +584,18 @@ function MonthGrid({ events, anchor, onDateSelect }: { events: Event[]; anchor: 
         const isCongested = isDayCongested(date, events);
         const cellDateStr = isoDate(date);
         const isToday = cellDateStr === todayStr;
+        const hasKoreaHoliday = dayEvents.some(isKoreaHolidayEvent);
 
         return (
           <div
-            className={`date-cell ${date.getMonth() === currentMonth ? '' : 'muted-cell'} ${isCongested ? 'congested' : ''} ${isToday ? 'today-cell' : ''}`}
+            className={`date-cell ${date.getMonth() === currentMonth ? '' : 'muted-cell'} ${isCongested ? 'congested' : ''} ${isToday ? 'today-cell' : ''} ${hasKoreaHoliday ? 'holiday-cell' : ''}`}
             key={date.toISOString()}
             onClick={() => onDateSelect?.(cellDateStr)}
           >
             <div className="date-number">{date.getDate()}</div>
             <div className="event-stack">
               {dayEvents.slice(0, 3).map((event) => (
-                <div className="event-pill" style={eventStyle()} key={event.id}>{event.title}</div>
+                <div className="event-pill" style={eventStyle(event)} key={event.id}>{event.title}</div>
               ))}
               {dayEvents.length > 3 && <span className="more-count">+{dayEvents.length - 3}</span>}
             </div>
@@ -574,7 +624,7 @@ function WeekRail({ events, anchor, onDateSelect }: { events: Event[]; anchor: D
             <span>{weekdayLabels[date.getDay()]}</span>
             <strong>{date.getDate()}</strong>
             {events.filter((event) => sameDate(event, date)).slice(0, 2).map((event) => (
-              <small style={{ color: '#14B8A6' }} key={event.id}>{event.title}</small>
+              <small style={{ color: isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : '#14B8A6' }} key={event.id}>{event.title}</small>
             ))}
           </div>
         );
@@ -963,6 +1013,10 @@ function DashboardPage() {
   const activeCalendar = calendars.find((c) => c.id === currentCalendarId);
   const selectedCalendarColor = activeCalendar?.theme_color ?? '#6366F1';
   const activeCalendarTitle = activeCalendar?.title;
+  const calendarEvents = useMemo(
+    () => [...events, ...createKoreaHolidayEvents(currentCalendarId)],
+    [events, currentCalendarId],
+  );
 
   function openEventComposerForDate(date: string) {
     setEventDraftDate(date);
@@ -1103,11 +1157,6 @@ function DashboardPage() {
               <span className="menu-icon">📥</span>
               {!isSidebarCollapsed && <span>아이디어 보관함</span>}
             </button>
-            {isSidebarCollapsed && (
-              <div className="menu-item holiday-collapsed-wrapper" style={{ justifyContent: 'center', padding: '12px 0', borderTop: '1px solid var(--color-border)', marginTop: '8px' }}>
-                <span className="custom-checkbox checked" title="Korea">✓</span>
-              </div>
-            )}
           </div>
 
           <div className="sidebar-section">
@@ -1130,30 +1179,6 @@ function DashboardPage() {
             </div>
           </div>
 
-          {!isSidebarCollapsed && (
-            <div className="sidebar-section">
-              <div className="sidebar-section-header">
-                <span>공휴일</span>
-                <button 
-                  className="sidebar-add-btn" 
-                  onClick={() => {
-                    setSettingsActiveTab('event');
-                    setIsSettingsOpen(true);
-                  }}
-                >
-                  +
-                </button>
-              </div>
-              <div className="sidebar-section-content">
-                <div className="sidebar-list-item">
-                  <div className="list-item-left">
-                    <span className="custom-checkbox checked">✓</span>
-                    <span>Korea</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </aside>
 
         {/* Main Panel */}
@@ -1207,9 +1232,9 @@ function DashboardPage() {
 
                 <div className="calendar-body">
                   {activeView === 'week' ? (
-                    <WeekRail events={events} anchor={anchor} onDateSelect={openEventComposerForDate} />
+                    <WeekRail events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} />
                   ) : (
-                    <MonthGrid events={events} anchor={anchor} onDateSelect={openEventComposerForDate} />
+                    <MonthGrid events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} />
                   )}
                 </div>
               </section>
