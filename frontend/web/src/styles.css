@@ -801,7 +801,7 @@ button, input, select, textarea {
 .date-cell:nth-child(7n) .date-number { color: var(--color-saturday); }
 
 .date-cell.holiday-cell .date-number {
-  color: #EF4444 !important;
+  color: #EF4444;
 }
 
 /* Highlight Today's Cell */
