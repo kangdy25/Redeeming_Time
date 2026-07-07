@@ -750,29 +750,31 @@ function TaskBoard({
           </h2>
           <p className="task-board-copy">오늘 해야 할 일과 밀려온 일을 한 흐름에서 정리합니다.</p>
         </div>
-        <div className="task-board-stats" aria-label="Task board stats">
-          <div>
-            <strong>{tasks.length}</strong>
-            <span>전체</span>
+        <div className="task-board-hero-side">
+          <div className="task-board-stats" aria-label="Task board stats">
+            <div>
+              <strong>{tasks.length}</strong>
+              <span>전체</span>
+            </div>
+            <div>
+              <strong>{completionRate}%</strong>
+              <span>완료율</span>
+            </div>
+            <div className={overdueCount > 0 ? 'attention' : ''}>
+              <strong>{overdueCount}</strong>
+              <span>이월</span>
+            </div>
           </div>
-          <div>
-            <strong>{completionRate}%</strong>
-            <span>완료율</span>
-          </div>
-          <div className={overdueCount > 0 ? 'attention' : ''}>
-            <strong>{overdueCount}</strong>
-            <span>이월</span>
+          <div className="rollover-action-bar">
+            <div>
+              <span>Rollover</span>
+              <strong>{overdueCount > 0 ? `${overdueCount}개 할일이 오늘로 이어질 수 있습니다.` : '이월 대기 중인 할일이 없습니다.'}</strong>
+            </div>
+            <button type="button" onClick={rolloverOverdueTasks} disabled={overdueCount === 0 || isRollingOver}>
+              {isRollingOver ? '이월 중...' : '이월 할일 오늘로'}
+            </button>
           </div>
         </div>
-      </div>
-      <div className="rollover-action-bar">
-        <div>
-          <span>Rollover</span>
-          <strong>{overdueCount > 0 ? `${overdueCount}개 할일이 오늘로 이어질 수 있습니다.` : '이월 대기 중인 할일이 없습니다.'}</strong>
-        </div>
-        <button type="button" onClick={rolloverOverdueTasks} disabled={overdueCount === 0 || isRollingOver}>
-          {isRollingOver ? '이월 중...' : '이월 할일 오늘로'}
-        </button>
       </div>
       {rolloverMessage && <p className="rollover-message">{rolloverMessage}</p>}
 
