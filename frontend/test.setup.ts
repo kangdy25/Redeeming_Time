@@ -85,8 +85,6 @@ export const mockDb = {
       {
         id: 100,
         calendar: 1,
-        category: 10,
-        category_detail: { id: 10, calendar: 1, name: 'Deep Work', color_code: '#E11D48', created_at: '2026-07-04T00:00:00Z' },
         title: 'Overloaded Focus block',
         description: 'Testing event',
         start_time: '2026-07-04T09:00:00Z',
@@ -107,6 +105,8 @@ export const mockDb = {
       {
         id: 200,
         calendar: 1,
+        category: 10,
+        category_detail: { id: 10, calendar: 1, name: 'Deep Work', color_code: '#E11D48', created_at: '2026-07-04T00:00:00Z' },
         creator: 1,
         title: 'Review overdue item',
         is_completed: false,
@@ -207,12 +207,9 @@ export const handlers = [
     if (new Date(body.end_time) < new Date(body.start_time)) {
       return new HttpResponse(JSON.stringify({ detail: 'End time before start time' }), { status: 400 });
     }
-    const categoryDetail = mockDb.categories.find(c => c.id === body.category) || null;
     const newEvent = {
       id: mockDb.events.length + 100,
       calendar: body.calendar,
-      category: body.category,
-      category_detail: categoryDetail,
       creator: 1,
       title: body.title,
       description: body.description || '',
@@ -243,6 +240,8 @@ export const handlers = [
     const newTask = {
       id: mockDb.tasks.length + 200,
       calendar: body.calendar,
+      category: body.category ?? null,
+      category_detail: mockDb.categories.find(c => c.id === body.category) || null,
       creator: 1,
       title: body.title,
       is_completed: false,

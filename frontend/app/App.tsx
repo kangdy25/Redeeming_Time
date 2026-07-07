@@ -17,12 +17,11 @@ function dateLabel(value: string) {
 }
 
 function EventCard({ event }: { event: Event }) {
-  const color = event.category_detail?.color_code ?? '#1F9D8A';
   return (
-    <View className="mb-3 rounded-lg border border-slate-200 bg-white p-4" style={{ borderLeftColor: color, borderLeftWidth: 5 }}>
+    <View className="mb-3 rounded-lg border border-slate-200 bg-white p-4" style={{ borderLeftColor: '#1F9D8A', borderLeftWidth: 5 }}>
       <Text className="text-xs font-bold uppercase text-slate-500">{dateLabel(event.start_time)}</Text>
       <Text className="mt-1 text-lg font-extrabold text-ink">{event.title}</Text>
-      <Text className="mt-1 text-sm text-slate-600">{event.category_detail?.name ?? 'Uncategorized'}</Text>
+      <Text className="mt-1 text-sm text-slate-600">{event.is_all_day ? 'All day' : 'Scheduled'}</Text>
       {event.congestion_warning?.is_congested && (
         <Text className="mt-2 rounded-md bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">
           Schedule congestion detected

@@ -1,8 +1,9 @@
 from datetime import timedelta
 
+from django.db.models import Count, Q
 from django.utils import timezone
 
-from planner.models import Calendar, Event, Task
+from planner.models import Calendar, Task
 from planner.services import analyze_schedule_density, rollover_overdue_tasks
 
 
@@ -35,21 +36,33 @@ def fetch_calendar_analytics(user_id, period):
     else:
         start_date = today
 
-    events = Event.objects.filter(
-        calendar__memberships__user_id=user_id,
-        start_time__date__gte=start_date,
-        category__isnull=False,
-    )
-    duration_by_category = {}
-    for event in events.select_related('category'):
-        seconds = max((event.end_time - event.start_time).total_seconds(), 0)
-        bucket = duration_by_category.setdefault(
-            event.category_id,
-            {'category_id': event.category_id, 'category_name': event.category.name, 'color_code': event.category.color_code, 'hours': 0},
+    task_counts = (
+        Task.objects.filter(
+            calendar__memberships__user_id=user_id,
+            target_date__gte=start_date,
+            category__isnull=False,
         )
-        bucket['hours'] += round(seconds / 3600, 2)
+        .values('category_id', 'category__name', 'category__color_code')
+        .annotate(
+            task_count=Count('id'),
+            completed_count=Count('id', filter=Q(is_completed=True)),
+            open_count=Count('id', filter=Q(is_completed=False)),
+        )
+    )
 
-    return {'period': period, 'start_date': start_date.isoformat(), 'categories': list(duration_by_category.values())}
+    categories = [
+        {
+            'category_id': item['category_id'],
+            'category_name': item['category__name'],
+            'color_code': item['category__color_code'],
+            'task_count': item['task_count'],
+            'completed_count': item['completed_count'],
+            'open_count': item['open_count'],
+        }
+        for item in task_counts
+    ]
+
+    return {'period': period, 'start_date': start_date.isoformat(), 'categories': categories}
 
 
 def on_task_failed(calendar_id=None):

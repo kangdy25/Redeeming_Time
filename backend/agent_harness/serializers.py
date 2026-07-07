@@ -28,7 +28,9 @@ class CategoryAnalyticsSerializer(serializers.Serializer):
     category_id = serializers.IntegerField()
     category_name = serializers.CharField()
     color_code = serializers.CharField()
-    hours = serializers.FloatField()
+    task_count = serializers.IntegerField()
+    completed_count = serializers.IntegerField()
+    open_count = serializers.IntegerField()
 
 
 class CalendarAnalyticsResponseSerializer(serializers.Serializer):

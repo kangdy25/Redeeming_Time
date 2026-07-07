@@ -49,8 +49,6 @@ export interface CongestionWarning {
 export interface Event {
   id: number;
   calendar: number;
-  category: number | null;
-  category_detail?: Category | null;
   creator: number | null;
   title: string;
   description: string;
@@ -66,6 +64,8 @@ export interface Event {
 export interface Task {
   id: number;
   calendar: number;
+  category: number | null;
+  category_detail?: Category | null;
   creator: number;
   title: string;
   is_completed: boolean;
@@ -103,7 +103,6 @@ export interface CategoryPayload {
 
 export interface EventPayload {
   calendar: number;
-  category: number | null;
   title: string;
   description: string;
   start_time: string;
@@ -114,6 +113,7 @@ export interface EventPayload {
 
 export interface TaskPayload {
   calendar: number;
+  category?: number | null;
   title: string;
   target_date: string;
   priority: TaskPriority;

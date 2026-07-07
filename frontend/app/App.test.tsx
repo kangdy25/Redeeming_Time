@@ -331,8 +331,6 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         {
           id: 100,
           calendar: 1,
-          category: 10,
-          category_detail: { id: 10, calendar: 1, name: 'Deep Work', color_code: '#E11D48', created_at: '' },
           creator: 1,
           title: 'TZ Shift Event',
           start_time: '2026-07-03T23:30:00Z',
@@ -396,8 +394,6 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         {
           id: 100,
           calendar: 1,
-          category: 10,
-          category_detail: { id: 10, calendar: 1, name: 'Deep Work', color_code: '#E11D48', created_at: '' },
           creator: 1,
           title: 'Focus Event',
           start_time: '2026-07-04T09:00:00Z',
@@ -467,7 +463,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
     test('TC-T2-F9-02: EventCard Title Wrapping', async () => {
       const longWord = 'W'.repeat(100);
       mockDb.events = [
-        { id: 101, calendar: 1, category: null, creator: 1, title: longWord, start_time: '2026-07-04T10:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        { id: 101, calendar: 1, creator: 1, title: longWord, start_time: '2026-07-04T10:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -561,13 +557,11 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       expect(filtered[0].name).toBe('Cat B');
     });
 
-    test('TC-T3-03: Category Custom Color + Event Grid Rendering', async () => {
+    test('TC-T3-03: Plain Event Grid Rendering', async () => {
       mockDb.events = [
         {
           id: 100,
           calendar: 1,
-          category: 10,
-          category_detail: { id: 10, calendar: 1, name: 'Deep Work', color_code: '#8A5CF6', created_at: '' },
           creator: 1,
           title: 'Read Book',
           start_time: '2026-07-04T09:00:00Z',
@@ -593,7 +587,6 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // 2. Trigger a real event creation on the API client
       await apiClient.createEvent({
         calendar: 1,
-        category: null,
         title: 'Team Sync',
         description: 'Weekly team meeting',
         start_time: '2026-07-04T09:00:00Z',
@@ -648,13 +641,11 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       });
     });
 
-    test('TC-T3-07: Category Custom Color + Mobile EventCard Rendering', async () => {
+    test('TC-T3-07: Plain Mobile EventCard Rendering', async () => {
       mockDb.events = [
         {
           id: 100,
           calendar: 1,
-          category: 10,
-          category_detail: { id: 10, calendar: 1, name: 'Focus', color_code: '#EC4899', created_at: '' },
           creator: 1,
           title: 'Pink Event',
           start_time: '2026-07-04T09:00:00Z',
@@ -709,7 +700,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // 2. Setup DB with new calendar, category, event, task
       mockDb.calendars = [{ id: 5, title: 'My First Space', description: '', theme_color: '' }];
       mockDb.categories = [{ id: 50, calendar: 5, name: 'Dev Focus', color_code: '#3B82F6' }];
-      mockDb.events = [{ id: 500, calendar: 5, category: 50, category_detail: mockDb.categories[0], title: 'E2E Architecture Session', start_time: '2026-07-04T09:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '' }];
+      mockDb.events = [{ id: 500, calendar: 5, title: 'E2E Architecture Session', start_time: '2026-07-04T09:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '' }];
       mockDb.tasks = [{ id: 5000, calendar: 5, creator: 1, title: 'Define E2E features', is_completed: false, target_date: '2026-07-04', priority: 'HIGH', order: 0 }];
       
       renderWithProviders(<PlannerScreen />);
@@ -746,7 +737,6 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         {
           id: 100,
           calendar: 1,
-          category: null,
           title: 'Focus block',
           start_time: '2026-07-04T09:00:00Z',
           end_time: '2026-07-04T18:00:00Z',

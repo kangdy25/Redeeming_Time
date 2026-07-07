@@ -35,14 +35,14 @@ class PlannerModelTests(TestCase):
         start = timezone.now()
         Event.objects.create(
             calendar=self.calendar,
-            category=category,
             creator=self.user,
             title='Focus Block',
             start_time=start,
             end_time=start + timezone.timedelta(hours=1),
         )
-        Task.objects.create(
+        task = Task.objects.create(
             calendar=self.calendar,
+            category=category,
             creator=self.user,
             title='Review plan',
             target_date=timezone.localdate(),
@@ -51,3 +51,4 @@ class PlannerModelTests(TestCase):
 
         self.assertEqual(self.calendar.events.count(), 1)
         self.assertEqual(self.calendar.tasks.count(), 1)
+        self.assertEqual(category.tasks.first(), task)

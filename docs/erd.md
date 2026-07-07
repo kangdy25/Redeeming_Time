@@ -9,7 +9,7 @@ USER ||--o{ EVENT_ATTENDEE : "attends"
     CALENDAR ||--o{ EVENT : "contains"
     CALENDAR ||--o{ TASK : "manages"
 
-    CATEGORY ||--o{ EVENT : "classified by (Optional)"
+    CATEGORY ||--o{ TASK : "classifies"
     EVENT ||--o{ EVENT_ATTENDEE : "invites"
 
     USER {
@@ -52,7 +52,6 @@ USER ||--o{ EVENT_ATTENDEE : "attends"
     EVENT {
         bigint id PK
         bigint calendar_id FK "Cascade 삭제"
-        bigint category_id FK "SET_NULL 허용 (카테고리 삭제돼도 일정은 유지)"
         bigint creator_id FK "SET_NULL 또는 Cascade"
         string title "일정 제목"
         text description "상세 메모"
@@ -74,6 +73,7 @@ USER ||--o{ EVENT_ATTENDEE : "attends"
     TASK {
         bigint id PK
         bigint calendar_id FK "Cascade 삭제"
+        bigint category_id FK "SET_NULL 허용 (카테고리 삭제돼도 할일은 유지)"
         bigint creator_id FK "Cascade 삭제"
         string title "할 일 내용"
         boolean is_completed "완료 여부"

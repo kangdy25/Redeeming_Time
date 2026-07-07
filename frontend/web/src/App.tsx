@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import {
   apiClient,
   useAuthStore,
-  useCreateCalendar,
   useCreateCategory,
   useCreateEvent,
   useCreateTask,
@@ -18,7 +17,7 @@ import {
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const priorities: TaskPriority[] = ['HIGH', 'MEDIUM', 'LOW', 'NONE'];
-type PlannerModalKind = 'settings' | 'event' | 'shared-calendar';
+type PlannerModalKind = 'settings' | 'event';
 const KOREA_HOLIDAY_COLOR = '#EF4444';
 const KOREA_LEGAL_HOLIDAYS_2026 = [
   { date: '2026-01-01', title: '신정' },
@@ -91,8 +90,6 @@ function createKoreaHolidayEvents(calendarId: number): Event[] {
   return KOREA_LEGAL_HOLIDAYS_2026.map((holiday, index) => ({
     id: -260000 - index,
     calendar: calendarId,
-    category: null,
-    category_detail: null,
     creator: null,
     title: holiday.title,
     description: '대한민국 법정공휴일',
@@ -274,8 +271,6 @@ function PlannerModals({
   onClose: () => void;
 }) {
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
-  const setActiveCalendarId = usePlannerStore((state) => state.setActiveCalendarId);
-  const createCalendar = useCreateCalendar();
   const createCategory = useCreateCategory();
   const createEvent = useCreateEvent();
   const today = new Date();
@@ -287,12 +282,15 @@ function PlannerModals({
   const isFormDisabled = isDbEmpty
     ? true
     : ((!selectedCalendarId && !isLoading) || (activeCalendarId !== null && !activeCalendarExists));
-  const [calendarTitle, setCalendarTitle] = useState('Personal Planner');
   const [categoryName, setCategoryName] = useState('Deep Work');
   const [categoryColor, setCategoryColor] = useState('#14B8A6');
+  const [eventCalendarId, setEventCalendarId] = useState(selectedCalendarId);
   const [eventTitle, setEventTitle] = useState('Focused planning block');
+  const [eventDescription, setEventDescription] = useState('');
   const [eventStart, setEventStart] = useState(localInputValue(today, 9));
   const [eventEnd, setEventEnd] = useState(localInputValue(today, 10));
+  const [isAllDayEvent, setIsAllDayEvent] = useState(false);
+  const [eventRrule, setEventRrule] = useState('');
   const [formMessage, setFormMessage] = useState('');
   const modalCopy = {
     settings: {
@@ -305,12 +303,11 @@ function PlannerModals({
       title: '일정 추가',
       closeLabel: 'Close event composer',
     },
-    'shared-calendar': {
-      eyebrow: 'Shared Calendar',
-      title: '공유 캘린더',
-      closeLabel: 'Close shared calendar',
-    },
   }[modalKind];
+
+  useEffect(() => {
+    setEventCalendarId(selectedCalendarId);
+  }, [selectedCalendarId]);
 
   useEffect(() => {
     if (!eventDraftDate) return;
@@ -334,24 +331,6 @@ function PlannerModals({
     setEventEnd(`${currentDate}T${newTimeVal}`);
   };
 
-
-
-  async function addCalendar(event: FormEvent) {
-    event.preventDefault();
-    setFormMessage('');
-    try {
-      const calendar = await createCalendar.mutateAsync({
-        title: calendarTitle,
-        description: 'Primary planning space',
-        theme_color: '#1F9D8A',
-      });
-      setActiveCalendarId(calendar.id);
-      setFormMessage('캘린더가 추가되었습니다.');
-    } catch (error) {
-      setFormMessage(error instanceof Error ? error.message : '캘린더 추가에 실패했습니다.');
-    }
-  }
-
   async function addCategory(event: FormEvent) {
     event.preventDefault();
     const calId = selectedCalendarId || calendars[0]?.id || 1;
@@ -370,18 +349,18 @@ function PlannerModals({
 
   async function addEvent(event: FormEvent) {
     event.preventDefault();
-    const calId = selectedCalendarId || calendars[0]?.id || 1;
+    const calId = eventCalendarId || selectedCalendarId || calendars[0]?.id || 1;
+    const eventDate = eventStart.substring(0, 10);
     setFormMessage('');
     try {
       await createEvent.mutateAsync({
         calendar: calId,
-        category: null,
         title: eventTitle,
-        description: '',
-        start_time: toApiDateTime(eventStart),
-        end_time: toApiDateTime(eventEnd),
-        is_all_day: false,
-        rrule: '',
+        description: eventDescription,
+        start_time: toApiDateTime(isAllDayEvent ? `${eventDate}T00:00` : eventStart),
+        end_time: toApiDateTime(isAllDayEvent ? `${eventDate}T23:59` : eventEnd),
+        is_all_day: isAllDayEvent,
+        rrule: eventRrule,
       });
       setFormMessage('일정이 추가되었습니다.');
     } catch (error) {
@@ -400,15 +379,6 @@ function PlannerModals({
       </div>
 
       <div className="control-grid">
-        <div className={modalKind === 'shared-calendar' ? 'tab-content active' : 'tab-content hidden-tab'}>
-          <form onSubmit={addCalendar}>
-            <label htmlFor="calendar-title-input">새 공유 캘린더</label>
-            <label htmlFor="calendar-title-input" className="sr-only">Calendar</label>
-            <input id="calendar-title-input" aria-label="Calendar" value={calendarTitle} onChange={(event) => setCalendarTitle(event.target.value)} />
-            <button type="submit" aria-label="Add Calendar" className="primary-button">공유 캘린더 추가</button>
-          </form>
-        </div>
-
         <div className={modalKind === 'settings' ? 'tab-content active' : 'tab-content hidden-tab'}>
           <form onSubmit={addCategory}>
             <label htmlFor="category-name-input">할일 카테고리</label>
@@ -423,9 +393,30 @@ function PlannerModals({
 
         <div className={modalKind === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
           <form onSubmit={addEvent}>
+            <label htmlFor="event-calendar-input">캘린더</label>
+            <select
+              id="event-calendar-input"
+              aria-label="Event Calendar"
+              value={eventCalendarId}
+              onChange={(event) => setEventCalendarId(Number(event.target.value))}
+              disabled={isFormDisabled}
+            >
+              {calendars.map((calendar) => (
+                <option value={calendar.id} key={calendar.id}>{calendar.title}</option>
+              ))}
+            </select>
             <label htmlFor="event-title-input">새 일정명</label>
             <label htmlFor="event-title-input" className="sr-only">Event</label>
             <input id="event-title-input" aria-label="Event" value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} disabled={isFormDisabled} />
+            <label htmlFor="event-description-input">설명</label>
+            <textarea
+              id="event-description-input"
+              aria-label="Event Description"
+              value={eventDescription}
+              onChange={(event) => setEventDescription(event.target.value)}
+              disabled={isFormDisabled}
+              rows={3}
+            />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
               <div>
                 <label htmlFor="visual-date-input" style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>일정 날짜</label>
@@ -441,25 +432,25 @@ function PlannerModals({
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
                   <label htmlFor="visual-start-time" style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>시작 시간</label>
-                  <input 
+                  <input
                     id="visual-start-time"
                     aria-label="Start Time"
-                    type="time" 
-                    value={eventStart.substring(11, 16)} 
-                    onChange={(e) => handleVisualStartTimeChange(e.target.value)} 
-                    disabled={isFormDisabled}
+                    type="time"
+                    value={eventStart.substring(11, 16)}
+                    onChange={(e) => handleVisualStartTimeChange(e.target.value)}
+                    disabled={isFormDisabled || isAllDayEvent}
                     style={{ width: '100%' }}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label htmlFor="visual-end-time" style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>종료 시간</label>
-                  <input 
+                  <input
                     id="visual-end-time"
                     aria-label="End Time"
-                    type="time" 
-                    value={eventEnd.substring(11, 16)} 
-                    onChange={(e) => handleVisualEndTimeChange(e.target.value)} 
-                    disabled={isFormDisabled}
+                    type="time"
+                    value={eventEnd.substring(11, 16)}
+                    onChange={(e) => handleVisualEndTimeChange(e.target.value)}
+                    disabled={isFormDisabled || isAllDayEvent}
                     style={{ width: '100%' }}
                   />
                 </div>
@@ -471,6 +462,29 @@ function PlannerModals({
               <input placeholder="" value={eventStart} onChange={(e) => setEventStart(e.target.value)} type="datetime-local" />
               <input placeholder="" value={eventEnd} onChange={(e) => setEventEnd(e.target.value)} type="datetime-local" />
             </div>
+            <label className="compact-toggle">
+              <input
+                aria-label="All Day Event"
+                type="checkbox"
+                checked={isAllDayEvent}
+                onChange={(event) => setIsAllDayEvent(event.target.checked)}
+                disabled={isFormDisabled}
+              />
+              하루종일
+            </label>
+            <label htmlFor="event-repeat-input">반복</label>
+            <select
+              id="event-repeat-input"
+              aria-label="Repeat Rule"
+              value={eventRrule}
+              onChange={(event) => setEventRrule(event.target.value)}
+              disabled={isFormDisabled}
+            >
+              <option value="">반복 없음</option>
+              <option value="FREQ=DAILY">매일</option>
+              <option value="FREQ=WEEKLY">매주</option>
+              <option value="FREQ=MONTHLY">매월</option>
+            </select>
             <button type="submit" aria-label="Add Event" className="primary-button" disabled={isFormDisabled}>일정 추가</button>
           </form>
         </div>
@@ -1066,25 +1080,6 @@ function DashboardPage() {
               <span className="menu-icon">📥</span>
               {!isSidebarCollapsed && <span>아이디어 보관함</span>}
             </button>
-          </div>
-
-          <div className="sidebar-section">
-            <div className="sidebar-section-header">
-              {!isSidebarCollapsed ? <span>공유 캘린더</span> : <span className="sr-only">공유 캘린더</span>}
-              {!isSidebarCollapsed && (
-                <button 
-                  className="sidebar-add-btn" 
-                  onClick={() => {
-                    setActiveModal('shared-calendar');
-                  }}
-                >
-                  +
-                </button>
-              )}
-            </div>
-            <div className="sidebar-section-content">
-              {!isSidebarCollapsed && <div className="sidebar-section-placeholder">가족, 친구들과 일정을 공유할 수 있습니다.</div>}
-            </div>
           </div>
 
         </aside>

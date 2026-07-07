@@ -62,7 +62,7 @@ class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
     def get_queryset(self):
-        return Event.objects.filter(calendar__memberships__user=self.request.user).select_related('calendar', 'category', 'creator')
+        return Event.objects.filter(calendar__memberships__user=self.request.user).select_related('calendar', 'creator')
 
     def perform_create(self, serializer):
         calendar = serializer.validated_data['calendar']
@@ -92,7 +92,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
     def get_queryset(self):
-        return Task.objects.filter(calendar__memberships__user=self.request.user).select_related('calendar', 'creator')
+        return Task.objects.filter(calendar__memberships__user=self.request.user).select_related('calendar', 'category', 'creator')
 
     def perform_create(self, serializer):
         calendar = serializer.validated_data['calendar']

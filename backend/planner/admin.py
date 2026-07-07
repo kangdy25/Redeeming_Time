@@ -24,7 +24,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('title', 'calendar', 'category', 'creator', 'start_time', 'end_time', 'is_all_day')
+    list_display = ('title', 'calendar', 'creator', 'start_time', 'end_time', 'is_all_day')
     list_filter = ('is_all_day',)
     search_fields = ('title', 'calendar__title', 'creator__email')
 
@@ -38,6 +38,6 @@ class EventAttendeeAdmin(admin.ModelAdmin):
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ('title', 'calendar', 'creator', 'target_date', 'priority', 'is_completed', 'order')
-    list_filter = ('priority', 'is_completed')
+    list_display = ('title', 'calendar', 'category', 'creator', 'target_date', 'priority', 'is_completed', 'order')
+    list_filter = ('priority', 'is_completed', 'category')
     search_fields = ('title', 'calendar__title', 'creator__email')

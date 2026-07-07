@@ -150,7 +150,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
   // ==========================================
   // FEATURE 2: Multi-Calendar Workspace Selection & Creation
   // ==========================================
-  describe('Feature 2: Multi-Calendar Workspace Selection & Creation', () => {
+  describe('Feature 2: Multi-Calendar Workspace Selection', () => {
     test('TC-T1-F2-01: Empty State Default', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.calendars = []; // Empty out calendars list
@@ -163,19 +163,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       expect(screen.queryByRole('button', { name: 'Add Task' })).not.toBeInTheDocument();
     });
 
-    test('TC-T1-F2-02: Create Calendar Action', async () => {
-      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
-      renderWithProviders(<App />);
-
-      const calendarInput = screen.getByLabelText('Calendar') as HTMLInputElement;
-      fireEvent.change(calendarInput, { target: { value: 'Work Space' } });
-      fireEvent.click(screen.getByRole('button', { name: 'Add Calendar' }));
-
-      await waitFor(() => {
-        expect(mockDb.calendars.some(c => c.title === 'Work Space')).toBe(true);
-      });
-    });
-
     test('TC-T1-F2-03: Switch Active Calendar', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.calendars = [
@@ -185,10 +172,10 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Personal Space')).toBeInTheDocument();
+        expect(screen.getAllByText('Personal Space').length).toBeGreaterThan(0);
       });
 
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
+      const select = screen.getByLabelText('Workspace') as HTMLSelectElement;
       fireEvent.change(select, { target: { value: '2' } });
 
       await waitFor(() => {
@@ -215,46 +202,13 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Personal Space')).toBeInTheDocument();
+        expect(screen.getAllByText('Personal Space').length).toBeGreaterThan(0);
       });
       // Set value in store directly
       usePlannerStore.getState().setActiveCalendarId(1);
       
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
+      const select = screen.getByLabelText('Workspace') as HTMLSelectElement;
       expect(select.value).toBe('1');
-    });
-
-    test('TC-T2-F2-01: Calendar Title Length Boundary', async () => {
-      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
-      renderWithProviders(<App />);
-      
-      const longTitle = 'a'.repeat(250);
-      const calendarInput = screen.getByLabelText('Calendar') as HTMLInputElement;
-      fireEvent.change(calendarInput, { target: { value: longTitle } });
-      fireEvent.click(screen.getByRole('button', { name: 'Add Calendar' }));
-
-      await waitFor(() => {
-        expect(mockDb.calendars.some(c => c.title === longTitle)).toBe(true);
-      });
-    });
-
-    test('TC-T2-F2-02: Calendar Create API Error Handling', async () => {
-      server.use(
-        http.post('http://localhost:8000/api/calendars/', () => {
-          return new HttpResponse(JSON.stringify({ detail: 'Limit reached' }), { status: 400 });
-        })
-      );
-      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
-      renderWithProviders(<App />);
-
-      const calendarInput = screen.getByLabelText('Calendar') as HTMLInputElement;
-      fireEvent.change(calendarInput, { target: { value: 'New Space' } });
-      fireEvent.click(screen.getByRole('button', { name: 'Add Calendar' }));
-
-      // Creation fails, active calendar should remain Personal Space (1)
-      await waitFor(() => {
-        expect(usePlannerStore.getState().activeCalendarId).not.toBe(2);
-      });
     });
 
     test('TC-T2-F2-03: Dynamic Sync and Reload Empty calendars List', async () => {
@@ -262,7 +216,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Personal Space')).toBeInTheDocument();
+        expect(screen.getAllByText('Personal Space').length).toBeGreaterThan(0);
       });
 
       // Clear DB and trigger snapshot reload
@@ -286,18 +240,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F2-05: Calendar Title Special Characters', async () => {
-      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
-      renderWithProviders(<App />);
-
-      const calendarInput = screen.getByLabelText('Calendar') as HTMLInputElement;
-      fireEvent.change(calendarInput, { target: { value: '🚀 Work & Plan 📅' } });
-      fireEvent.click(screen.getByRole('button', { name: 'Add Calendar' }));
-
-      await waitFor(() => {
-        expect(mockDb.calendars.some(c => c.title === '🚀 Work & Plan 📅')).toBe(true);
-      });
-    });
   });
 
   // ==========================================
@@ -393,14 +335,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F3-04: Category Assigned to Event Deleted', async () => {
+    test('TC-T2-F3-04: Event Rendering Without Category', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.events = [
         {
           id: 100,
           calendar: 1,
-          category: null,
-          category_detail: null, // deleted category
           creator: 1,
           title: 'Uncategorized Meeting',
           start_time: '2026-07-04T09:00:00Z',
@@ -463,15 +403,15 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       await waitFor(() => {
         const studyEvent = mockDb.events.find(e => e.title === 'Study Session');
         expect(studyEvent).toBeDefined();
-        expect(studyEvent?.category).toBeNull();
+        expect(studyEvent).not.toHaveProperty('category');
       });
     });
 
     test('TC-T1-F4-04: Event Count Display Update', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.events = [
-        { id: 101, calendar: 1, category: null, creator: 1, title: 'E1', start_time: '2026-07-04T00:00:00Z', end_time: '2026-07-04T01:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 102, calendar: 1, category: null, creator: 1, title: 'E2', start_time: '2026-07-04T00:00:00Z', end_time: '2026-07-04T01:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        { id: 101, calendar: 1, creator: 1, title: 'E1', start_time: '2026-07-04T00:00:00Z', end_time: '2026-07-04T01:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
+        { id: 102, calendar: 1, creator: 1, title: 'E2', start_time: '2026-07-04T00:00:00Z', end_time: '2026-07-04T01:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
       ];
       renderWithProviders(<App />);
 
@@ -526,7 +466,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         {
           id: 105,
           calendar: 1,
-          category: null,
           creator: 1,
           title: '3-Day Hackathon',
           start_time: '2026-07-04T09:00:00Z',
@@ -547,8 +486,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T2-F4-03: Overlapping Event Milliseconds', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.events = [
-        { id: 101, calendar: 1, category: null, creator: 1, title: 'E1', start_time: '2026-07-04T10:00:00.000Z', end_time: '2026-07-04T11:00:00.000Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 102, calendar: 1, category: null, creator: 1, title: 'E2', start_time: '2026-07-04T10:00:00.000Z', end_time: '2026-07-04T11:00:00.000Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        { id: 101, calendar: 1, creator: 1, title: 'E1', start_time: '2026-07-04T10:00:00.000Z', end_time: '2026-07-04T11:00:00.000Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
+        { id: 102, calendar: 1, creator: 1, title: 'E2', start_time: '2026-07-04T10:00:00.000Z', end_time: '2026-07-04T11:00:00.000Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
       ];
       renderWithProviders(<App />);
 
@@ -562,7 +501,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       const giantTitle = 'E'.repeat(250);
       mockDb.events = [
-        { id: 101, calendar: 1, category: null, creator: 1, title: giantTitle, start_time: '2026-07-04T10:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        { id: 101, calendar: 1, creator: 1, title: giantTitle, start_time: '2026-07-04T10:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
       ];
       renderWithProviders(<App />);
 
@@ -695,7 +634,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       mockDb.events = Array.from({ length: 5 }, (_, i) => ({
         id: 101 + i,
         calendar: 1,
-        category: null,
         creator: 1,
         title: `Event ${i + 1}`,
         start_time: '2026-07-04T10:00:00Z',
@@ -721,7 +659,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       mockDb.events = Array.from({ length: 5 }, (_, i) => ({
         id: 101 + i,
         calendar: 1,
-        category: null,
         creator: 1,
         title: `Event ${i + 1}`,
         start_time: '2026-07-04T10:00:00Z',
@@ -780,7 +717,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       mockDb.events = Array.from({ length: 120 }, (_, i) => ({
         id: 101 + i,
         calendar: 1,
-        category: null,
         creator: 1,
         title: `Perf Event ${i}`,
         start_time: '2026-07-04T10:00:00Z',
@@ -797,14 +733,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F5-04: Missing Category Detail Rendering', async () => {
+    test('TC-T2-F5-04: Plain Event Rendering Uses Default Accent', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.events = [
         {
           id: 110,
           calendar: 1,
-          category: 9999, // missing category
-          category_detail: null,
           creator: 1,
           title: 'Orphan Event',
           start_time: '2026-07-04T10:00:00Z',
@@ -830,7 +764,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         {
           id: 111,
           calendar: 1,
-          category: null,
           creator: 1,
           title: 'Midnight Border Event',
           start_time: '2026-07-04T23:30:00Z',
@@ -936,7 +869,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         {
           id: 112,
           calendar: 1,
-          category: null,
           creator: 1,
           title: 'Week Span Event',
           start_time: '2026-06-27T00:00:00Z',
@@ -961,7 +893,6 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         {
           id: 113,
           calendar: 1,
-          category: null,
           creator: 1,
           title: 'Midnight Start',
           start_time: '2026-07-04T00:00:00Z',
@@ -993,8 +924,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       // Add two events on Saturday
       mockDb.events = [
-        { id: 114, calendar: 1, category: null, creator: 1, title: 'Later Event', start_time: '2026-07-04T15:00:00Z', end_time: '2026-07-04T16:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 115, calendar: 1, category: null, creator: 1, title: 'Earlier Event', start_time: '2026-07-04T08:00:00Z', end_time: '2026-07-04T09:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        { id: 114, calendar: 1, creator: 1, title: 'Later Event', start_time: '2026-07-04T15:00:00Z', end_time: '2026-07-04T16:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
+        { id: 115, calendar: 1, creator: 1, title: 'Earlier Event', start_time: '2026-07-04T08:00:00Z', end_time: '2026-07-04T09:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
       ];
       renderWithProviders(<App />);
 
