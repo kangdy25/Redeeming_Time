@@ -18,6 +18,7 @@ import {
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const priorities: TaskPriority[] = ['HIGH', 'MEDIUM', 'LOW', 'NONE'];
+type PlannerModalKind = 'settings' | 'event' | 'shared-calendar';
 const KOREA_HOLIDAY_COLOR = '#EF4444';
 const KOREA_LEGAL_HOLIDAYS_2026 = [
   { date: '2026-01-01', title: '신정' },
@@ -259,18 +260,16 @@ function AuthPanel() {
   );
 }
 
-function CalendarControls({ 
-  calendars, 
-  isLoading, 
-  activeTab, 
-  setActiveTab, 
+function PlannerModals({
+  calendars,
+  isLoading,
+  modalKind,
   eventDraftDate,
   onClose 
 }: { 
   calendars: Calendar[]; 
   isLoading?: boolean; 
-  activeTab: 'calendar' | 'category' | 'event' | 'task';
-  setActiveTab: (tab: 'calendar' | 'category' | 'event' | 'task') => void;
+  modalKind: PlannerModalKind;
   eventDraftDate?: string;
   onClose: () => void;
 }) {
@@ -279,7 +278,6 @@ function CalendarControls({
   const createCalendar = useCreateCalendar();
   const createCategory = useCreateCategory();
   const createEvent = useCreateEvent();
-  const createTask = useCreateTask();
   const today = new Date();
 
   const selectedCalendarId = activeCalendarId ?? calendars[0]?.id ?? 0;
@@ -295,9 +293,24 @@ function CalendarControls({
   const [eventTitle, setEventTitle] = useState('Focused planning block');
   const [eventStart, setEventStart] = useState(localInputValue(today, 9));
   const [eventEnd, setEventEnd] = useState(localInputValue(today, 10));
-  const [taskTitle, setTaskTitle] = useState('Review today before evening');
-  const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [formMessage, setFormMessage] = useState('');
+  const modalCopy = {
+    settings: {
+      eyebrow: 'Settings',
+      title: '설정',
+      closeLabel: 'Close settings',
+    },
+    event: {
+      eyebrow: 'Schedule',
+      title: '일정 추가',
+      closeLabel: 'Close event composer',
+    },
+    'shared-calendar': {
+      eyebrow: 'Shared Calendar',
+      title: '공유 캘린더',
+      closeLabel: 'Close shared calendar',
+    },
+  }[modalKind];
 
   useEffect(() => {
     if (!eventDraftDate) return;
@@ -376,78 +389,29 @@ function CalendarControls({
     }
   }
 
-  async function addTask(event: FormEvent) {
-    event.preventDefault();
-    const calId = selectedCalendarId || calendars[0]?.id || 1;
-    setFormMessage('');
-    try {
-      await createTask.mutateAsync({
-        calendar: calId,
-        title: taskTitle,
-        target_date: isoDate(today),
-        priority,
-        order: 0,
-      });
-      setFormMessage('할일이 추가되었습니다.');
-    } catch (error) {
-      setFormMessage(error instanceof Error ? error.message : '할일 추가에 실패했습니다.');
-    }
-  }
-
   return (
     <section className="planner-panel controls-panel">
       <div className="control-header">
         <div>
-          <p className="eyebrow">Planner Setup</p>
-          <h2>설정 및 데이터 관리</h2>
+          <p className="eyebrow">{modalCopy.eyebrow}</p>
+          <h2>{modalCopy.title}</h2>
         </div>
-        <button className="icon-btn close-btn" onClick={onClose} style={{ fontSize: '18px' }} aria-label="Close settings">✕</button>
-      </div>
-
-      <div className="modal-tabs">
-        <button 
-          type="button" 
-          className={`tab-btn ${activeTab === 'calendar' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('calendar')}
-        >
-          캘린더
-        </button>
-        <button 
-          type="button" 
-          className={`tab-btn ${activeTab === 'category' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('category')}
-        >
-          카테고리
-        </button>
-        <button 
-          type="button" 
-          className={`tab-btn ${activeTab === 'event' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('event')}
-        >
-          일정
-        </button>
-        <button 
-          type="button" 
-          className={`tab-btn ${activeTab === 'task' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('task')}
-        >
-          할일
-        </button>
+        <button className="icon-btn close-btn" onClick={onClose} style={{ fontSize: '18px' }} aria-label={modalCopy.closeLabel}>✕</button>
       </div>
 
       <div className="control-grid">
-        <div className={activeTab === 'calendar' ? 'tab-content active' : 'tab-content hidden-tab'}>
+        <div className={modalKind === 'shared-calendar' ? 'tab-content active' : 'tab-content hidden-tab'}>
           <form onSubmit={addCalendar}>
-            <label htmlFor="calendar-title-input">새 캘린더 워크스페이스</label>
+            <label htmlFor="calendar-title-input">새 공유 캘린더</label>
             <label htmlFor="calendar-title-input" className="sr-only">Calendar</label>
             <input id="calendar-title-input" aria-label="Calendar" value={calendarTitle} onChange={(event) => setCalendarTitle(event.target.value)} />
-            <button type="submit" aria-label="Add Calendar" className="primary-button">캘린더 추가</button>
+            <button type="submit" aria-label="Add Calendar" className="primary-button">공유 캘린더 추가</button>
           </form>
         </div>
 
-        <div className={activeTab === 'category' ? 'tab-content active' : 'tab-content hidden-tab'}>
+        <div className={modalKind === 'settings' ? 'tab-content active' : 'tab-content hidden-tab'}>
           <form onSubmit={addCategory}>
-            <label htmlFor="category-name-input">새 카테고리 이름</label>
+            <label htmlFor="category-name-input">할일 카테고리</label>
             <label htmlFor="category-name-input" className="sr-only">Category</label>
             <div className="inline-inputs">
               <input id="category-name-input" aria-label="Category" value={categoryName} onChange={(event) => setCategoryName(event.target.value)} disabled={isFormDisabled} />
@@ -457,7 +421,7 @@ function CalendarControls({
           </form>
         </div>
 
-        <div className={activeTab === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
+        <div className={modalKind === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
           <form onSubmit={addEvent}>
             <label htmlFor="event-title-input">새 일정명</label>
             <label htmlFor="event-title-input" className="sr-only">Event</label>
@@ -508,61 +472,6 @@ function CalendarControls({
               <input placeholder="" value={eventEnd} onChange={(e) => setEventEnd(e.target.value)} type="datetime-local" />
             </div>
             <button type="submit" aria-label="Add Event" className="primary-button" disabled={isFormDisabled}>일정 추가</button>
-          </form>
-        </div>
-
-        <div className={activeTab === 'task' ? 'tab-content active' : 'tab-content hidden-tab'}>
-          <form onSubmit={addTask}>
-            <label htmlFor="task-title-input">새 할일명</label>
-            <label htmlFor="task-title-input" className="sr-only">Task</label>
-            <input id="task-title-input" aria-label="Task" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} disabled={isFormDisabled} />
-            <div className="inline-inputs" style={{ gap: '8px', margin: '6px 0' }}>
-              {priorities.map((val) => {
-                const isActive = priority === val;
-                let activeColor = '#94A3B8';
-                if (val === 'HIGH') activeColor = '#FF5A5F';
-                else if (val === 'MEDIUM') activeColor = '#FEA100';
-                else if (val === 'LOW') activeColor = '#38BDF8';
-                
-                return (
-                  <button
-                    type="button"
-                    key={val}
-                    className={`priority-select-btn ${isActive ? 'active' : ''}`}
-                    style={{
-                      flex: 1,
-                      backgroundColor: 'transparent',
-                      color: isActive ? activeColor : 'var(--color-text-secondary)',
-                      border: isActive ? `2px solid ${activeColor}` : '1px solid var(--color-border)',
-                      borderRadius: '8px',
-                      fontWeight: 'bold',
-                      fontSize: '11px',
-                      padding: '8px 6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: isActive ? `0 0 8px ${activeColor}33` : 'none',
-                    }}
-                    onClick={() => setPriority(val)}
-                    disabled={isFormDisabled}
-                  >
-                    <span style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      backgroundColor: activeColor,
-                      display: 'inline-block',
-                      opacity: isActive ? 1 : 0.6
-                    }} />
-                    {val.charAt(0) + val.slice(1).toLowerCase()}
-                  </button>
-                );
-              })}
-            </div>
-            <button type="submit" aria-label="Add Task" className="primary-button" disabled={isFormDisabled}>할일 추가</button>
           </form>
         </div>
       </div>
@@ -982,8 +891,7 @@ function DashboardPage() {
   const [activeView, setActiveView] = useState<'week' | 'month'>(isFeature6Test ? 'week' : 'month');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsActiveTab, setSettingsActiveTab] = useState<'calendar' | 'category' | 'event' | 'task'>('calendar');
+  const [activeModal, setActiveModal] = useState<PlannerModalKind | null>(null);
   const [mobilePanel, setMobilePanel] = useState<'calendar' | 'menu' | 'tasks'>('calendar');
   const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'routine' | 'inbox'>('calendar');
   const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
@@ -1022,8 +930,7 @@ function DashboardPage() {
 
   function openEventComposerForDate(date: string) {
     setEventDraftDate(date);
-    setSettingsActiveTab('event');
-    setIsSettingsOpen(true);
+    setActiveModal('event');
     setMobilePanel('calendar');
   }
 
@@ -1168,8 +1075,7 @@ function DashboardPage() {
                 <button 
                   className="sidebar-add-btn" 
                   onClick={() => {
-                    setSettingsActiveTab('calendar');
-                    setIsSettingsOpen(true);
+                    setActiveModal('shared-calendar');
                   }}
                 >
                   +
@@ -1250,8 +1156,7 @@ function DashboardPage() {
         <button 
           className="settings-toggle-btn" 
           onClick={() => {
-            setSettingsActiveTab('calendar');
-            setIsSettingsOpen(!isSettingsOpen);
+            setActiveModal((current) => current === 'settings' ? null : 'settings');
           }} 
           aria-label="Toggle Setup Panel"
         >
@@ -1293,8 +1198,7 @@ function DashboardPage() {
         <button
           type="button"
           onClick={() => {
-            setSettingsActiveTab('calendar');
-            setIsSettingsOpen(true);
+            setActiveModal(activeSection === 'calendar' ? 'event' : 'settings');
           }}
         >
           <span>＋</span>
@@ -1303,15 +1207,14 @@ function DashboardPage() {
       </nav>
 
       {/* Centered Settings/Setup Modal Overlay */}
-      <div className={`modal-overlay ${isSettingsOpen ? 'visible' : 'hidden'}`} onClick={() => setIsSettingsOpen(false)}>
+      <div className={`modal-overlay ${activeModal ? 'visible' : 'hidden'}`} onClick={() => setActiveModal(null)}>
         <div className="modal-content-wrapper" onClick={(e) => e.stopPropagation()}>
-          <CalendarControls 
+          <PlannerModals
             calendars={calendars} 
             isLoading={snapshot.isLoading} 
-            activeTab={settingsActiveTab}
-            setActiveTab={setSettingsActiveTab}
+            modalKind={activeModal ?? 'settings'}
             eventDraftDate={eventDraftDate}
-            onClose={() => setIsSettingsOpen(false)}
+            onClose={() => setActiveModal(null)}
           />
         </div>
       </div>

@@ -160,7 +160,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       // Ensure category input form or buttons are disabled when empty
       expect(screen.getByRole('button', { name: 'Add Category' })).toBeDisabled();
       expect(screen.getByRole('button', { name: 'Add Event' })).toBeDisabled();
-      expect(screen.getByRole('button', { name: 'Add Task' })).toBeDisabled();
+      expect(screen.queryByRole('button', { name: 'Add Task' })).not.toBeInTheDocument();
     });
 
     test('TC-T1-F2-02: Create Calendar Action', async () => {
@@ -633,7 +633,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(julyFourthCell as Element);
 
       await waitFor(() => {
+        expect(screen.getByRole('heading', { name: '일정 추가' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Event' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Add Task' })).not.toBeInTheDocument();
         expect(screen.queryByText('할일 연속성')).not.toBeInTheDocument();
         expect((screen.getByLabelText('일정 날짜') as HTMLInputElement).value).toBe('2026-07-04');
       });
