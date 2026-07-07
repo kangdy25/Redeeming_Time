@@ -767,12 +767,12 @@ function TaskBoard({
           </div>
           <div className="rollover-action-bar">
             <div>
-              <span>Rollover</span>
-              <strong>{overdueCount > 0 ? `${overdueCount}개 할일이 오늘로 이어질 수 있습니다.` : '이월 대기 중인 할일이 없습니다.'}</strong>
+              <span>이월 관리</span>
+              <strong>{overdueCount > 0 ? `${overdueCount}개 할일 대기` : '이월 없음'}</strong>
+              <button type="button" onClick={rolloverOverdueTasks} disabled={overdueCount === 0 || isRollingOver}>
+                {isRollingOver ? '이월 중...' : '이월 할일 오늘로'}
+              </button>
             </div>
-            <button type="button" onClick={rolloverOverdueTasks} disabled={overdueCount === 0 || isRollingOver}>
-              {isRollingOver ? '이월 중...' : '이월 할일 오늘로'}
-            </button>
           </div>
         </div>
       </div>
