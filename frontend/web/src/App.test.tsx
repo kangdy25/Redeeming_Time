@@ -13,6 +13,17 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     mockDb.reset();
   });
 
+  function openTaskBoard() {
+    fireEvent.click(screen.getByRole('button', { name: '📋 할일 보드' }));
+  }
+
+  async function openTaskBoardReady() {
+    openTaskBoard();
+    await waitFor(() => {
+      expect(screen.getByLabelText('Category')).not.toBeDisabled();
+    });
+  }
+
   // ==========================================
   // FEATURE 1: User Authentication & Session Lifecycle (Auth)
   // ==========================================
@@ -157,6 +168,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       expect(screen.getByText('No calendar')).toBeInTheDocument();
+      openTaskBoard();
       // Ensure category input form or buttons are disabled when empty
       expect(screen.getByRole('button', { name: 'Add Category' })).toBeDisabled();
       expect(screen.getByRole('button', { name: 'Add Event' })).toBeDisabled();
@@ -235,6 +247,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       // Set to invalid calendar ID
       usePlannerStore.getState().setActiveCalendarId(999);
       
+      openTaskBoard();
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Add Category' })).toBeDisabled();
       });
@@ -251,14 +264,16 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       mockDb.calendars = [];
       renderWithProviders(<App />);
 
+      openTaskBoard();
       const catInput = screen.getByLabelText('Category') as HTMLInputElement;
       expect(catInput).toBeDisabled();
     });
 
-    test('TC-T1-F3-02: Color Selection Update', () => {
+    test('TC-T1-F3-02: Color Selection Update', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
+      await openTaskBoardReady();
       const colorInput = screen.getByLabelText('Category color') as HTMLInputElement;
       fireEvent.change(colorInput, { target: { value: '#FF5733' } });
       expect(colorInput.value).toBe('#ff5733');
@@ -268,6 +283,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
+      await openTaskBoardReady();
       fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Health' } });
       fireEvent.change(screen.getByLabelText('Category color'), { target: { value: '#00ff00' } });
       fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
@@ -304,6 +320,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
+      await openTaskBoardReady();
       fireEvent.change(screen.getByLabelText('Category'), { target: { value: '   ' } });
       fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
 
@@ -313,10 +330,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F3-02: Invalid Color Code Parsing', () => {
+    test('TC-T2-F3-02: Invalid Color Code Parsing', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
+      await openTaskBoardReady();
       const colorInput = screen.getByLabelText('Category color') as HTMLInputElement;
       // HTML5 color picker only accepts standard Hex values, invalid color value is ignored
       fireEvent.change(colorInput, { target: { value: 'rgb(255,0,0)' } });
@@ -327,6 +345,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
+      await openTaskBoardReady();
       fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Deep Work' } });
       fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
 
@@ -358,10 +377,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F3-05: Hex Color Lowercase/Uppercase Standardization', () => {
+    test('TC-T2-F3-05: Hex Color Lowercase/Uppercase Standardization', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
+      await openTaskBoardReady();
       const colorInput = screen.getByLabelText('Category color') as HTMLInputElement;
       fireEvent.change(colorInput, { target: { value: '#ABCDEF' } });
       expect(colorInput.value.toLowerCase()).toBe('#abcdef');
@@ -824,7 +844,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
-        expect(satColumn.querySelector('small')).toHaveTextContent('Overloaded Focus block');
+        expect(satColumn.querySelector('.week-event')).toHaveTextContent('Overloaded Focus block');
       });
     });
 
@@ -834,7 +854,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
-        const eventLabel = satColumn.querySelector('small');
+        const eventLabel = satColumn.querySelector('.week-event');
         expect(eventLabel).toHaveStyle({ color: 'rgb(20, 184, 166)' }); // #14B8A6
       });
     });
@@ -931,7 +951,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
-        const labels = Array.from(satColumn.querySelectorAll('small')).map(el => el.textContent);
+        const labels = Array.from(satColumn.querySelectorAll('.week-event')).map(el => el.textContent);
         // Sorted chronological order, or the way the backend returns them. They should both be in the rail.
         expect(labels).toContain('Earlier Event');
         expect(labels).toContain('Later Event');

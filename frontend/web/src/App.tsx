@@ -10,6 +10,7 @@ import {
   usePlannerStore,
   useToggleTask,
   type Calendar,
+  type Category,
   type Event,
   type Task,
   type TaskPriority,
@@ -63,6 +64,16 @@ function localInputValue(date: Date, hour: number) {
 
 function toApiDateTime(value: string) {
   return new Date(value).toISOString();
+}
+
+function toLocalDateTimeInput(value: string) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 function monthCells(anchor: Date) {
@@ -262,16 +273,17 @@ function PlannerModals({
   isLoading,
   modalKind,
   eventDraftDate,
+  selectedEvent,
   onClose 
 }: { 
   calendars: Calendar[]; 
   isLoading?: boolean; 
   modalKind: PlannerModalKind;
   eventDraftDate?: string;
+  selectedEvent?: Event | null;
   onClose: () => void;
 }) {
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
-  const createCategory = useCreateCategory();
   const createEvent = useCreateEvent();
   const today = new Date();
 
@@ -282,8 +294,6 @@ function PlannerModals({
   const isFormDisabled = isDbEmpty
     ? true
     : ((!selectedCalendarId && !isLoading) || (activeCalendarId !== null && !activeCalendarExists));
-  const [categoryName, setCategoryName] = useState('Deep Work');
-  const [categoryColor, setCategoryColor] = useState('#14B8A6');
   const [eventCalendarId, setEventCalendarId] = useState(selectedCalendarId);
   const [eventTitle, setEventTitle] = useState('Focused planning block');
   const [eventDescription, setEventDescription] = useState('');
@@ -292,6 +302,8 @@ function PlannerModals({
   const [isAllDayEvent, setIsAllDayEvent] = useState(false);
   const [eventRrule, setEventRrule] = useState('');
   const [formMessage, setFormMessage] = useState('');
+  const isReadOnlyEvent = !!selectedEvent && isKoreaHolidayEvent(selectedEvent);
+  const isEditingEvent = !!selectedEvent && !isReadOnlyEvent;
   const modalCopy = {
     settings: {
       eyebrow: 'Settings',
@@ -304,15 +316,34 @@ function PlannerModals({
       closeLabel: 'Close event composer',
     },
   }[modalKind];
+  const modalTitle = modalKind === 'event' && selectedEvent ? '일정 상세' : modalCopy.title;
 
   useEffect(() => {
     setEventCalendarId(selectedCalendarId);
   }, [selectedCalendarId]);
 
   useEffect(() => {
+    if (!selectedEvent) return;
+    setEventCalendarId(selectedEvent.calendar);
+    setEventTitle(selectedEvent.title);
+    setEventDescription(selectedEvent.description);
+    setEventStart(toLocalDateTimeInput(selectedEvent.start_time));
+    setEventEnd(toLocalDateTimeInput(selectedEvent.end_time));
+    setIsAllDayEvent(selectedEvent.is_all_day);
+    setEventRrule(selectedEvent.rrule);
+    setFormMessage('');
+  }, [selectedEvent]);
+
+  useEffect(() => {
+    if (selectedEvent) return;
     if (!eventDraftDate) return;
     handleVisualDateChange(eventDraftDate);
-  }, [eventDraftDate]);
+    setEventTitle('Focused planning block');
+    setEventDescription('');
+    setIsAllDayEvent(false);
+    setEventRrule('');
+    setFormMessage('');
+  }, [eventDraftDate, selectedEvent]);
 
   const handleVisualDateChange = (newDateVal: string) => {
     const currentStartTime = eventStart.substring(11, 16) || '09:00';
@@ -331,40 +362,41 @@ function PlannerModals({
     setEventEnd(`${currentDate}T${newTimeVal}`);
   };
 
-  async function addCategory(event: FormEvent) {
-    event.preventDefault();
-    const calId = selectedCalendarId || calendars[0]?.id || 1;
-    setFormMessage('');
-    try {
-      await createCategory.mutateAsync({
-        calendar: calId,
-        name: categoryName,
-        color_code: categoryColor,
-      });
-      setFormMessage('카테고리가 추가되었습니다.');
-    } catch (error) {
-      setFormMessage(error instanceof Error ? error.message : '카테고리 추가에 실패했습니다.');
-    }
-  }
-
   async function addEvent(event: FormEvent) {
     event.preventDefault();
     const calId = eventCalendarId || selectedCalendarId || calendars[0]?.id || 1;
     const eventDate = eventStart.substring(0, 10);
+    const payload = {
+      calendar: calId,
+      title: eventTitle,
+      description: eventDescription,
+      start_time: toApiDateTime(isAllDayEvent ? `${eventDate}T00:00` : eventStart),
+      end_time: toApiDateTime(isAllDayEvent ? `${eventDate}T23:59` : eventEnd),
+      is_all_day: isAllDayEvent,
+      rrule: eventRrule,
+    };
     setFormMessage('');
     try {
-      await createEvent.mutateAsync({
-        calendar: calId,
-        title: eventTitle,
-        description: eventDescription,
-        start_time: toApiDateTime(isAllDayEvent ? `${eventDate}T00:00` : eventStart),
-        end_time: toApiDateTime(isAllDayEvent ? `${eventDate}T23:59` : eventEnd),
-        is_all_day: isAllDayEvent,
-        rrule: eventRrule,
-      });
-      setFormMessage('일정이 추가되었습니다.');
+      if (isEditingEvent) {
+        await apiClient.updateEvent(selectedEvent.id, payload);
+        setFormMessage('일정이 수정되었습니다.');
+      } else {
+        await createEvent.mutateAsync(payload);
+        setFormMessage('일정이 추가되었습니다.');
+      }
     } catch (error) {
-      setFormMessage(error instanceof Error ? error.message : '일정 추가에 실패했습니다.');
+      setFormMessage(error instanceof Error ? error.message : isEditingEvent ? '일정 수정에 실패했습니다.' : '일정 추가에 실패했습니다.');
+    }
+  }
+
+  async function deleteSelectedEvent() {
+    if (!selectedEvent || isReadOnlyEvent) return;
+    setFormMessage('');
+    try {
+      await apiClient.deleteEvent(selectedEvent.id);
+      onClose();
+    } catch (error) {
+      setFormMessage(error instanceof Error ? error.message : '일정 삭제에 실패했습니다.');
     }
   }
 
@@ -373,22 +405,23 @@ function PlannerModals({
       <div className="control-header">
         <div>
           <p className="eyebrow">{modalCopy.eyebrow}</p>
-          <h2>{modalCopy.title}</h2>
+          <h2>{modalTitle}</h2>
         </div>
         <button className="icon-btn close-btn" onClick={onClose} style={{ fontSize: '18px' }} aria-label={modalCopy.closeLabel}>✕</button>
       </div>
 
       <div className="control-grid">
         <div className={modalKind === 'settings' ? 'tab-content active' : 'tab-content hidden-tab'}>
-          <form onSubmit={addCategory}>
-            <label htmlFor="category-name-input">할일 카테고리</label>
-            <label htmlFor="category-name-input" className="sr-only">Category</label>
-            <div className="inline-inputs">
-              <input id="category-name-input" aria-label="Category" value={categoryName} onChange={(event) => setCategoryName(event.target.value)} disabled={isFormDisabled} />
-              <input aria-label="Category color" value={categoryColor} onChange={(event) => setCategoryColor(event.target.value)} type="color" disabled={isFormDisabled} />
+          <div className="settings-only-panel">
+            <div>
+              <span>현재 워크스페이스</span>
+              <strong>{calendars.find((calendar) => calendar.id === selectedCalendarId)?.title ?? '선택된 캘린더 없음'}</strong>
             </div>
-            <button type="submit" aria-label="Add Category" className="primary-button" disabled={isFormDisabled}>카테고리 추가</button>
-          </form>
+            <div>
+              <span>동기화 상태</span>
+              <strong>{isLoading ? '불러오는 중' : isDbEmpty ? '캘린더 필요' : '준비됨'}</strong>
+            </div>
+          </div>
         </div>
 
         <div className={modalKind === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
@@ -401,7 +434,7 @@ function PlannerModals({
                   aria-label="Event Calendar"
                   value={eventCalendarId}
                   onChange={(event) => setEventCalendarId(Number(event.target.value))}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isReadOnlyEvent}
                 >
                   {calendars.map((calendar) => (
                     <option value={calendar.id} key={calendar.id}>{calendar.title}</option>
@@ -411,7 +444,7 @@ function PlannerModals({
               <div className="field-stack field-span-2">
                 <label htmlFor="event-title-input">새 일정명</label>
                 <label htmlFor="event-title-input" className="sr-only">Event</label>
-                <input id="event-title-input" aria-label="Event" value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} disabled={isFormDisabled} />
+                <input id="event-title-input" aria-label="Event" value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} disabled={isFormDisabled || isReadOnlyEvent} />
               </div>
               <div className="field-stack field-span-2">
                 <label htmlFor="event-description-input">설명</label>
@@ -420,7 +453,7 @@ function PlannerModals({
                   aria-label="Event Description"
                   value={eventDescription}
                   onChange={(event) => setEventDescription(event.target.value)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isReadOnlyEvent}
                   rows={2}
                 />
               </div>
@@ -431,7 +464,7 @@ function PlannerModals({
                   type="date"
                   value={eventStart.substring(0, 10)}
                   onChange={(e) => handleVisualDateChange(e.target.value)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isReadOnlyEvent}
                 />
               </div>
               <div className="time-pair">
@@ -443,7 +476,7 @@ function PlannerModals({
                     type="time"
                     value={eventStart.substring(11, 16)}
                     onChange={(e) => handleVisualStartTimeChange(e.target.value)}
-                    disabled={isFormDisabled || isAllDayEvent}
+                    disabled={isFormDisabled || isAllDayEvent || isReadOnlyEvent}
                   />
                 </div>
                 <div className="field-stack">
@@ -454,7 +487,7 @@ function PlannerModals({
                     type="time"
                     value={eventEnd.substring(11, 16)}
                     onChange={(e) => handleVisualEndTimeChange(e.target.value)}
-                    disabled={isFormDisabled || isAllDayEvent}
+                    disabled={isFormDisabled || isAllDayEvent || isReadOnlyEvent}
                   />
                 </div>
                 <label className="compact-toggle">
@@ -463,7 +496,7 @@ function PlannerModals({
                     type="checkbox"
                     checked={isAllDayEvent}
                     onChange={(event) => setIsAllDayEvent(event.target.checked)}
-                    disabled={isFormDisabled}
+                    disabled={isFormDisabled || isReadOnlyEvent}
                   />
                   하루종일
                 </label>
@@ -475,7 +508,7 @@ function PlannerModals({
                   aria-label="Repeat Rule"
                   value={eventRrule}
                   onChange={(event) => setEventRrule(event.target.value)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isReadOnlyEvent}
                 >
                   <option value="">반복 없음</option>
                   <option value="FREQ=DAILY">매일</option>
@@ -490,7 +523,16 @@ function PlannerModals({
               <input placeholder="" value={eventStart} onChange={(e) => setEventStart(e.target.value)} type="datetime-local" />
               <input placeholder="" value={eventEnd} onChange={(e) => setEventEnd(e.target.value)} type="datetime-local" />
             </div>
-            <button type="submit" aria-label="Add Event" className="primary-button" disabled={isFormDisabled}>일정 추가</button>
+            <div className="modal-action-row">
+              {isEditingEvent && (
+                <button type="button" className="danger-button" onClick={deleteSelectedEvent}>
+                  일정 삭제
+                </button>
+              )}
+              <button type="submit" aria-label="Add Event" className="primary-button" disabled={isFormDisabled || isReadOnlyEvent}>
+                {isEditingEvent ? '일정 저장' : isReadOnlyEvent ? '공휴일 보기' : '일정 추가'}
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -499,7 +541,17 @@ function PlannerModals({
   );
 }
 
-function MonthGrid({ events, anchor, onDateSelect }: { events: Event[]; anchor: Date; onDateSelect?: (date: string) => void }) {
+function MonthGrid({
+  events,
+  anchor,
+  onDateSelect,
+  onEventSelect,
+}: {
+  events: Event[];
+  anchor: Date;
+  onDateSelect?: (date: string) => void;
+  onEventSelect?: (event: Event) => void;
+}) {
   const cells = useMemo(() => monthCells(anchor), [anchor]);
   const currentMonth = anchor.getMonth();
   const todayStr = isoDate(new Date());
@@ -523,7 +575,18 @@ function MonthGrid({ events, anchor, onDateSelect }: { events: Event[]; anchor: 
             <div className="date-number">{date.getDate()}</div>
             <div className="event-stack">
               {dayEvents.slice(0, 3).map((event) => (
-                <div className="event-pill" style={eventStyle(event)} key={event.id}>{event.title}</div>
+                <button
+                  type="button"
+                  className="event-pill"
+                  style={eventStyle(event)}
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onEventSelect?.(event);
+                  }}
+                  key={event.id}
+                >
+                  {event.title}
+                </button>
               ))}
               {dayEvents.length > 3 && <span className="more-count">+{dayEvents.length - 3}</span>}
             </div>
@@ -534,7 +597,17 @@ function MonthGrid({ events, anchor, onDateSelect }: { events: Event[]; anchor: 
   );
 }
 
-function WeekRail({ events, anchor, onDateSelect }: { events: Event[]; anchor: Date; onDateSelect?: (date: string) => void }) {
+function WeekRail({
+  events,
+  anchor,
+  onDateSelect,
+  onEventSelect,
+}: {
+  events: Event[];
+  anchor: Date;
+  onDateSelect?: (date: string) => void;
+  onEventSelect?: (event: Event) => void;
+}) {
   const weekStart = new Date(anchor);
   weekStart.setDate(anchor.getDate() - anchor.getDay());
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -552,7 +625,18 @@ function WeekRail({ events, anchor, onDateSelect }: { events: Event[]; anchor: D
             <span>{weekdayLabels[date.getDay()]}</span>
             <strong>{date.getDate()}</strong>
             {events.filter((event) => sameDate(event, date)).slice(0, 2).map((event) => (
-              <small style={{ color: isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : '#14B8A6' }} key={event.id}>{event.title}</small>
+              <button
+                type="button"
+                className="week-event"
+                style={{ color: isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : '#14B8A6' }}
+                onClick={(clickEvent) => {
+                  clickEvent.stopPropagation();
+                  onEventSelect?.(event);
+                }}
+                key={event.id}
+              >
+                {event.title}
+              </button>
             ))}
           </div>
         );
@@ -568,17 +652,20 @@ function taskBoardDateLabel(value: string) {
 
 function TaskBoard({
   tasks,
+  categories,
   calendarId,
   selectedDate,
   setSelectedDate,
 }: {
   tasks: Task[];
+  categories: Category[];
   calendarId: number;
   selectedDate: string;
   setSelectedDate: (date: string) => void;
 }) {
   const toggleTask = useToggleTask();
   const createTask = useCreateTask();
+  const createCategory = useCreateCategory();
   const today = isoDate(new Date());
   const [miniMonth, setMiniMonth] = useState(() => {
     const date = new Date(`${selectedDate}T00:00:00`);
@@ -586,6 +673,9 @@ function TaskBoard({
   });
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [quickTaskPriority, setQuickTaskPriority] = useState<TaskPriority>('MEDIUM');
+  const [quickTaskCategory, setQuickTaskCategory] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryColor, setNewCategoryColor] = useState('#14B8A6');
   const [quickTaskMessage, setQuickTaskMessage] = useState('');
   const [rolloverMessage, setRolloverMessage] = useState('');
   const [isRollingOver, setIsRollingOver] = useState(false);
@@ -597,6 +687,7 @@ function TaskBoard({
   const completionRate = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
   const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
   const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
+  const taskCategories = categories.filter((category) => category.calendar === calendarId);
   const taskCountByDate = tasks.reduce<Record<string, number>>((counts, task) => {
     counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
     return counts;
@@ -623,6 +714,7 @@ function TaskBoard({
     try {
       await createTask.mutateAsync({
         calendar: calendarId,
+        category: quickTaskCategory ? Number(quickTaskCategory) : null,
         title,
         target_date: selectedDate,
         priority: quickTaskPriority,
@@ -632,6 +724,33 @@ function TaskBoard({
       setQuickTaskMessage('할일이 추가되었습니다.');
     } catch (error) {
       setQuickTaskMessage(error instanceof Error ? error.message : '할일 추가에 실패했습니다.');
+    }
+  }
+
+  async function addTaskCategory(event: FormEvent) {
+    event.preventDefault();
+    const name = newCategoryName.trim();
+    if (!name) {
+      setQuickTaskMessage('카테고리 이름을 입력해 주세요.');
+      return;
+    }
+    if (!calendarId) {
+      setQuickTaskMessage('먼저 캘린더 워크스페이스를 만들어 주세요.');
+      return;
+    }
+
+    setQuickTaskMessage('');
+    try {
+      const category = await createCategory.mutateAsync({
+        calendar: calendarId,
+        name,
+        color_code: newCategoryColor,
+      });
+      setQuickTaskCategory(String(category.id));
+      setNewCategoryName('');
+      setQuickTaskMessage('할일 카테고리가 추가되었습니다.');
+    } catch (error) {
+      setQuickTaskMessage(error instanceof Error ? error.message : '카테고리 추가에 실패했습니다.');
     }
   }
 
@@ -790,8 +909,40 @@ function TaskBoard({
                 </option>
               ))}
             </select>
+            <select
+              aria-label="Quick Task Category"
+              value={quickTaskCategory}
+              onChange={(event) => setQuickTaskCategory(event.target.value)}
+              disabled={!calendarId || createTask.isPending}
+            >
+              <option value="">카테고리 없음</option>
+              {taskCategories.map((category) => (
+                <option value={category.id} key={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
             <button type="submit" disabled={!calendarId || createTask.isPending}>
               추가
+            </button>
+          </form>
+          <form className="task-category-form" onSubmit={addTaskCategory}>
+            <input
+              aria-label="Category"
+              placeholder="새 할일 카테고리"
+              value={newCategoryName}
+              onChange={(event) => setNewCategoryName(event.target.value)}
+              disabled={!calendarId || createCategory.isPending}
+            />
+            <input
+              aria-label="Category color"
+              value={newCategoryColor}
+              onChange={(event) => setNewCategoryColor(event.target.value)}
+              type="color"
+              disabled={!calendarId || createCategory.isPending}
+            />
+            <button type="submit" aria-label="Add Category" disabled={!calendarId || createCategory.isPending}>
+              카테고리 추가
             </button>
           </form>
           {quickTaskMessage && <p className="quick-task-message">{quickTaskMessage}</p>}
@@ -808,6 +959,11 @@ function TaskBoard({
                       <em className={`badge-priority badge-${task.priority.toLowerCase()}`}>
                         {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
                       </em>
+                      {task.category_detail && (
+                        <em className="badge-category" style={{ borderColor: task.category_detail.color_code }}>
+                          {task.category_detail.name}
+                        </em>
+                      )}
                       {overdue && (
                         <em className="badge-rollover">
                           이월 대기
@@ -822,8 +978,8 @@ function TaskBoard({
 
             {selectedTasks.length === 0 && (
               <p className="empty-copy task-board-empty">
-                선택한 날짜에 할일이 없습니다. 플래너 설정에서 추가해 주세요.
-                <span className="sr-only">No tasks for selected date. Create one from Planner Setup.</span>
+                선택한 날짜에 할일이 없습니다. 위 입력창에서 추가해 주세요.
+                <span className="sr-only">No tasks for selected date. Create one from the task board form.</span>
               </p>
             )}
           </div>
@@ -915,6 +1071,7 @@ function DashboardPage() {
   const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'routine' | 'inbox'>('calendar');
   const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
   const [eventDraftDate, setEventDraftDate] = useState(isoDate(new Date()));
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     if (theme === 'light') {
@@ -928,6 +1085,7 @@ function DashboardPage() {
   const events = usePlannerStore((state) => state.events);
   const tasks = usePlannerStore((state) => state.tasks);
   const calendars = usePlannerStore((state) => state.calendars);
+  const categories = usePlannerStore((state) => state.categories);
 
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
   const setActiveCalendarId = usePlannerStore((state) => state.setActiveCalendarId);
@@ -942,13 +1100,26 @@ function DashboardPage() {
   const activeCalendar = calendars.find((c) => c.id === currentCalendarId);
   const selectedCalendarColor = activeCalendar?.theme_color ?? '#6366F1';
   const activeCalendarTitle = activeCalendar?.title;
+  const calendarStatusNotice = snapshot.isError
+    ? 'API 연결을 확인해 주세요. 저장된 일정 데이터를 불러오지 못했습니다.'
+    : calendars.length === 0
+      ? '캘린더가 아직 없습니다. 일정 추가 전에 워크스페이스를 먼저 준비해 주세요.'
+      : '';
   const calendarEvents = useMemo(
     () => [...events, ...createKoreaHolidayEvents(currentCalendarId)],
     [events, currentCalendarId],
   );
 
   function openEventComposerForDate(date: string) {
+    setSelectedEvent(null);
     setEventDraftDate(date);
+    setActiveModal('event');
+    setMobilePanel('calendar');
+  }
+
+  function openEventDetail(event: Event) {
+    setSelectedEvent(event);
+    setEventDraftDate(event.start_time.substring(0, 10));
     setActiveModal('event');
     setMobilePanel('calendar');
   }
@@ -1095,7 +1266,8 @@ function DashboardPage() {
             {activeSection === 'tasks' ? (
               <TaskBoard
                 tasks={tasks}
-                calendarId={currentCalendarId}
+                categories={categories}
+                calendarId={activeCalendar?.id ?? 0}
                 selectedDate={taskBoardDate}
                 setSelectedDate={setTaskBoardDate}
               />
@@ -1138,11 +1310,17 @@ function DashboardPage() {
                   </div>
                 </div>
 
+                {calendarStatusNotice && (
+                  <div className="calendar-status-notice">
+                    {calendarStatusNotice}
+                  </div>
+                )}
+
                 <div className="calendar-body">
                   {activeView === 'week' ? (
-                    <WeekRail events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} />
+                    <WeekRail events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} onEventSelect={openEventDetail} />
                   ) : (
-                    <MonthGrid events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} />
+                    <MonthGrid events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} onEventSelect={openEventDetail} />
                   )}
                 </div>
               </section>
@@ -1156,6 +1334,7 @@ function DashboardPage() {
         <button 
           className="settings-toggle-btn" 
           onClick={() => {
+            setSelectedEvent(null);
             setActiveModal((current) => current === 'settings' ? null : 'settings');
           }} 
           aria-label="Toggle Setup Panel"
@@ -1198,7 +1377,13 @@ function DashboardPage() {
         <button
           type="button"
           onClick={() => {
-            setActiveModal(activeSection === 'calendar' ? 'event' : 'settings');
+            setSelectedEvent(null);
+            if (activeSection === 'calendar') {
+              setActiveModal('event');
+              return;
+            }
+            setActiveSection('tasks');
+            setMobilePanel('calendar');
           }}
         >
           <span>＋</span>
@@ -1214,6 +1399,7 @@ function DashboardPage() {
             isLoading={snapshot.isLoading} 
             modalKind={activeModal ?? 'settings'}
             eventDraftDate={eventDraftDate}
+            selectedEvent={selectedEvent}
             onClose={() => setActiveModal(null)}
           />
         </div>

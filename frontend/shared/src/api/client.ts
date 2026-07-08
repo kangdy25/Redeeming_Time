@@ -99,6 +99,24 @@ export const apiClient = {
     usePlannerStore.getState().syncPlanner({ events: [...usePlannerStore.getState().events, event] });
     return event;
   },
+  updateEvent: async (eventId: number, payload: Partial<EventPayload>) => {
+    const event = await request<Event>(`/events/${eventId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    usePlannerStore.getState().syncPlanner({
+      events: usePlannerStore.getState().events.map((item) => (item.id === event.id ? event : item)),
+    });
+    return event;
+  },
+  deleteEvent: async (eventId: number) => {
+    await request<void>(`/events/${eventId}/`, {
+      method: 'DELETE',
+    });
+    usePlannerStore.getState().syncPlanner({
+      events: usePlannerStore.getState().events.filter((event) => event.id !== eventId),
+    });
+  },
   tasks: () => request<Task[]>('/tasks/'),
   createTask: async (payload: TaskPayload) => {
     const task = await request<Task>('/tasks/', {

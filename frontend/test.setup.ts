@@ -230,6 +230,31 @@ export const handlers = [
     return HttpResponse.json(newEvent);
   }),
 
+  http.patch('http://localhost:8000/api/events/:id/', async ({ params, request }) => {
+    const id = Number(params.id);
+    const body = (await request.json()) as any;
+    const eventIndex = mockDb.events.findIndex(e => e.id === id);
+    if (eventIndex === -1) {
+      return new HttpResponse(JSON.stringify({ detail: 'Event not found' }), { status: 404 });
+    }
+    if (body.start_time && body.end_time && new Date(body.end_time) < new Date(body.start_time)) {
+      return new HttpResponse(JSON.stringify({ detail: 'End time before start time' }), { status: 400 });
+    }
+    const updatedEvent = {
+      ...mockDb.events[eventIndex],
+      ...body,
+      updated_at: new Date().toISOString()
+    };
+    mockDb.events[eventIndex] = updatedEvent;
+    return HttpResponse.json(updatedEvent);
+  }),
+
+  http.delete('http://localhost:8000/api/events/:id/', ({ params }) => {
+    const id = Number(params.id);
+    mockDb.events = mockDb.events.filter(event => event.id !== id);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   // Tasks
   http.get('http://localhost:8000/api/tasks/', () => {
     return HttpResponse.json(mockDb.tasks);
