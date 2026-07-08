@@ -392,46 +392,51 @@ function PlannerModals({
         </div>
 
         <div className={modalKind === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
-          <form onSubmit={addEvent}>
-            <label htmlFor="event-calendar-input">캘린더</label>
-            <select
-              id="event-calendar-input"
-              aria-label="Event Calendar"
-              value={eventCalendarId}
-              onChange={(event) => setEventCalendarId(Number(event.target.value))}
-              disabled={isFormDisabled}
-            >
-              {calendars.map((calendar) => (
-                <option value={calendar.id} key={calendar.id}>{calendar.title}</option>
-              ))}
-            </select>
-            <label htmlFor="event-title-input">새 일정명</label>
-            <label htmlFor="event-title-input" className="sr-only">Event</label>
-            <input id="event-title-input" aria-label="Event" value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} disabled={isFormDisabled} />
-            <label htmlFor="event-description-input">설명</label>
-            <textarea
-              id="event-description-input"
-              aria-label="Event Description"
-              value={eventDescription}
-              onChange={(event) => setEventDescription(event.target.value)}
-              disabled={isFormDisabled}
-              rows={3}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '8px' }}>
-              <div>
-                <label htmlFor="visual-date-input" style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>일정 날짜</label>
-                <input 
-                  id="visual-date-input" 
-                  type="date" 
-                  value={eventStart.substring(0, 10)} 
-                  onChange={(e) => handleVisualDateChange(e.target.value)} 
+          <form className="event-form" onSubmit={addEvent}>
+            <div className="event-form-grid">
+              <div className="field-stack">
+                <label htmlFor="event-calendar-input">캘린더</label>
+                <select
+                  id="event-calendar-input"
+                  aria-label="Event Calendar"
+                  value={eventCalendarId}
+                  onChange={(event) => setEventCalendarId(Number(event.target.value))}
                   disabled={isFormDisabled}
-                  style={{ width: '100%' }}
+                >
+                  {calendars.map((calendar) => (
+                    <option value={calendar.id} key={calendar.id}>{calendar.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="field-stack field-span-2">
+                <label htmlFor="event-title-input">새 일정명</label>
+                <label htmlFor="event-title-input" className="sr-only">Event</label>
+                <input id="event-title-input" aria-label="Event" value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} disabled={isFormDisabled} />
+              </div>
+              <div className="field-stack field-span-2">
+                <label htmlFor="event-description-input">설명</label>
+                <textarea
+                  id="event-description-input"
+                  aria-label="Event Description"
+                  value={eventDescription}
+                  onChange={(event) => setEventDescription(event.target.value)}
+                  disabled={isFormDisabled}
+                  rows={2}
                 />
               </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ flex: 1 }}>
-                  <label htmlFor="visual-start-time" style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>시작 시간</label>
+              <div className="field-stack field-span-2">
+                <label htmlFor="visual-date-input">일정 날짜</label>
+                <input
+                  id="visual-date-input"
+                  type="date"
+                  value={eventStart.substring(0, 10)}
+                  onChange={(e) => handleVisualDateChange(e.target.value)}
+                  disabled={isFormDisabled}
+                />
+              </div>
+              <div className="time-pair">
+                <div className="field-stack">
+                  <label htmlFor="visual-start-time">시작</label>
                   <input
                     id="visual-start-time"
                     aria-label="Start Time"
@@ -439,11 +444,10 @@ function PlannerModals({
                     value={eventStart.substring(11, 16)}
                     onChange={(e) => handleVisualStartTimeChange(e.target.value)}
                     disabled={isFormDisabled || isAllDayEvent}
-                    style={{ width: '100%' }}
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label htmlFor="visual-end-time" style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px', display: 'block' }}>종료 시간</label>
+                <div className="field-stack">
+                  <label htmlFor="visual-end-time">종료</label>
                   <input
                     id="visual-end-time"
                     aria-label="End Time"
@@ -451,9 +455,33 @@ function PlannerModals({
                     value={eventEnd.substring(11, 16)}
                     onChange={(e) => handleVisualEndTimeChange(e.target.value)}
                     disabled={isFormDisabled || isAllDayEvent}
-                    style={{ width: '100%' }}
                   />
                 </div>
+                <label className="compact-toggle">
+                  <input
+                    aria-label="All Day Event"
+                    type="checkbox"
+                    checked={isAllDayEvent}
+                    onChange={(event) => setIsAllDayEvent(event.target.checked)}
+                    disabled={isFormDisabled}
+                  />
+                  하루종일
+                </label>
+              </div>
+              <div className="field-stack repeat-field field-span-2">
+                <label htmlFor="event-repeat-input">반복</label>
+                <select
+                  id="event-repeat-input"
+                  aria-label="Repeat Rule"
+                  value={eventRrule}
+                  onChange={(event) => setEventRrule(event.target.value)}
+                  disabled={isFormDisabled}
+                >
+                  <option value="">반복 없음</option>
+                  <option value="FREQ=DAILY">매일</option>
+                  <option value="FREQ=WEEKLY">매주</option>
+                  <option value="FREQ=MONTHLY">매월</option>
+                </select>
               </div>
             </div>
             
@@ -462,29 +490,6 @@ function PlannerModals({
               <input placeholder="" value={eventStart} onChange={(e) => setEventStart(e.target.value)} type="datetime-local" />
               <input placeholder="" value={eventEnd} onChange={(e) => setEventEnd(e.target.value)} type="datetime-local" />
             </div>
-            <label className="compact-toggle">
-              <input
-                aria-label="All Day Event"
-                type="checkbox"
-                checked={isAllDayEvent}
-                onChange={(event) => setIsAllDayEvent(event.target.checked)}
-                disabled={isFormDisabled}
-              />
-              하루종일
-            </label>
-            <label htmlFor="event-repeat-input">반복</label>
-            <select
-              id="event-repeat-input"
-              aria-label="Repeat Rule"
-              value={eventRrule}
-              onChange={(event) => setEventRrule(event.target.value)}
-              disabled={isFormDisabled}
-            >
-              <option value="">반복 없음</option>
-              <option value="FREQ=DAILY">매일</option>
-              <option value="FREQ=WEEKLY">매주</option>
-              <option value="FREQ=MONTHLY">매월</option>
-            </select>
             <button type="submit" aria-label="Add Event" className="primary-button" disabled={isFormDisabled}>일정 추가</button>
           </form>
         </div>
