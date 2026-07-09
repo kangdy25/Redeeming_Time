@@ -1664,6 +1664,379 @@ textarea {
   font-weight: 300;
 }
 
+/* Markdown Idea Inbox */
+.idea-inbox {
+  width: 100%;
+  min-height: calc(100vh - 112px);
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg-card);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+}
+
+.idea-note-rail {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px;
+  border-right: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.idea-rail-header,
+.idea-editor-toolbar,
+.idea-card-heading,
+.idea-card-meta {
+  display: flex;
+  align-items: center;
+}
+
+.idea-rail-header {
+  justify-content: space-between;
+  padding: 2px 6px 14px;
+}
+
+.idea-rail-header h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.idea-rail-header > button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.idea-search {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-muted);
+}
+
+.idea-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.idea-note-list {
+  min-height: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+  overflow-y: auto;
+}
+
+.idea-note-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.idea-note-card:hover {
+  background: var(--color-bg-input);
+}
+
+.idea-note-card.active {
+  border-color: var(--color-border-hover);
+  background: var(--color-accent-muted);
+}
+
+.idea-card-heading {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.idea-card-heading strong {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idea-card-heading .idea-card-pin {
+  flex-shrink: 0;
+  font-size: 13px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+}
+
+.idea-card-excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.idea-card-meta {
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.idea-card-meta em {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: var(--color-bg-input);
+  color: var(--color-accent);
+  font-style: normal;
+}
+
+.idea-empty {
+  padding: 28px 8px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.idea-editor-shell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.idea-editor-toolbar {
+  min-height: 56px;
+  gap: 7px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.idea-save-state {
+  margin-right: auto;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.idea-view-switch {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-bg-input);
+}
+
+.idea-view-switch button,
+.idea-pin-button,
+.idea-delete-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.idea-view-switch button.active,
+.idea-pin-button.active {
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+.idea-delete-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.idea-document-header {
+  padding: 32px 8% 18px;
+}
+
+.idea-title-input,
+.idea-tags-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.idea-title-input {
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.idea-tags-input {
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.idea-editor-body {
+  min-height: 0;
+  display: grid;
+  flex: 1;
+  padding: 0 8% 24px;
+}
+
+.idea-editor-body.mode-split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.idea-editor-body textarea {
+  width: 100%;
+  min-height: 430px;
+  box-sizing: border-box;
+  padding: 18px 0;
+  resize: none;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  outline: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: 500 15px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.markdown-preview {
+  min-width: 0;
+  padding: 7px 0 40px;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.mode-split .markdown-preview {
+  padding: 18px 20px;
+  border-left: 1px solid var(--color-border);
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3 {
+  color: var(--color-text-primary);
+  letter-spacing: -0.025em;
+}
+
+.markdown-preview h1 { margin: 14px 0 20px; font-size: 30px; }
+.markdown-preview h2 { margin: 28px 0 12px; font-size: 22px; }
+.markdown-preview h3 { margin: 22px 0 10px; font-size: 17px; }
+.markdown-preview p { margin: 8px 0; }
+.markdown-spacer { height: 9px; }
+
+.markdown-preview code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.markdown-preview pre {
+  padding: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-root);
+}
+
+.markdown-preview pre code {
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.markdown-preview blockquote {
+  margin: 14px 0;
+  padding: 8px 15px;
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-accent-muted);
+  color: var(--color-text-secondary);
+}
+
+.markdown-list-item,
+.markdown-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 5px 0;
+}
+
+.markdown-check input {
+  margin-top: 6px;
+  accent-color: var(--color-accent);
+}
+
+.markdown-preview a {
+  color: var(--color-accent);
+}
+
+.idea-blank-state {
+  min-height: 520px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.idea-blank-state > span {
+  color: var(--color-accent);
+  font-size: 34px;
+}
+
+.idea-blank-state h2 {
+  margin: 12px 0 4px;
+  color: var(--color-text-primary);
+}
+
+.idea-blank-state p {
+  margin: 0 0 18px;
+}
+
+.idea-blank-state button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 /* Task Sidebar (Rollover Director) - Compact Width */
 .task-sidebar {
   width: 260px; /* Reduced width from 330px */
@@ -2934,6 +3307,51 @@ textarea {
   .compact-toggle {
     justify-content: center;
   }
+
+  .idea-inbox {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .idea-note-rail {
+    max-height: 290px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .idea-editor-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+
+  .idea-save-state {
+    width: 100%;
+  }
+
+  .idea-view-switch {
+    flex: 1;
+  }
+
+  .idea-view-switch button {
+    flex: 1;
+  }
+
+  .idea-document-header,
+  .idea-editor-body {
+    padding-inline: 18px;
+  }
+
+  .idea-editor-body.mode-split {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-split .markdown-preview {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+
 }
 
 @media (max-width: 420px) {

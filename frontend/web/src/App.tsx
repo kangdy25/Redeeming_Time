@@ -15,6 +15,7 @@ import {
   type Task,
   type TaskPriority,
 } from '@redeeming-time/shared';
+import IdeaInbox from './IdeaInbox';
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const priorities: TaskPriority[] = ['HIGH', 'MEDIUM', 'LOW', 'NONE'];
@@ -1454,6 +1455,8 @@ function DashboardPage() {
                 selectedDate={taskBoardDate}
                 setSelectedDate={setTaskBoardDate}
               />
+            ) : activeSection === 'inbox' ? (
+              <IdeaInbox />
             ) : (
               <section className="planner-panel calendar-area">
                 <div className="calendar-heading">
