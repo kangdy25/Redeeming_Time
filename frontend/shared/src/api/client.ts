@@ -90,6 +90,25 @@ export const apiClient = {
     usePlannerStore.getState().syncPlanner({ categories: [...usePlannerStore.getState().categories, category] });
     return category;
   },
+  updateCategory: async (categoryId: number, payload: Partial<CategoryPayload>) => {
+    const category = await request<Category>(`/categories/${categoryId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    usePlannerStore.getState().syncPlanner({
+      categories: usePlannerStore.getState().categories.map((item) => (item.id === category.id ? category : item)),
+    });
+    return category;
+  },
+  deleteCategory: async (categoryId: number) => {
+    await request<void>(`/categories/${categoryId}/`, { method: 'DELETE' });
+    usePlannerStore.getState().syncPlanner({
+      categories: usePlannerStore.getState().categories.filter((category) => category.id !== categoryId),
+      tasks: usePlannerStore.getState().tasks.map((task) => (
+        task.category === categoryId ? { ...task, category: null, category_detail: null } : task
+      )),
+    });
+  },
   events: () => request<Event[]>('/events/'),
   createEvent: async (payload: EventPayload) => {
     const event = await request<Event>('/events/', {
@@ -131,6 +150,22 @@ export const apiClient = {
       method: 'PATCH',
       body: JSON.stringify({ is_completed: task.is_completed }),
     }),
+  editTask: async (taskId: number, payload: Partial<TaskPayload>) => {
+    const task = await request<Task>(`/tasks/${taskId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    usePlannerStore.getState().syncPlanner({
+      tasks: usePlannerStore.getState().tasks.map((item) => (item.id === task.id ? task : item)),
+    });
+    return task;
+  },
+  deleteTask: async (taskId: number) => {
+    await request<void>(`/tasks/${taskId}/`, { method: 'DELETE' });
+    usePlannerStore.getState().syncPlanner({
+      tasks: usePlannerStore.getState().tasks.filter((task) => task.id !== taskId),
+    });
+  },
   updateTaskTargetDate: async (task: Task, targetDate: string) => {
     const updatedTask = await request<Task>(`/tasks/${task.id}/`, {
       method: 'PATCH',

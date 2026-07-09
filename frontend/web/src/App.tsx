@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState, useEffect } from 'react';
+import { FormEvent, useMemo, useRef, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import {
   apiClient,
@@ -650,6 +650,12 @@ function taskBoardDateLabel(value: string) {
   return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(date);
 }
 
+function taskBoardTitleLabel(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일(${weekday}) TODO`;
+}
+
 function TaskBoard({
   tasks,
   categories,
@@ -679,15 +685,30 @@ function TaskBoard({
   const [quickTaskMessage, setQuickTaskMessage] = useState('');
   const [rolloverMessage, setRolloverMessage] = useState('');
   const [isRollingOver, setIsRollingOver] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<{ id: number; name: string; color: string } | null>(null);
+  const [editingTask, setEditingTask] = useState<{ id: number; title: string; priority: TaskPriority; category: string } | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const quickTaskInputRef = useRef<HTMLInputElement>(null);
   const miniCells = useMemo(() => monthCells(miniMonth), [miniMonth]);
   const sortedTasks = [...tasks].sort((a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order);
-  const completedCount = tasks.filter((task) => task.is_completed).length;
   const overdueTasks = tasks.filter((task) => !task.is_completed && task.target_date < today);
-  const overdueCount = overdueTasks.length;
-  const completionRate = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
   const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
   const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
+  const selectedCompletedCount = selectedTasks.length - selectedOpenTasks.length;
+  const completionRate = selectedTasks.length === 0 ? 0 : Math.round((selectedCompletedCount / selectedTasks.length) * 100);
   const taskCategories = categories.filter((category) => category.calendar === calendarId);
+  const categorySections = [
+    ...taskCategories.map((category) => ({
+      id: String(category.id),
+      category,
+      tasks: selectedTasks.filter((task) => task.category === category.id),
+    })),
+    {
+      id: 'uncategorized',
+      category: null,
+      tasks: selectedTasks.filter((task) => task.category === null),
+    },
+  ].filter((section) => section.tasks.length > 0 || section.category !== null);
   const taskCountByDate = tasks.reduce<Record<string, number>>((counts, task) => {
     counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
     return counts;
@@ -783,6 +804,72 @@ function TaskBoard({
     }
   }
 
+  function prepareTaskForCategory(categoryId: number | null) {
+    setQuickTaskCategory(categoryId === null ? '' : String(categoryId));
+    quickTaskInputRef.current?.focus();
+    quickTaskInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  async function saveCategoryEdit(event: FormEvent) {
+    event.preventDefault();
+    if (!editingCategory?.name.trim()) return;
+    setIsSavingEdit(true);
+    try {
+      await apiClient.updateCategory(editingCategory.id, {
+        name: editingCategory.name.trim(),
+        color_code: editingCategory.color,
+      });
+      setEditingCategory(null);
+      setQuickTaskMessage('카테고리를 수정했습니다.');
+    } catch (error) {
+      setQuickTaskMessage(error instanceof Error ? error.message : '카테고리 수정에 실패했습니다.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }
+
+  async function removeCategory(category: Category) {
+    if (!window.confirm(`"${category.name}" 카테고리를 삭제할까요? 포함된 할일은 카테고리 없음으로 이동합니다.`)) return;
+    try {
+      await apiClient.deleteCategory(category.id);
+      if (quickTaskCategory === String(category.id)) setQuickTaskCategory('');
+      setEditingCategory(null);
+      setQuickTaskMessage('카테고리를 삭제했습니다.');
+    } catch (error) {
+      setQuickTaskMessage(error instanceof Error ? error.message : '카테고리 삭제에 실패했습니다.');
+    }
+  }
+
+  async function saveTaskEdit(event: FormEvent) {
+    event.preventDefault();
+    if (!editingTask?.title.trim()) return;
+    setIsSavingEdit(true);
+    try {
+      await apiClient.editTask(editingTask.id, {
+        title: editingTask.title.trim(),
+        priority: editingTask.priority,
+        category: editingTask.category ? Number(editingTask.category) : null,
+      });
+      setEditingTask(null);
+      setQuickTaskMessage('할일을 수정했습니다.');
+    } catch (error) {
+      setQuickTaskMessage(error instanceof Error ? error.message : '할일 수정에 실패했습니다.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }
+
+  async function removeTask(task: Task) {
+    if (!window.confirm(`"${task.title}" 할일을 삭제할까요?`)) return;
+    try {
+      await apiClient.deleteTask(task.id);
+      setEditingTask(null);
+      setQuickTaskMessage('할일을 삭제했습니다.');
+    } catch (error) {
+      setQuickTaskMessage(error instanceof Error ? error.message : '할일 삭제에 실패했습니다.');
+    }
+  }
+
   return (
     <section className="task-board">
       <div className="task-board-hero">
@@ -792,34 +879,45 @@ function TaskBoard({
             <span className="sr-only">Task Board</span>
           </p>
           <h2>
-            할일 연속성
-            <span className="sr-only">Task Continuity</span>
+            {taskBoardTitleLabel(selectedDate)}
           </h2>
-          <p className="task-board-copy">오늘 해야 할 일과 밀려온 일을 한 흐름에서 정리합니다.</p>
         </div>
         <div className="task-board-hero-side">
           <div className="task-board-stats" aria-label="Task board stats">
             <div>
-              <strong>{tasks.length}</strong>
+              <strong>{selectedTasks.length}</strong>
               <span>전체</span>
             </div>
             <div>
               <strong>{completionRate}%</strong>
               <span>완료율</span>
             </div>
-            <div className={overdueCount > 0 ? 'attention' : ''}>
-              <strong>{overdueCount}</strong>
-              <span>이월</span>
-            </div>
+            <button
+              className="rollover-compact-button"
+              type="button"
+              onClick={rolloverOverdueTasks}
+              disabled={overdueTasks.length === 0 || isRollingOver}
+            >
+              {isRollingOver ? '가져오는 중...' : '밀린 할일 가져오기'}
+            </button>
           </div>
-          <div className="rollover-action-bar">
-            <div>
-              <span>이월 관리</span>
-              <strong>{overdueCount > 0 ? `${overdueCount}개 할일 대기` : '이월 없음'}</strong>
-              <button type="button" onClick={rolloverOverdueTasks} disabled={overdueCount === 0 || isRollingOver}>
-                {isRollingOver ? '이월 중...' : '이월 할일 오늘로'}
-              </button>
+          <div className="task-board-day-summary">
+            <div className="task-board-day-count">
+              <span>{selectedTasks.length}개 중 {selectedTasks.length - selectedOpenTasks.length}개 완료</span>
+              <strong>{selectedOpenTasks.length}개 남음</strong>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                const firstOpenTask = selectedOpenTasks[0];
+                if (firstOpenTask) {
+                  toggleTask.mutate(firstOpenTask);
+                }
+              }}
+              disabled={selectedOpenTasks.length === 0}
+            >
+              첫 할일 완료
+            </button>
           </div>
         </div>
       </div>
@@ -865,32 +963,9 @@ function TaskBoard({
         </aside>
 
         <section className="todo-panel">
-          <header className="todo-panel-header">
-            <div>
-              <span>{selectedDate === today ? 'Today' : selectedDate < today ? 'Rollover' : 'Plan'}</span>
-              <h3>{taskBoardDateLabel(selectedDate)}</h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const firstOpenTask = selectedOpenTasks[0];
-                if (firstOpenTask) {
-                  toggleTask.mutate(firstOpenTask);
-                }
-              }}
-              disabled={selectedOpenTasks.length === 0}
-            >
-              첫 할일 완료
-            </button>
-          </header>
-
-          <div className="todo-summary-line">
-            <span>{selectedTasks.length}개 중 {selectedTasks.length - selectedOpenTasks.length}개 완료</span>
-            <strong>{selectedOpenTasks.length}개 남음</strong>
-          </div>
-
           <form className="quick-task-form" onSubmit={addQuickTask}>
             <input
+              ref={quickTaskInputRef}
               aria-label="Quick Task"
               placeholder={`${taskBoardDateLabel(selectedDate)}에 할일 추가`}
               value={quickTaskTitle}
@@ -948,40 +1023,152 @@ function TaskBoard({
           {quickTaskMessage && <p className="quick-task-message">{quickTaskMessage}</p>}
 
           <div className="task-board-list">
-            {selectedTasks.map((task) => {
-              const overdue = !task.is_completed && task.target_date < today;
-              return (
-                <button className={`todo-row ${task.is_completed ? 'done' : ''}`} onClick={() => toggleTask.mutate(task)} key={task.id}>
-                  <span className="todo-check">{task.is_completed ? '✓' : ''}</span>
-                  <span className="todo-main">
-                    <strong>{task.title}</strong>
-                    <span>
-                      <em className={`badge-priority badge-${task.priority.toLowerCase()}`}>
-                        {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
-                      </em>
-                      {task.category_detail && (
-                        <em className="badge-category" style={{ borderColor: task.category_detail.color_code }}>
-                          {task.category_detail.name}
-                        </em>
-                      )}
-                      {overdue && (
-                        <em className="badge-rollover">
-                          이월 대기
-                          <span className="sr-only">rollover ready</span>
-                        </em>
-                      )}
+            {categorySections.map((section) => (
+              <section className="task-category-section" key={section.id}>
+                {editingCategory && editingCategory.id === section.category?.id ? (
+                  <form className="category-edit-form" onSubmit={saveCategoryEdit}>
+                    <input
+                      aria-label="Edit category name"
+                      value={editingCategory.name}
+                      onChange={(event) => {
+                        const name = event.target.value;
+                        setEditingCategory((current) => current ? { ...current, name } : current);
+                      }}
+                      autoFocus
+                    />
+                    <input
+                      aria-label="Edit category color"
+                      type="color"
+                      value={editingCategory.color}
+                      onChange={(event) => {
+                        const color = event.target.value;
+                        setEditingCategory((current) => current ? { ...current, color } : current);
+                      }}
+                    />
+                    <button type="submit" disabled={isSavingEdit}>저장</button>
+                    <button type="button" onClick={() => setEditingCategory(null)}>취소</button>
+                  </form>
+                ) : (
+                  <header
+                    className="task-category-pill"
+                    style={section.category ? { '--category-color': section.category.color_code } as React.CSSProperties : undefined}
+                  >
+                    <span className="task-category-mark" aria-hidden="true">{section.category ? '●' : '○'}</span>
+                    <strong>{section.category?.name ?? '카테고리 없음'}</strong>
+                    <span className="task-category-progress">
+                      {section.tasks.filter((task) => task.is_completed).length}/{section.tasks.length}
                     </span>
-                  </span>
-                </button>
-              );
-            })}
+                    {section.category && (
+                      <>
+                        <button
+                          type="button"
+                          className="category-manage-button"
+                          aria-label={`${section.category.name} 수정`}
+                          onClick={() => setEditingCategory({
+                            id: section.category!.id,
+                            name: section.category!.name,
+                            color: section.category!.color_code,
+                          })}
+                        >✎</button>
+                        <button
+                          type="button"
+                          className="category-manage-button category-delete-button"
+                          aria-label={`${section.category.name} 삭제`}
+                          onClick={() => removeCategory(section.category!)}
+                        >×</button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      aria-label={`${section.category?.name ?? '카테고리 없음'}에 할일 추가`}
+                      onClick={() => prepareTaskForCategory(section.category?.id ?? null)}
+                      disabled={!calendarId}
+                    >+</button>
+                  </header>
+                )}
 
-            {selectedTasks.length === 0 && (
-              <p className="empty-copy task-board-empty">
-                선택한 날짜에 할일이 없습니다. 위 입력창에서 추가해 주세요.
-                <span className="sr-only">No tasks for selected date. Create one from the task board form.</span>
-              </p>
-            )}
+                <div className="task-category-items">
+                  {section.tasks.map((task) => {
+                    const overdue = !task.is_completed && task.target_date < today;
+                    if (editingTask?.id === task.id) {
+                      return (
+                        <form className="task-edit-form" onSubmit={saveTaskEdit} key={task.id}>
+                          <input
+                            aria-label="Edit task title"
+                            value={editingTask.title}
+                            onChange={(event) => setEditingTask({ ...editingTask, title: event.target.value })}
+                            autoFocus
+                          />
+                          <select
+                            aria-label="Edit task priority"
+                            value={editingTask.priority}
+                            onChange={(event) => setEditingTask({ ...editingTask, priority: event.target.value as TaskPriority })}
+                          >
+                            {priorities.map((priority) => <option value={priority} key={priority}>{priority}</option>)}
+                          </select>
+                          <select
+                            aria-label="Edit task category"
+                            value={editingTask.category}
+                            onChange={(event) => setEditingTask({ ...editingTask, category: event.target.value })}
+                          >
+                            <option value="">카테고리 없음</option>
+                            {taskCategories.map((category) => (
+                              <option value={category.id} key={category.id}>{category.name}</option>
+                            ))}
+                          </select>
+                          <button type="submit" disabled={isSavingEdit}>저장</button>
+                          <button type="button" onClick={() => setEditingTask(null)}>취소</button>
+                        </form>
+                      );
+                    }
+                    return (
+                      <div className={`todo-row priority-${task.priority.toLowerCase()} ${task.is_completed ? 'done' : ''}`} key={task.id}>
+                        <button className="todo-toggle" type="button" onClick={() => toggleTask.mutate(task)}>
+                          <span className="todo-check">{task.is_completed ? '✓' : ''}</span>
+                          <span className="todo-main">
+                            <strong>{task.title}</strong>
+                            <span>
+                              <em className={`badge-priority badge-${task.priority.toLowerCase()}`}>
+                                {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
+                              </em>
+                              {overdue && (
+                                <em className="badge-rollover">
+                                  이월 대기
+                                  <span className="sr-only">rollover ready</span>
+                                </em>
+                              )}
+                            </span>
+                          </span>
+                        </button>
+                        <div className="todo-manage-actions">
+                          <button
+                            type="button"
+                            aria-label={`${task.title} 수정`}
+                            onClick={() => setEditingTask({
+                              id: task.id,
+                              title: task.title,
+                              priority: task.priority,
+                              category: task.category ? String(task.category) : '',
+                            })}
+                          >✎</button>
+                          <button type="button" aria-label={`${task.title} 삭제`} onClick={() => removeTask(task)}>×</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {section.tasks.length === 0 && (
+                    <button
+                      type="button"
+                      className="category-empty-row"
+                      onClick={() => prepareTaskForCategory(section.category?.id ?? null)}
+                    >
+                      이 카테고리에 첫 할일 추가
+                      <span aria-hidden="true">+</span>
+                    </button>
+                  )}
+                </div>
+              </section>
+            ))}
           </div>
         </section>
       </div>
@@ -1068,7 +1255,7 @@ function DashboardPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeModal, setActiveModal] = useState<PlannerModalKind | null>(null);
   const [mobilePanel, setMobilePanel] = useState<'calendar' | 'menu' | 'tasks'>('calendar');
-  const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'routine' | 'inbox'>('calendar');
+  const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'inbox'>('calendar');
   const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
   const [eventDraftDate, setEventDraftDate] = useState(isoDate(new Date()));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -1247,10 +1434,6 @@ function DashboardPage() {
             }}>
               <span className="menu-icon">📋</span>
               {!isSidebarCollapsed && <span>할일 보드</span>}
-            </button>
-            <button className={`menu-item ${activeSection === 'routine' ? 'active' : ''}`} onClick={() => setActiveSection('routine')}>
-              <span className="menu-icon">🔄</span>
-              {!isSidebarCollapsed && <span>데일리 루틴</span>}
             </button>
             <button className={`menu-item ${activeSection === 'inbox' ? 'active' : ''}`} onClick={() => setActiveSection('inbox')}>
               <span className="menu-icon">📥</span>

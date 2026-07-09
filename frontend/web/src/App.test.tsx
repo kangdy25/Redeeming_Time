@@ -608,7 +608,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: /할일 보드/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('할일 연속성')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /TODO$/ })).toBeInTheDocument();
         expect(screen.queryByText('선택 날짜 일정')).not.toBeInTheDocument();
         expect(screen.queryByText('Overloaded Focus block')).not.toBeInTheDocument();
       });
