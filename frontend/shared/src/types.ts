@@ -56,6 +56,7 @@ export interface Event {
   end_time: string;
   is_all_day: boolean;
   rrule: string;
+  color_code?: string;
   congestion_warning?: CongestionWarning;
   created_at: string;
   updated_at: string;
@@ -109,6 +110,7 @@ export interface EventPayload {
   end_time: string;
   is_all_day: boolean;
   rrule: string;
+  color_code?: string;
 }
 
 export interface TaskPayload {

@@ -45,6 +45,7 @@ class EventSerializer(serializers.ModelSerializer):
             'end_time',
             'is_all_day',
             'rrule',
+            'color_code',
             'congestion_warning',
             'created_at',
             'updated_at',

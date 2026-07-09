@@ -217,6 +217,7 @@ export const handlers = [
       end_time: body.end_time,
       is_all_day: body.is_all_day || false,
       rrule: body.rrule || '',
+      color_code: body.color_code || '#6366F1',
       congestion_warning: {
         is_congested: false,
         daily_hours: 0,

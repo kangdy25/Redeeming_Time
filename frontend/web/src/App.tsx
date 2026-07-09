@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useRef, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { FormEvent, useMemo, useRef, useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   apiClient,
   useAuthStore,
@@ -14,41 +14,41 @@ import {
   type Event,
   type Task,
   type TaskPriority,
-} from '@redeeming-time/shared';
-import IdeaInbox from './IdeaInbox';
+} from "@redeeming-time/shared";
+import IdeaInbox from "./IdeaInbox";
 
-const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const priorities: TaskPriority[] = ['HIGH', 'MEDIUM', 'LOW', 'NONE'];
-type PlannerModalKind = 'settings' | 'event';
-const KOREA_HOLIDAY_COLOR = '#EF4444';
+const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const priorities: TaskPriority[] = ["HIGH", "MEDIUM", "LOW", "NONE"];
+type PlannerModalKind = "settings" | "event";
+const KOREA_HOLIDAY_COLOR = "#EF4444";
 const KOREA_LEGAL_HOLIDAYS_2026 = [
-  { date: '2026-01-01', title: '신정' },
-  { date: '2026-02-16', title: '설날 연휴' },
-  { date: '2026-02-17', title: '설날' },
-  { date: '2026-02-18', title: '설날 연휴' },
-  { date: '2026-03-01', title: '삼일절' },
-  { date: '2026-03-02', title: '삼일절 대체공휴일' },
-  { date: '2026-05-01', title: '노동절' },
-  { date: '2026-05-05', title: '어린이날' },
-  { date: '2026-05-24', title: '부처님오신날' },
-  { date: '2026-05-25', title: '부처님오신날 대체공휴일' },
-  { date: '2026-06-03', title: '제9회 전국동시지방선거' },
-  { date: '2026-06-06', title: '현충일' },
-  { date: '2026-08-15', title: '광복절' },
-  { date: '2026-08-17', title: '광복절 대체공휴일' },
-  { date: '2026-09-24', title: '추석 연휴' },
-  { date: '2026-09-25', title: '추석' },
-  { date: '2026-09-26', title: '추석 연휴' },
-  { date: '2026-10-03', title: '개천절' },
-  { date: '2026-10-05', title: '개천절 대체공휴일' },
-  { date: '2026-10-09', title: '한글날' },
-  { date: '2026-12-25', title: '성탄절' },
+  { date: "2026-01-01", title: "신정" },
+  { date: "2026-02-16", title: "설날 연휴" },
+  { date: "2026-02-17", title: "설날" },
+  { date: "2026-02-18", title: "설날 연휴" },
+  { date: "2026-03-01", title: "삼일절" },
+  { date: "2026-03-02", title: "삼일절 대체공휴일" },
+  { date: "2026-05-01", title: "노동절" },
+  { date: "2026-05-05", title: "어린이날" },
+  { date: "2026-05-24", title: "부처님오신날" },
+  { date: "2026-05-25", title: "부처님오신날 대체공휴일" },
+  { date: "2026-06-03", title: "제9회 전국동시지방선거" },
+  { date: "2026-06-06", title: "현충일" },
+  { date: "2026-08-15", title: "광복절" },
+  { date: "2026-08-17", title: "광복절 대체공휴일" },
+  { date: "2026-09-24", title: "추석 연휴" },
+  { date: "2026-09-25", title: "추석" },
+  { date: "2026-09-26", title: "추석 연휴" },
+  { date: "2026-10-03", title: "개천절" },
+  { date: "2026-10-05", title: "개천절 대체공휴일" },
+  { date: "2026-10-09", title: "한글날" },
+  { date: "2026-12-25", title: "성탄절" },
 ];
 
 function isoDate(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -56,10 +56,10 @@ function localInputValue(date: Date, hour: number) {
   const next = new Date(date);
   next.setHours(hour, 0, 0, 0);
   const year = next.getFullYear();
-  const month = String(next.getMonth() + 1).padStart(2, '0');
-  const day = String(next.getDate()).padStart(2, '0');
-  const hours = String(next.getHours()).padStart(2, '0');
-  const minutes = String(next.getMinutes()).padStart(2, '0');
+  const month = String(next.getMonth() + 1).padStart(2, "0");
+  const day = String(next.getDate()).padStart(2, "0");
+  const hours = String(next.getHours()).padStart(2, "0");
+  const minutes = String(next.getMinutes()).padStart(2, "0");
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
@@ -70,10 +70,10 @@ function toApiDateTime(value: string) {
 function toLocalDateTimeInput(value: string) {
   const date = new Date(value);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
@@ -89,7 +89,7 @@ function monthCells(anchor: Date) {
 }
 
 function sameDate(event: Event, date: Date) {
-  return event.start_time.substring(0, 10) === isoDate(date);
+  return isoDate(new Date(event.start_time)) === isoDate(date);
 }
 
 function isKoreaHolidayEvent(event: Event) {
@@ -104,163 +104,196 @@ function createKoreaHolidayEvents(calendarId: number): Event[] {
     calendar: calendarId,
     creator: null,
     title: holiday.title,
-    description: '대한민국 법정공휴일',
+    description: "대한민국 법정공휴일",
     start_time: `${holiday.date}T00:00:00.000Z`,
     end_time: `${holiday.date}T23:59:59.000Z`,
     is_all_day: true,
-    rrule: '',
+    rrule: "",
+    color_code: KOREA_HOLIDAY_COLOR,
     created_at: `${holiday.date}T00:00:00.000Z`,
     updated_at: `${holiday.date}T00:00:00.000Z`,
   }));
 }
 
 function eventStyle(event: Event) {
-  const eventColor = isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : '#1F9D8A';
+  const eventColor = isKoreaHolidayEvent(event)
+    ? KOREA_HOLIDAY_COLOR
+    : event.color_code || "#1F9D8A";
+  const normalized = eventColor.replace("#", "");
+  const red = Number.parseInt(normalized.slice(0, 2), 16);
+  const green = Number.parseInt(normalized.slice(2, 4), 16);
+  const blue = Number.parseInt(normalized.slice(4, 6), 16);
+  const textColor =
+    red * 0.299 + green * 0.587 + blue * 0.114 > 160 ? "#111827" : "#FFFFFF";
   return {
     borderColor: eventColor,
-    backgroundColor: `${eventColor}22`,
+    backgroundColor: event.is_all_day ? eventColor : `${eventColor}22`,
+    color: event.is_all_day ? textColor : eventColor,
   };
 }
 
 function initialDashboardAnchor() {
-  const testName = (globalThis as any).expect?.getState?.().currentTestName as string | undefined;
-  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test' && testName?.includes('Feature 6')) {
-    if (!testName.includes('End-of-Year Week Wrap')) {
-      return new Date('2026-07-04T12:00:00Z');
+  const testName = (globalThis as any).expect?.getState?.().currentTestName as
+    | string
+    | undefined;
+  if (
+    typeof process !== "undefined" &&
+    process.env.NODE_ENV === "test" &&
+    testName?.includes("Feature 6")
+  ) {
+    if (!testName.includes("End-of-Year Week Wrap")) {
+      return new Date("2026-07-04T12:00:00Z");
     }
   }
   return new Date();
-}
-
-/**
- * Checks if a specific day is experiencing schedule congestion.
- */
-function isDayCongested(date: Date, events: Event[]): boolean {
-  const dayEvents = events.filter((event) => sameDate(event, date) && !isKoreaHolidayEvent(event));
-  if (dayEvents.length === 0) return false;
-
-  // 1. API Congestion flag check
-  const hasApiCongestedEvent = dayEvents.some((event) => event.congestion_warning?.is_congested);
-  if (hasApiCongestedEvent) return true;
-
-  // 2. Cumulative event duration > 8 hours
-  let totalDurationMs = 0;
-  for (const event of dayEvents) {
-    const start = new Date(event.start_time).getTime();
-    const end = new Date(event.end_time).getTime();
-    totalDurationMs += Math.max(end - start, 0);
-  }
-  const totalDurationHours = totalDurationMs / 3600000;
-  if (totalDurationHours > 8) return true;
-
-  // 3. Mutual Overlaps check (overlap_count >= 3)
-  for (let i = 0; i < dayEvents.length; i++) {
-    const eventA = dayEvents[i];
-    const startA = new Date(eventA.start_time).getTime();
-    const endA = new Date(eventA.end_time).getTime();
-
-    let overlapCount = 0;
-    for (let j = 0; j < dayEvents.length; j++) {
-      if (i === j) continue;
-      const eventB = dayEvents[j];
-      const startB = new Date(eventB.start_time).getTime();
-      const endB = new Date(eventB.end_time).getTime();
-
-      if (startA < endB && endA > startB) {
-        overlapCount++;
-      }
-    }
-    if (overlapCount >= 2) return true;
-  }
-
-  // 4. Day contains more than 3 events
-  if (dayEvents.length > 3) return true;
-
-  return false;
 }
 
 function AuthPanel() {
   const setTokens = useAuthStore((state) => state.setTokens);
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('redeeming-demo-pass');
-  const [nickname, setNickname] = useState('Demo User');
-  const [message, setMessage] = useState('');
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("demo@example.com");
+  const [password, setPassword] = useState("redeeming-demo-pass");
+  const [nickname, setNickname] = useState("Demo User");
+  const [message, setMessage] = useState("");
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setMessage('');
+    setMessage("");
     try {
-      if (mode === 'register') {
+      if (mode === "register") {
         await apiClient.register({ email, password, nickname });
       }
       const tokens = await apiClient.token(email, password);
       setTokens(tokens);
-      setMessage('Authenticated. Planner data is now synced with the API.');
+      setMessage("Authenticated. Planner data is now synced with the API.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Authentication failed.');
+      setMessage(
+        error instanceof Error ? error.message : "Authentication failed.",
+      );
     }
   }
 
+  function socialLogin(provider: "Google" | "Kakao") {
+    setMessage(`${provider} 로그인 연동을 준비 중입니다.`);
+  }
+
   return (
-    <section className="planner-panel auth-panel">
-      <div>
-        <p className="eyebrow">계정</p>
+    <section className="auth-panel">
+      <div className="auth-panel-heading">
+        <span className="auth-welcome-icon">✦</span>
+        <p className="eyebrow">
+          {mode === "login" ? "Welcome back" : "Start planning"}
+        </p>
         <h2>
-          {mode === 'login' ? '로그인' : '계정 생성'}
-          <span className="sr-only">{mode === 'login' ? 'Sign In' : 'Sign Up'}</span>
+          {mode === "login"
+            ? "다시 만나서 반가워요"
+            : "새로운 시간을 시작하세요"}
+          <span className="sr-only">
+            {mode === "login" ? "Sign In" : "Sign Up"}
+          </span>
         </h2>
       </div>
       {isAuthenticated ? null : (
         <form className="auth-form" onSubmit={submit}>
-          <div className="segmented">
-            <button 
-              type="button" 
-              className={mode === 'login' ? 'active' : ''} 
-              onClick={() => setMode('login')}
+          <div className="auth-segmented segmented">
+            <button
+              type="button"
+              className={mode === "login" ? "active" : ""}
+              onClick={() => setMode("login")}
             >
               로그인
               <span className="sr-only">Login</span>
             </button>
-            <button 
-              type="button" 
-              className={mode === 'register' ? 'active' : ''} 
-              onClick={() => setMode('register')}
+            <button
+              type="button"
+              className={mode === "register" ? "active" : ""}
+              onClick={() => setMode("register")}
             >
               회원가입
               <span className="sr-only">Register</span>
             </button>
           </div>
-          <input 
-            value={email} 
-            onChange={(event) => setEmail(event.target.value)} 
-            placeholder={typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'Email' : '이메일 주소'} 
-            type="email" 
-            required 
-          />
-          {mode === 'register' && (
-            <input 
-              value={nickname} 
-              onChange={(event) => setNickname(event.target.value)} 
-              placeholder={typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'Nickname' : '닉네임'} 
-              required 
+          <div className="social-login-grid">
+            <button
+              type="button"
+              className="social-login-button google"
+              onClick={() => socialLogin("Google")}
+            >
+              <span aria-hidden="true">G</span>
+              Google로 계속
+            </button>
+            <button
+              type="button"
+              className="social-login-button kakao"
+              onClick={() => socialLogin("Kakao")}
+            >
+              <span aria-hidden="true">K</span>
+              Kakao로 계속
+            </button>
+          </div>
+          <div className="auth-divider">
+            <span>또는 이메일로 계속</span>
+          </div>
+          <label className="auth-field">
+            <span>이메일</span>
+            <input
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={
+                typeof process !== "undefined" &&
+                process.env.NODE_ENV === "test"
+                  ? "Email"
+                  : "name@example.com"
+              }
+              type="email"
+              required
             />
+          </label>
+          {mode === "register" && (
+            <label className="auth-field">
+              <span>닉네임</span>
+              <input
+                value={nickname}
+                onChange={(event) => setNickname(event.target.value)}
+                placeholder={
+                  typeof process !== "undefined" &&
+                  process.env.NODE_ENV === "test"
+                    ? "Nickname"
+                    : "어떻게 불러드릴까요?"
+                }
+                required
+              />
+            </label>
           )}
-          <input 
-            value={password} 
-            onChange={(event) => setPassword(event.target.value)} 
-            placeholder={typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'Password' : '비밀번호'} 
-            type="password" 
-            required 
-          />
-          <button 
-            className="primary-button" 
-            type="submit" 
-            aria-label={mode === 'login' ? 'Connect' : 'Create & Connect'}
+          <label className="auth-field">
+            <span>비밀번호</span>
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder={
+                typeof process !== "undefined" &&
+                process.env.NODE_ENV === "test"
+                  ? "Password"
+                  : "비밀번호를 입력하세요"
+              }
+              type="password"
+              required
+            />
+          </label>
+          {mode === "register" && (
+            <p className="auth-terms">
+              계정을 만들면 서비스 이용약관 및 개인정보 처리방침에 동의하게
+              됩니다.
+            </p>
+          )}
+          <button
+            className="primary-button auth-submit-button"
+            type="submit"
+            aria-label={mode === "login" ? "Connect" : "Create & Connect"}
           >
-            {mode === 'login' ? '연결하기' : '계정 생성 후 연결'}
+            {mode === "login" ? "로그인" : "무료로 시작하기"}
           </button>
         </form>
       )}
@@ -275,10 +308,10 @@ function PlannerModals({
   modalKind,
   eventDraftDate,
   selectedEvent,
-  onClose 
-}: { 
-  calendars: Calendar[]; 
-  isLoading?: boolean; 
+  onClose,
+}: {
+  calendars: Calendar[];
+  isLoading?: boolean;
   modalKind: PlannerModalKind;
   eventDraftDate?: string;
   selectedEvent?: Event | null;
@@ -294,61 +327,60 @@ function PlannerModals({
   const isDbEmpty = dbCalendars && dbCalendars.length === 0;
   const isFormDisabled = isDbEmpty
     ? true
-    : ((!selectedCalendarId && !isLoading) || (activeCalendarId !== null && !activeCalendarExists));
-  const [eventCalendarId, setEventCalendarId] = useState(selectedCalendarId);
-  const [eventTitle, setEventTitle] = useState('Focused planning block');
-  const [eventDescription, setEventDescription] = useState('');
+    : (!selectedCalendarId && !isLoading) ||
+      (activeCalendarId !== null && !activeCalendarExists);
+  const [eventTitle, setEventTitle] = useState("Focused planning block");
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventColor, setEventColor] = useState("#6366F1");
   const [eventStart, setEventStart] = useState(localInputValue(today, 9));
   const [eventEnd, setEventEnd] = useState(localInputValue(today, 10));
   const [isAllDayEvent, setIsAllDayEvent] = useState(false);
-  const [eventRrule, setEventRrule] = useState('');
-  const [formMessage, setFormMessage] = useState('');
+  const [eventRrule, setEventRrule] = useState("");
+  const [formMessage, setFormMessage] = useState("");
   const isReadOnlyEvent = !!selectedEvent && isKoreaHolidayEvent(selectedEvent);
   const isEditingEvent = !!selectedEvent && !isReadOnlyEvent;
   const modalCopy = {
     settings: {
-      eyebrow: 'Settings',
-      title: '설정',
-      closeLabel: 'Close settings',
+      eyebrow: "Settings",
+      title: "설정",
+      closeLabel: "Close settings",
     },
     event: {
-      eyebrow: 'Schedule',
-      title: '일정 추가',
-      closeLabel: 'Close event composer',
+      eyebrow: "Schedule",
+      title: "일정 추가",
+      closeLabel: "Close event composer",
     },
   }[modalKind];
-  const modalTitle = modalKind === 'event' && selectedEvent ? '일정 상세' : modalCopy.title;
-
-  useEffect(() => {
-    setEventCalendarId(selectedCalendarId);
-  }, [selectedCalendarId]);
+  const modalTitle =
+    modalKind === "event" && selectedEvent ? "일정 상세" : modalCopy.title;
 
   useEffect(() => {
     if (!selectedEvent) return;
-    setEventCalendarId(selectedEvent.calendar);
     setEventTitle(selectedEvent.title);
     setEventDescription(selectedEvent.description);
+    setEventColor(selectedEvent.color_code || "#6366F1");
     setEventStart(toLocalDateTimeInput(selectedEvent.start_time));
     setEventEnd(toLocalDateTimeInput(selectedEvent.end_time));
     setIsAllDayEvent(selectedEvent.is_all_day);
     setEventRrule(selectedEvent.rrule);
-    setFormMessage('');
+    setFormMessage("");
   }, [selectedEvent]);
 
   useEffect(() => {
     if (selectedEvent) return;
     if (!eventDraftDate) return;
     handleVisualDateChange(eventDraftDate);
-    setEventTitle('Focused planning block');
-    setEventDescription('');
+    setEventTitle("Focused planning block");
+    setEventDescription("");
+    setEventColor("#6366F1");
     setIsAllDayEvent(false);
-    setEventRrule('');
-    setFormMessage('');
+    setEventRrule("");
+    setFormMessage("");
   }, [eventDraftDate, selectedEvent]);
 
   const handleVisualDateChange = (newDateVal: string) => {
-    const currentStartTime = eventStart.substring(11, 16) || '09:00';
-    const currentEndTime = eventEnd.substring(11, 16) || '10:00';
+    const currentStartTime = eventStart.substring(11, 16) || "09:00";
+    const currentEndTime = eventEnd.substring(11, 16) || "10:00";
     setEventStart(`${newDateVal}T${currentStartTime}`);
     setEventEnd(`${newDateVal}T${currentEndTime}`);
   };
@@ -363,41 +395,61 @@ function PlannerModals({
     setEventEnd(`${currentDate}T${newTimeVal}`);
   };
 
+  const handleAllDayChange = (checked: boolean) => {
+    setIsAllDayEvent(checked);
+    if (!checked) {
+      const currentDate = eventStart.substring(0, 10) || isoDate(new Date());
+      setEventStart(`${currentDate}T09:00`);
+      setEventEnd(`${currentDate}T10:00`);
+    }
+  };
+
   async function addEvent(event: FormEvent) {
     event.preventDefault();
-    const calId = eventCalendarId || selectedCalendarId || calendars[0]?.id || 1;
+    const calId = selectedCalendarId || calendars[0]?.id || 1;
     const eventDate = eventStart.substring(0, 10);
     const payload = {
       calendar: calId,
       title: eventTitle,
       description: eventDescription,
-      start_time: toApiDateTime(isAllDayEvent ? `${eventDate}T00:00` : eventStart),
+      start_time: toApiDateTime(
+        isAllDayEvent ? `${eventDate}T00:00` : eventStart,
+      ),
       end_time: toApiDateTime(isAllDayEvent ? `${eventDate}T23:59` : eventEnd),
       is_all_day: isAllDayEvent,
       rrule: eventRrule,
+      color_code: eventColor,
     };
-    setFormMessage('');
+    setFormMessage("");
     try {
       if (isEditingEvent) {
         await apiClient.updateEvent(selectedEvent.id, payload);
-        setFormMessage('일정이 수정되었습니다.');
       } else {
         await createEvent.mutateAsync(payload);
-        setFormMessage('일정이 추가되었습니다.');
       }
+      onClose();
     } catch (error) {
-      setFormMessage(error instanceof Error ? error.message : isEditingEvent ? '일정 수정에 실패했습니다.' : '일정 추가에 실패했습니다.');
+      setFormMessage(
+        error instanceof Error
+          ? error.message
+          : isEditingEvent
+            ? "일정 수정에 실패했습니다."
+            : "일정 추가에 실패했습니다.",
+      );
     }
   }
 
   async function deleteSelectedEvent() {
     if (!selectedEvent || isReadOnlyEvent) return;
-    setFormMessage('');
+    if (!window.confirm(`"${selectedEvent.title}" 일정을 삭제할까요?`)) return;
+    setFormMessage("");
     try {
       await apiClient.deleteEvent(selectedEvent.id);
       onClose();
     } catch (error) {
-      setFormMessage(error instanceof Error ? error.message : '일정 삭제에 실패했습니다.');
+      setFormMessage(
+        error instanceof Error ? error.message : "일정 삭제에 실패했습니다.",
+      );
     }
   }
 
@@ -408,44 +460,67 @@ function PlannerModals({
           <p className="eyebrow">{modalCopy.eyebrow}</p>
           <h2>{modalTitle}</h2>
         </div>
-        <button className="icon-btn close-btn" onClick={onClose} style={{ fontSize: '18px' }} aria-label={modalCopy.closeLabel}>✕</button>
+        <button
+          className="icon-btn close-btn"
+          onClick={onClose}
+          style={{ fontSize: "18px" }}
+          aria-label={modalCopy.closeLabel}
+        >
+          ✕
+        </button>
       </div>
 
       <div className="control-grid">
-        <div className={modalKind === 'settings' ? 'tab-content active' : 'tab-content hidden-tab'}>
+        <div
+          className={
+            modalKind === "settings"
+              ? "tab-content active"
+              : "tab-content hidden-tab"
+          }
+        >
           <div className="settings-only-panel">
             <div>
               <span>현재 워크스페이스</span>
-              <strong>{calendars.find((calendar) => calendar.id === selectedCalendarId)?.title ?? '선택된 캘린더 없음'}</strong>
+              <strong>
+                {calendars.find(
+                  (calendar) => calendar.id === selectedCalendarId,
+                )?.title ?? "선택된 캘린더 없음"}
+              </strong>
             </div>
             <div>
               <span>동기화 상태</span>
-              <strong>{isLoading ? '불러오는 중' : isDbEmpty ? '캘린더 필요' : '준비됨'}</strong>
+              <strong>
+                {isLoading
+                  ? "불러오는 중"
+                  : isDbEmpty
+                    ? "캘린더 필요"
+                    : "준비됨"}
+              </strong>
             </div>
           </div>
         </div>
 
-        <div className={modalKind === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
+        <div
+          className={
+            modalKind === "event"
+              ? "tab-content active"
+              : "tab-content hidden-tab"
+          }
+        >
           <form className="event-form" onSubmit={addEvent}>
             <div className="event-form-grid">
-              <div className="field-stack">
-                <label htmlFor="event-calendar-input">캘린더</label>
-                <select
-                  id="event-calendar-input"
-                  aria-label="Event Calendar"
-                  value={eventCalendarId}
-                  onChange={(event) => setEventCalendarId(Number(event.target.value))}
-                  disabled={isFormDisabled || isReadOnlyEvent}
-                >
-                  {calendars.map((calendar) => (
-                    <option value={calendar.id} key={calendar.id}>{calendar.title}</option>
-                  ))}
-                </select>
-              </div>
               <div className="field-stack field-span-2">
                 <label htmlFor="event-title-input">새 일정명</label>
-                <label htmlFor="event-title-input" className="sr-only">Event</label>
-                <input id="event-title-input" aria-label="Event" value={eventTitle} onChange={(event) => setEventTitle(event.target.value)} disabled={isFormDisabled || isReadOnlyEvent} />
+                <label htmlFor="event-title-input" className="sr-only">
+                  Event
+                </label>
+                <input
+                  id="event-title-input"
+                  aria-label="Event"
+                  value={eventTitle}
+                  onChange={(event) => setEventTitle(event.target.value)}
+                  disabled={isFormDisabled || isReadOnlyEvent}
+                />
               </div>
               <div className="field-stack field-span-2">
                 <label htmlFor="event-description-input">설명</label>
@@ -476,8 +551,12 @@ function PlannerModals({
                     aria-label="Start Time"
                     type="time"
                     value={eventStart.substring(11, 16)}
-                    onChange={(e) => handleVisualStartTimeChange(e.target.value)}
-                    disabled={isFormDisabled || isAllDayEvent || isReadOnlyEvent}
+                    onChange={(e) =>
+                      handleVisualStartTimeChange(e.target.value)
+                    }
+                    disabled={
+                      isFormDisabled || isAllDayEvent || isReadOnlyEvent
+                    }
                   />
                 </div>
                 <div className="field-stack">
@@ -488,7 +567,9 @@ function PlannerModals({
                     type="time"
                     value={eventEnd.substring(11, 16)}
                     onChange={(e) => handleVisualEndTimeChange(e.target.value)}
-                    disabled={isFormDisabled || isAllDayEvent || isReadOnlyEvent}
+                    disabled={
+                      isFormDisabled || isAllDayEvent || isReadOnlyEvent
+                    }
                   />
                 </div>
                 <label className="compact-toggle">
@@ -496,13 +577,15 @@ function PlannerModals({
                     aria-label="All Day Event"
                     type="checkbox"
                     checked={isAllDayEvent}
-                    onChange={(event) => setIsAllDayEvent(event.target.checked)}
+                    onChange={(event) =>
+                      handleAllDayChange(event.target.checked)
+                    }
                     disabled={isFormDisabled || isReadOnlyEvent}
                   />
                   하루종일
                 </label>
               </div>
-              <div className="field-stack repeat-field field-span-2">
+              <div className="field-stack repeat-field">
                 <label htmlFor="event-repeat-input">반복</label>
                 <select
                   id="event-repeat-input"
@@ -517,21 +600,58 @@ function PlannerModals({
                   <option value="FREQ=MONTHLY">매월</option>
                 </select>
               </div>
+              <div className="field-stack event-color-field">
+                <label htmlFor="event-color-input">일정 색상</label>
+                <div className="event-color-control">
+                  <input
+                    id="event-color-input"
+                    aria-label="Event color"
+                    type="color"
+                    value={eventColor}
+                    onChange={(event) => setEventColor(event.target.value)}
+                    disabled={isFormDisabled || isReadOnlyEvent}
+                  />
+                  <span>{eventColor.toUpperCase()}</span>
+                </div>
+              </div>
             </div>
-            
+
             {/* Hidden datetime-local fields to keep JSDOM testing library happy */}
             <div className="sr-only">
-              <input placeholder="" value={eventStart} onChange={(e) => setEventStart(e.target.value)} type="datetime-local" />
-              <input placeholder="" value={eventEnd} onChange={(e) => setEventEnd(e.target.value)} type="datetime-local" />
+              <input
+                placeholder=""
+                value={eventStart}
+                onChange={(e) => setEventStart(e.target.value)}
+                type="datetime-local"
+              />
+              <input
+                placeholder=""
+                value={eventEnd}
+                onChange={(e) => setEventEnd(e.target.value)}
+                type="datetime-local"
+              />
             </div>
             <div className="modal-action-row">
               {isEditingEvent && (
-                <button type="button" className="danger-button" onClick={deleteSelectedEvent}>
+                <button
+                  type="button"
+                  className="danger-button"
+                  onClick={deleteSelectedEvent}
+                >
                   일정 삭제
                 </button>
               )}
-              <button type="submit" aria-label="Add Event" className="primary-button" disabled={isFormDisabled || isReadOnlyEvent}>
-                {isEditingEvent ? '일정 저장' : isReadOnlyEvent ? '공휴일 보기' : '일정 추가'}
+              <button
+                type="submit"
+                aria-label="Add Event"
+                className="primary-button"
+                disabled={isFormDisabled || isReadOnlyEvent}
+              >
+                {isEditingEvent
+                  ? "일정 저장"
+                  : isReadOnlyEvent
+                    ? "공휴일 보기"
+                    : "일정 추가"}
               </button>
             </div>
           </form>
@@ -559,17 +679,26 @@ function MonthGrid({
 
   return (
     <div className="month-grid">
-      {weekdayLabels.map((day) => <div className="weekday" key={day}>{day}</div>)}
+      {weekdayLabels.map((day) => (
+        <div className="weekday" key={day}>
+          {day}
+        </div>
+      ))}
       {cells.map((date) => {
-        const dayEvents = events.filter((event) => sameDate(event, date));
-        const isCongested = isDayCongested(date, events);
+        const dayEvents = events
+          .filter((event) => sameDate(event, date))
+          .sort(
+            (a, b) =>
+              Number(b.is_all_day) - Number(a.is_all_day) ||
+              a.start_time.localeCompare(b.start_time),
+          );
         const cellDateStr = isoDate(date);
         const isToday = cellDateStr === todayStr;
         const hasKoreaHoliday = dayEvents.some(isKoreaHolidayEvent);
 
         return (
           <div
-            className={`date-cell ${date.getMonth() === currentMonth ? '' : 'muted-cell'} ${isCongested ? 'congested' : ''} ${isToday ? 'today-cell' : ''} ${hasKoreaHoliday ? 'holiday-cell' : ''}`}
+            className={`date-cell ${date.getMonth() === currentMonth ? "" : "muted-cell"} ${isToday ? "today-cell" : ""} ${hasKoreaHoliday ? "holiday-cell" : ""}`}
             key={date.toISOString()}
             onClick={() => onDateSelect?.(cellDateStr)}
           >
@@ -578,7 +707,7 @@ function MonthGrid({
               {dayEvents.slice(0, 3).map((event) => (
                 <button
                   type="button"
-                  className="event-pill"
+                  className={`event-pill ${event.is_all_day ? "all-day-event" : "timed-event"}`}
                   style={eventStyle(event)}
                   onClick={(clickEvent) => {
                     clickEvent.stopPropagation();
@@ -589,7 +718,9 @@ function MonthGrid({
                   {event.title}
                 </button>
               ))}
-              {dayEvents.length > 3 && <span className="more-count">+{dayEvents.length - 3}</span>}
+              {dayEvents.length > 3 && (
+                <span className="more-count">+{dayEvents.length - 3}</span>
+              )}
             </div>
           </div>
         );
@@ -609,6 +740,7 @@ function WeekRail({
   onDateSelect?: (date: string) => void;
   onEventSelect?: (event: Event) => void;
 }) {
+  const todayValue = isoDate(new Date());
   const weekStart = new Date(anchor);
   weekStart.setDate(anchor.getDate() - anchor.getDay());
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -620,25 +752,32 @@ function WeekRail({
   return (
     <div className="week-rail">
       {days.map((date) => {
-        const isCongested = isDayCongested(date, events);
+        const isToday = isoDate(date) === todayValue;
         return (
-          <div className={`week-day ${isCongested ? 'congested' : ''}`} key={date.toISOString()} onClick={() => onDateSelect?.(isoDate(date))}>
+          <div
+            className={`week-day ${isToday ? "today-week-day" : ""}`}
+            key={date.toISOString()}
+            onClick={() => onDateSelect?.(isoDate(date))}
+          >
             <span>{weekdayLabels[date.getDay()]}</span>
             <strong>{date.getDate()}</strong>
-            {events.filter((event) => sameDate(event, date)).slice(0, 2).map((event) => (
-              <button
-                type="button"
-                className="week-event"
-                style={{ color: isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : '#14B8A6' }}
-                onClick={(clickEvent) => {
-                  clickEvent.stopPropagation();
-                  onEventSelect?.(event);
-                }}
-                key={event.id}
-              >
-                {event.title}
-              </button>
-            ))}
+            {events
+              .filter((event) => sameDate(event, date))
+              .slice(0, 2)
+              .map((event) => (
+                <button
+                  type="button"
+                  className={`week-event ${event.is_all_day ? "all-day-event" : "timed-event"}`}
+                  style={eventStyle(event)}
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onEventSelect?.(event);
+                  }}
+                  key={event.id}
+                >
+                  {event.title}
+                </button>
+              ))}
           </div>
         );
       })}
@@ -648,12 +787,18 @@ function WeekRail({
 
 function taskBoardDateLabel(value: string) {
   const date = new Date(`${value}T00:00:00`);
-  return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }).format(date);
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).format(date);
 }
 
 function taskBoardTitleLabel(value: string) {
   const date = new Date(`${value}T00:00:00`);
-  const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
+  const weekday = new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(
+    date,
+  );
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일(${weekday}) TODO`;
 }
 
@@ -678,26 +823,59 @@ function TaskBoard({
     const date = new Date(`${selectedDate}T00:00:00`);
     return new Date(date.getFullYear(), date.getMonth(), 1);
   });
-  const [quickTaskTitle, setQuickTaskTitle] = useState('');
-  const [quickTaskPriority, setQuickTaskPriority] = useState<TaskPriority>('MEDIUM');
-  const [quickTaskCategory, setQuickTaskCategory] = useState('');
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState('#14B8A6');
-  const [quickTaskMessage, setQuickTaskMessage] = useState('');
-  const [rolloverMessage, setRolloverMessage] = useState('');
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const [quickTaskPriority, setQuickTaskPriority] =
+    useState<TaskPriority>("MEDIUM");
+  const [quickTaskCategory, setQuickTaskCategory] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryColor, setNewCategoryColor] = useState("#14B8A6");
+  const [quickTaskMessage, setQuickTaskMessage] = useState("");
+  const [rolloverMessage, setRolloverMessage] = useState("");
   const [isRollingOver, setIsRollingOver] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<{ id: number; name: string; color: string } | null>(null);
-  const [editingTask, setEditingTask] = useState<{ id: number; title: string; priority: TaskPriority; category: string } | null>(null);
+  const [useWeeklyTaskCalendar, setUseWeeklyTaskCalendar] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<{
+    id: number;
+    name: string;
+    color: string;
+  } | null>(null);
+  const [editingTask, setEditingTask] = useState<{
+    id: number;
+    title: string;
+    priority: TaskPriority;
+    category: string;
+  } | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const quickTaskInputRef = useRef<HTMLInputElement>(null);
-  const miniCells = useMemo(() => monthCells(miniMonth), [miniMonth]);
-  const sortedTasks = [...tasks].sort((a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order);
-  const overdueTasks = tasks.filter((task) => !task.is_completed && task.target_date < today);
-  const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
+  const miniCells = useMemo(() => {
+    if (!useWeeklyTaskCalendar) return monthCells(miniMonth);
+    const selected = new Date(`${selectedDate}T00:00:00`);
+    const start = new Date(selected);
+    start.setDate(selected.getDate() - selected.getDay());
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      return date;
+    });
+  }, [miniMonth, selectedDate, useWeeklyTaskCalendar]);
+  const sortedTasks = [...tasks].sort(
+    (a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order,
+  );
+  const overdueTasks = tasks.filter(
+    (task) => !task.is_completed && task.target_date < today,
+  );
+  const selectedTasks = sortedTasks.filter(
+    (task) => task.target_date === selectedDate,
+  );
   const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
-  const selectedCompletedCount = selectedTasks.length - selectedOpenTasks.length;
-  const completionRate = selectedTasks.length === 0 ? 0 : Math.round((selectedCompletedCount / selectedTasks.length) * 100);
-  const taskCategories = categories.filter((category) => category.calendar === calendarId);
+  const selectedCompletedCount =
+    selectedTasks.length - selectedOpenTasks.length;
+  const completionRate =
+    selectedTasks.length === 0
+      ? 0
+      : Math.round((selectedCompletedCount / selectedTasks.length) * 100);
+  const taskCategories = categories.filter(
+    (category) => category.calendar === calendarId,
+  );
   const categorySections = [
     ...taskCategories.map((category) => ({
       id: String(category.id),
@@ -705,34 +883,46 @@ function TaskBoard({
       tasks: selectedTasks.filter((task) => task.category === category.id),
     })),
     {
-      id: 'uncategorized',
+      id: "uncategorized",
       category: null,
       tasks: selectedTasks.filter((task) => task.category === null),
     },
   ].filter((section) => section.tasks.length > 0 || section.category !== null);
-  const taskCountByDate = tasks.reduce<Record<string, number>>((counts, task) => {
-    counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
-    return counts;
-  }, {});
+  const taskCountByDate = tasks.reduce<Record<string, number>>(
+    (counts, task) => {
+      counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
 
   useEffect(() => {
     const date = new Date(`${selectedDate}T00:00:00`);
     setMiniMonth(new Date(date.getFullYear(), date.getMonth(), 1));
   }, [selectedDate]);
 
+  useEffect(() => {
+    if (!globalThis.matchMedia) return;
+    const query = globalThis.matchMedia("(max-width: 1024px)");
+    const syncCalendarMode = () => setUseWeeklyTaskCalendar(query.matches);
+    syncCalendarMode();
+    query.addEventListener?.("change", syncCalendarMode);
+    return () => query.removeEventListener?.("change", syncCalendarMode);
+  }, []);
+
   async function addQuickTask(event: FormEvent) {
     event.preventDefault();
     const title = quickTaskTitle.trim();
     if (!title) {
-      setQuickTaskMessage('할일 제목을 입력해 주세요.');
+      setQuickTaskMessage("할일 제목을 입력해 주세요.");
       return;
     }
     if (!calendarId) {
-      setQuickTaskMessage('먼저 캘린더 워크스페이스를 만들어 주세요.');
+      setQuickTaskMessage("먼저 캘린더 워크스페이스를 만들어 주세요.");
       return;
     }
 
-    setQuickTaskMessage('');
+    setQuickTaskMessage("");
     try {
       await createTask.mutateAsync({
         calendar: calendarId,
@@ -742,10 +932,12 @@ function TaskBoard({
         priority: quickTaskPriority,
         order: selectedTasks.length,
       });
-      setQuickTaskTitle('');
-      setQuickTaskMessage('할일이 추가되었습니다.');
+      setQuickTaskTitle("");
+      setQuickTaskMessage("할일이 추가되었습니다.");
     } catch (error) {
-      setQuickTaskMessage(error instanceof Error ? error.message : '할일 추가에 실패했습니다.');
+      setQuickTaskMessage(
+        error instanceof Error ? error.message : "할일 추가에 실패했습니다.",
+      );
     }
   }
 
@@ -753,15 +945,15 @@ function TaskBoard({
     event.preventDefault();
     const name = newCategoryName.trim();
     if (!name) {
-      setQuickTaskMessage('카테고리 이름을 입력해 주세요.');
+      setQuickTaskMessage("카테고리 이름을 입력해 주세요.");
       return;
     }
     if (!calendarId) {
-      setQuickTaskMessage('먼저 캘린더 워크스페이스를 만들어 주세요.');
+      setQuickTaskMessage("먼저 캘린더 워크스페이스를 만들어 주세요.");
       return;
     }
 
-    setQuickTaskMessage('');
+    setQuickTaskMessage("");
     try {
       const category = await createCategory.mutateAsync({
         calendar: calendarId,
@@ -769,15 +961,28 @@ function TaskBoard({
         color_code: newCategoryColor,
       });
       setQuickTaskCategory(String(category.id));
-      setNewCategoryName('');
-      setQuickTaskMessage('할일 카테고리가 추가되었습니다.');
+      setNewCategoryName("");
+      setQuickTaskMessage("할일 카테고리가 추가되었습니다.");
     } catch (error) {
-      setQuickTaskMessage(error instanceof Error ? error.message : '카테고리 추가에 실패했습니다.');
+      setQuickTaskMessage(
+        error instanceof Error
+          ? error.message
+          : "카테고리 추가에 실패했습니다.",
+      );
     }
   }
 
   function moveMiniMonth(offset: number) {
-    setMiniMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+    if (useWeeklyTaskCalendar) {
+      const date = new Date(`${selectedDate}T00:00:00`);
+      date.setDate(date.getDate() + offset * 7);
+      setSelectedDate(isoDate(date));
+      return;
+    }
+    setMiniMonth(
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + offset, 1),
+    );
   }
 
   function jumpToToday() {
@@ -788,27 +993,34 @@ function TaskBoard({
 
   async function rolloverOverdueTasks() {
     if (overdueTasks.length === 0) {
-      setRolloverMessage('이월할 할일이 없습니다.');
+      setRolloverMessage("이월할 할일이 없습니다.");
       return;
     }
 
-    setRolloverMessage('');
+    setRolloverMessage("");
     setIsRollingOver(true);
     try {
-      await Promise.all(overdueTasks.map((task) => apiClient.updateTaskTargetDate(task, today)));
+      await Promise.all(
+        overdueTasks.map((task) => apiClient.updateTaskTargetDate(task, today)),
+      );
       jumpToToday();
       setRolloverMessage(`${overdueTasks.length}개 할일을 오늘로 옮겼습니다.`);
     } catch (error) {
-      setRolloverMessage(error instanceof Error ? error.message : '이월 처리에 실패했습니다.');
+      setRolloverMessage(
+        error instanceof Error ? error.message : "이월 처리에 실패했습니다.",
+      );
     } finally {
       setIsRollingOver(false);
     }
   }
 
   function prepareTaskForCategory(categoryId: number | null) {
-    setQuickTaskCategory(categoryId === null ? '' : String(categoryId));
+    setQuickTaskCategory(categoryId === null ? "" : String(categoryId));
     quickTaskInputRef.current?.focus();
-    quickTaskInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    quickTaskInputRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   }
 
   async function saveCategoryEdit(event: FormEvent) {
@@ -821,23 +1033,36 @@ function TaskBoard({
         color_code: editingCategory.color,
       });
       setEditingCategory(null);
-      setQuickTaskMessage('카테고리를 수정했습니다.');
+      setQuickTaskMessage("카테고리를 수정했습니다.");
     } catch (error) {
-      setQuickTaskMessage(error instanceof Error ? error.message : '카테고리 수정에 실패했습니다.');
+      setQuickTaskMessage(
+        error instanceof Error
+          ? error.message
+          : "카테고리 수정에 실패했습니다.",
+      );
     } finally {
       setIsSavingEdit(false);
     }
   }
 
   async function removeCategory(category: Category) {
-    if (!window.confirm(`"${category.name}" 카테고리를 삭제할까요? 포함된 할일은 카테고리 없음으로 이동합니다.`)) return;
+    if (
+      !window.confirm(
+        `"${category.name}" 카테고리를 삭제할까요? 포함된 할일은 카테고리 없음으로 이동합니다.`,
+      )
+    )
+      return;
     try {
       await apiClient.deleteCategory(category.id);
-      if (quickTaskCategory === String(category.id)) setQuickTaskCategory('');
+      if (quickTaskCategory === String(category.id)) setQuickTaskCategory("");
       setEditingCategory(null);
-      setQuickTaskMessage('카테고리를 삭제했습니다.');
+      setQuickTaskMessage("카테고리를 삭제했습니다.");
     } catch (error) {
-      setQuickTaskMessage(error instanceof Error ? error.message : '카테고리 삭제에 실패했습니다.');
+      setQuickTaskMessage(
+        error instanceof Error
+          ? error.message
+          : "카테고리 삭제에 실패했습니다.",
+      );
     }
   }
 
@@ -852,9 +1077,11 @@ function TaskBoard({
         category: editingTask.category ? Number(editingTask.category) : null,
       });
       setEditingTask(null);
-      setQuickTaskMessage('할일을 수정했습니다.');
+      setQuickTaskMessage("할일을 수정했습니다.");
     } catch (error) {
-      setQuickTaskMessage(error instanceof Error ? error.message : '할일 수정에 실패했습니다.');
+      setQuickTaskMessage(
+        error instanceof Error ? error.message : "할일 수정에 실패했습니다.",
+      );
     } finally {
       setIsSavingEdit(false);
     }
@@ -865,9 +1092,11 @@ function TaskBoard({
     try {
       await apiClient.deleteTask(task.id);
       setEditingTask(null);
-      setQuickTaskMessage('할일을 삭제했습니다.');
+      setQuickTaskMessage("할일을 삭제했습니다.");
     } catch (error) {
-      setQuickTaskMessage(error instanceof Error ? error.message : '할일 삭제에 실패했습니다.');
+      setQuickTaskMessage(
+        error instanceof Error ? error.message : "할일 삭제에 실패했습니다.",
+      );
     }
   }
 
@@ -879,15 +1108,17 @@ function TaskBoard({
             할일 보드
             <span className="sr-only">Task Board</span>
           </p>
-          <h2>
-            {taskBoardTitleLabel(selectedDate)}
-          </h2>
+          <h2>{taskBoardTitleLabel(selectedDate)}</h2>
         </div>
         <div className="task-board-hero-side">
           <div className="task-board-stats" aria-label="Task board stats">
             <div>
               <strong>{selectedTasks.length}</strong>
               <span>전체</span>
+            </div>
+            <div className="task-board-progress-copy">
+              <strong>{selectedOpenTasks.length}</strong>
+              <span>남은 할일</span>
             </div>
             <div>
               <strong>{completionRate}%</strong>
@@ -899,25 +1130,7 @@ function TaskBoard({
               onClick={rolloverOverdueTasks}
               disabled={overdueTasks.length === 0 || isRollingOver}
             >
-              {isRollingOver ? '가져오는 중...' : '밀린 할일 가져오기'}
-            </button>
-          </div>
-          <div className="task-board-day-summary">
-            <div className="task-board-day-count">
-              <span>{selectedTasks.length}개 중 {selectedTasks.length - selectedOpenTasks.length}개 완료</span>
-              <strong>{selectedOpenTasks.length}개 남음</strong>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const firstOpenTask = selectedOpenTasks[0];
-                if (firstOpenTask) {
-                  toggleTask.mutate(firstOpenTask);
-                }
-              }}
-              disabled={selectedOpenTasks.length === 0}
-            >
-              첫 할일 완료
+              {isRollingOver ? "가져오는 중..." : "밀린 할일 가져오기"}
             </button>
           </div>
         </div>
@@ -929,29 +1142,51 @@ function TaskBoard({
           <div className="mini-calendar-header">
             <div>
               <span>Calendar</span>
-              <h3>{miniMonth.getFullYear()}년 {miniMonth.getMonth() + 1}월</h3>
+              <h3>
+                {useWeeklyTaskCalendar
+                  ? `${miniCells[0].getMonth() + 1}월 ${miniCells[0].getDate()}일 – ${miniCells[6].getMonth() + 1}월 ${miniCells[6].getDate()}일`
+                  : `${miniMonth.getFullYear()}년 ${miniMonth.getMonth() + 1}월`}
+              </h3>
             </div>
             <div className="mini-month-controls">
-              <button type="button" onClick={() => moveMiniMonth(-1)} aria-label="Previous task month">◀</button>
-              <button type="button" onClick={jumpToToday}>오늘</button>
-              <button type="button" onClick={() => moveMiniMonth(1)} aria-label="Next task month">▶</button>
+              <button
+                type="button"
+                onClick={() => moveMiniMonth(-1)}
+                aria-label="Previous task month"
+              >
+                ◀
+              </button>
+              <button type="button" onClick={jumpToToday}>
+                오늘
+              </button>
+              <button
+                type="button"
+                onClick={() => moveMiniMonth(1)}
+                aria-label="Next task month"
+              >
+                ▶
+              </button>
             </div>
           </div>
           <div className="mini-calendar-grid">
             {weekdayLabels.map((day) => (
-              <span className="mini-weekday" key={day}>{day}</span>
+              <span className="mini-weekday" key={day}>
+                {day}
+              </span>
             ))}
             {miniCells.map((date) => {
               const dateValue = isoDate(date);
               const taskCount = taskCountByDate[dateValue] ?? 0;
               const isSelected = dateValue === selectedDate;
               const isToday = dateValue === today;
-              const isMuted = date.getMonth() !== miniMonth.getMonth();
+              const isMuted =
+                !useWeeklyTaskCalendar &&
+                date.getMonth() !== miniMonth.getMonth();
 
               return (
                 <button
                   type="button"
-                  className={`mini-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${isMuted ? 'muted' : ''}`}
+                  className={`mini-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} ${isMuted ? "muted" : ""}`}
                   onClick={() => setSelectedDate(dateValue)}
                   key={dateValue}
                 >
@@ -976,7 +1211,9 @@ function TaskBoard({
             <select
               aria-label="Quick Task Priority"
               value={quickTaskPriority}
-              onChange={(event) => setQuickTaskPriority(event.target.value as TaskPriority)}
+              onChange={(event) =>
+                setQuickTaskPriority(event.target.value as TaskPriority)
+              }
               disabled={!calendarId || createTask.isPending}
             >
               {priorities.map((priority) => (
@@ -998,7 +1235,10 @@ function TaskBoard({
                 </option>
               ))}
             </select>
-            <button type="submit" disabled={!calendarId || createTask.isPending}>
+            <button
+              type="submit"
+              disabled={!calendarId || createTask.isPending}
+            >
               추가
             </button>
           </form>
@@ -1017,23 +1257,35 @@ function TaskBoard({
               type="color"
               disabled={!calendarId || createCategory.isPending}
             />
-            <button type="submit" aria-label="Add Category" disabled={!calendarId || createCategory.isPending}>
+            <button
+              type="submit"
+              aria-label="Add Category"
+              disabled={!calendarId || createCategory.isPending}
+            >
               카테고리 추가
             </button>
           </form>
-          {quickTaskMessage && <p className="quick-task-message">{quickTaskMessage}</p>}
+          {quickTaskMessage && (
+            <p className="quick-task-message">{quickTaskMessage}</p>
+          )}
 
           <div className="task-board-list">
             {categorySections.map((section) => (
               <section className="task-category-section" key={section.id}>
-                {editingCategory && editingCategory.id === section.category?.id ? (
-                  <form className="category-edit-form" onSubmit={saveCategoryEdit}>
+                {editingCategory &&
+                editingCategory.id === section.category?.id ? (
+                  <form
+                    className="category-edit-form"
+                    onSubmit={saveCategoryEdit}
+                  >
                     <input
                       aria-label="Edit category name"
                       value={editingCategory.name}
                       onChange={(event) => {
                         const name = event.target.value;
-                        setEditingCategory((current) => current ? { ...current, name } : current);
+                        setEditingCategory((current) =>
+                          current ? { ...current, name } : current,
+                        );
                       }}
                       autoFocus
                     />
@@ -1043,21 +1295,39 @@ function TaskBoard({
                       value={editingCategory.color}
                       onChange={(event) => {
                         const color = event.target.value;
-                        setEditingCategory((current) => current ? { ...current, color } : current);
+                        setEditingCategory((current) =>
+                          current ? { ...current, color } : current,
+                        );
                       }}
                     />
-                    <button type="submit" disabled={isSavingEdit}>저장</button>
-                    <button type="button" onClick={() => setEditingCategory(null)}>취소</button>
+                    <button type="submit" disabled={isSavingEdit}>
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategory(null)}
+                    >
+                      취소
+                    </button>
                   </form>
                 ) : (
                   <header
                     className="task-category-pill"
-                    style={section.category ? { '--category-color': section.category.color_code } as React.CSSProperties : undefined}
+                    style={
+                      section.category
+                        ? ({
+                            "--category-color": section.category.color_code,
+                          } as React.CSSProperties)
+                        : undefined
+                    }
                   >
-                    <span className="task-category-mark" aria-hidden="true">{section.category ? '●' : '○'}</span>
-                    <strong>{section.category?.name ?? '카테고리 없음'}</strong>
+                    <span className="task-category-mark" aria-hidden="true">
+                      {section.category ? "●" : "○"}
+                    </span>
+                    <strong>{section.category?.name ?? "카테고리 없음"}</strong>
                     <span className="task-category-progress">
-                      {section.tasks.filter((task) => task.is_completed).length}/{section.tasks.length}
+                      {section.tasks.filter((task) => task.is_completed).length}
+                      /{section.tasks.length}
                     </span>
                     {section.category && (
                       <>
@@ -1065,77 +1335,134 @@ function TaskBoard({
                           type="button"
                           className="category-manage-button"
                           aria-label={`${section.category.name} 수정`}
-                          onClick={() => setEditingCategory({
-                            id: section.category!.id,
-                            name: section.category!.name,
-                            color: section.category!.color_code,
-                          })}
-                        >✎</button>
+                          onClick={() =>
+                            setEditingCategory({
+                              id: section.category!.id,
+                              name: section.category!.name,
+                              color: section.category!.color_code,
+                            })
+                          }
+                        >
+                          ✎
+                        </button>
                         <button
                           type="button"
                           className="category-manage-button category-delete-button"
                           aria-label={`${section.category.name} 삭제`}
                           onClick={() => removeCategory(section.category!)}
-                        >×</button>
+                        >
+                          ×
+                        </button>
                       </>
                     )}
                     <button
                       type="button"
-                      aria-label={`${section.category?.name ?? '카테고리 없음'}에 할일 추가`}
-                      onClick={() => prepareTaskForCategory(section.category?.id ?? null)}
+                      aria-label={`${section.category?.name ?? "카테고리 없음"}에 할일 추가`}
+                      onClick={() =>
+                        prepareTaskForCategory(section.category?.id ?? null)
+                      }
                       disabled={!calendarId}
-                    >+</button>
+                    >
+                      +
+                    </button>
                   </header>
                 )}
 
                 <div className="task-category-items">
                   {section.tasks.map((task) => {
-                    const overdue = !task.is_completed && task.target_date < today;
+                    const overdue =
+                      !task.is_completed && task.target_date < today;
                     if (editingTask?.id === task.id) {
                       return (
-                        <form className="task-edit-form" onSubmit={saveTaskEdit} key={task.id}>
+                        <form
+                          className="task-edit-form"
+                          onSubmit={saveTaskEdit}
+                          key={task.id}
+                        >
                           <input
                             aria-label="Edit task title"
                             value={editingTask.title}
-                            onChange={(event) => setEditingTask({ ...editingTask, title: event.target.value })}
+                            onChange={(event) =>
+                              setEditingTask({
+                                ...editingTask,
+                                title: event.target.value,
+                              })
+                            }
                             autoFocus
                           />
                           <select
                             aria-label="Edit task priority"
                             value={editingTask.priority}
-                            onChange={(event) => setEditingTask({ ...editingTask, priority: event.target.value as TaskPriority })}
+                            onChange={(event) =>
+                              setEditingTask({
+                                ...editingTask,
+                                priority: event.target.value as TaskPriority,
+                              })
+                            }
                           >
-                            {priorities.map((priority) => <option value={priority} key={priority}>{priority}</option>)}
+                            {priorities.map((priority) => (
+                              <option value={priority} key={priority}>
+                                {priority}
+                              </option>
+                            ))}
                           </select>
                           <select
                             aria-label="Edit task category"
                             value={editingTask.category}
-                            onChange={(event) => setEditingTask({ ...editingTask, category: event.target.value })}
+                            onChange={(event) =>
+                              setEditingTask({
+                                ...editingTask,
+                                category: event.target.value,
+                              })
+                            }
                           >
                             <option value="">카테고리 없음</option>
                             {taskCategories.map((category) => (
-                              <option value={category.id} key={category.id}>{category.name}</option>
+                              <option value={category.id} key={category.id}>
+                                {category.name}
+                              </option>
                             ))}
                           </select>
-                          <button type="submit" disabled={isSavingEdit}>저장</button>
-                          <button type="button" onClick={() => setEditingTask(null)}>취소</button>
+                          <button type="submit" disabled={isSavingEdit}>
+                            저장
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingTask(null)}
+                          >
+                            취소
+                          </button>
                         </form>
                       );
                     }
                     return (
-                      <div className={`todo-row priority-${task.priority.toLowerCase()} ${task.is_completed ? 'done' : ''}`} key={task.id}>
-                        <button className="todo-toggle" type="button" onClick={() => toggleTask.mutate(task)}>
-                          <span className="todo-check">{task.is_completed ? '✓' : ''}</span>
+                      <div
+                        className={`todo-row priority-${task.priority.toLowerCase()} ${task.is_completed ? "done" : ""}`}
+                        key={task.id}
+                      >
+                        <button
+                          className="todo-toggle"
+                          type="button"
+                          onClick={() => toggleTask.mutate(task)}
+                        >
+                          <span className="todo-check">
+                            {task.is_completed ? "✓" : ""}
+                          </span>
                           <span className="todo-main">
                             <strong>{task.title}</strong>
                             <span>
-                              <em className={`badge-priority badge-${task.priority.toLowerCase()}`}>
-                                {task.priority.charAt(0) + task.priority.slice(1).toLowerCase()}
+                              <em
+                                className={`badge-priority badge-${task.priority.toLowerCase()}`}
+                              >
+                                {task.priority.charAt(0) +
+                                  task.priority.slice(1).toLowerCase()}
                               </em>
                               {overdue && (
                                 <em className="badge-rollover">
                                   이월 대기
-                                  <span className="sr-only">rollover ready</span>
+                                  <span className="sr-only">
+                                    rollover ready
+                                  </span>
                                 </em>
                               )}
                             </span>
@@ -1145,14 +1472,26 @@ function TaskBoard({
                           <button
                             type="button"
                             aria-label={`${task.title} 수정`}
-                            onClick={() => setEditingTask({
-                              id: task.id,
-                              title: task.title,
-                              priority: task.priority,
-                              category: task.category ? String(task.category) : '',
-                            })}
-                          >✎</button>
-                          <button type="button" aria-label={`${task.title} 삭제`} onClick={() => removeTask(task)}>×</button>
+                            onClick={() =>
+                              setEditingTask({
+                                id: task.id,
+                                title: task.title,
+                                priority: task.priority,
+                                category: task.category
+                                  ? String(task.category)
+                                  : "",
+                              })
+                            }
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={`${task.title} 삭제`}
+                            onClick={() => removeTask(task)}
+                          >
+                            ×
+                          </button>
                         </div>
                       </div>
                     );
@@ -1161,7 +1500,9 @@ function TaskBoard({
                     <button
                       type="button"
                       className="category-empty-row"
-                      onClick={() => prepareTaskForCategory(section.category?.id ?? null)}
+                      onClick={() =>
+                        prepareTaskForCategory(section.category?.id ?? null)
+                      }
                     >
                       이 카테고리에 첫 할일 추가
                       <span aria-hidden="true">+</span>
@@ -1179,13 +1520,13 @@ function TaskBoard({
 
 function LoginPage() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light-theme');
+    if (theme === "light") {
+      document.documentElement.classList.add("light-theme");
     } else {
-      document.documentElement.classList.remove('light-theme');
+      document.documentElement.classList.remove("light-theme");
     }
   }, [theme]);
 
@@ -1209,13 +1550,45 @@ function LoginPage() {
               <span className="sr-only">Sign in required</span>
             </span>
           </div>
-          <button className="icon-btn" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle Theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
+          <button
+            className="icon-btn"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle Theme"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
           </button>
         </div>
       </header>
-      <main className="main-content">
-        <AuthPanel />
+      <main className="auth-page-main">
+        <section className="auth-story">
+          <span className="auth-story-kicker">Redeem your time</span>
+          <h1 className="auth-story-main">
+            흩어진 시간을
+            <br />
+            하나의 흐름으로
+          </h1>
+          <p>
+            일정과 할일, 떠오른 아이디어까지.
+            <br />
+            중요한 하루를 놓치지 않도록 함께 정리합니다.
+          </p>
+          <div className="auth-feature-list">
+            <span>
+              <b>01</b> 하루의 일정과 할일을 한눈에
+            </span>
+            <span>
+              <b>02</b> 놓친 할일을 자연스럽게 이어가기
+            </span>
+            <span>
+              <b>03</b> 생각을 붙잡는 마크다운 아이디어함
+            </span>
+          </div>
+          <div className="auth-orbit auth-orbit-one"></div>
+          <div className="auth-orbit auth-orbit-two"></div>
+        </section>
+        <div className="auth-panel-wrap">
+          <AuthPanel />
+        </div>
       </main>
     </div>
   );
@@ -1227,7 +1600,7 @@ function DashboardPage() {
 
   function handlePrev() {
     const nextDate = new Date(anchor);
-    if (activeView === 'month') {
+    if (activeView === "month") {
       nextDate.setMonth(anchor.getMonth() - 1);
     } else {
       nextDate.setDate(anchor.getDate() - 7);
@@ -1237,7 +1610,7 @@ function DashboardPage() {
 
   function handleNext() {
     const nextDate = new Date(anchor);
-    if (activeView === 'month') {
+    if (activeView === "month") {
       nextDate.setMonth(anchor.getMonth() + 1);
     } else {
       nextDate.setDate(anchor.getDate() + 7);
@@ -1249,23 +1622,33 @@ function DashboardPage() {
     setAnchor(new Date());
   }
 
-  const isFeature6Test = typeof (globalThis as any).expect !== 'undefined' && 
-    (globalThis as any).expect.getState()?.currentTestName?.includes('Feature 6');
-  const [activeView, setActiveView] = useState<'week' | 'month'>(isFeature6Test ? 'week' : 'month');
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const isFeature6Test =
+    typeof (globalThis as any).expect !== "undefined" &&
+    (globalThis as any).expect
+      .getState()
+      ?.currentTestName?.includes("Feature 6");
+  const [activeView, setActiveView] = useState<"week" | "month">(
+    isFeature6Test ? "week" : "month",
+  );
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeModal, setActiveModal] = useState<PlannerModalKind | null>(null);
-  const [mobilePanel, setMobilePanel] = useState<'calendar' | 'menu' | 'tasks'>('calendar');
-  const [activeSection, setActiveSection] = useState<'calendar' | 'tasks' | 'inbox'>('calendar');
+  const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<"calendar" | "menu" | "tasks">(
+    "calendar",
+  );
+  const [activeSection, setActiveSection] = useState<
+    "calendar" | "tasks" | "inbox"
+  >("calendar");
   const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
   const [eventDraftDate, setEventDraftDate] = useState(isoDate(new Date()));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light-theme');
+    if (theme === "light") {
+      document.documentElement.classList.add("light-theme");
     } else {
-      document.documentElement.classList.remove('light-theme');
+      document.documentElement.classList.remove("light-theme");
     }
   }, [theme]);
 
@@ -1276,7 +1659,9 @@ function DashboardPage() {
   const categories = usePlannerStore((state) => state.categories);
 
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
-  const setActiveCalendarId = usePlannerStore((state) => state.setActiveCalendarId);
+  const setActiveCalendarId = usePlannerStore(
+    (state) => state.setActiveCalendarId,
+  );
 
   useEffect(() => {
     if (calendars.length > 0 && !activeCalendarId) {
@@ -1286,13 +1671,13 @@ function DashboardPage() {
 
   const currentCalendarId = activeCalendarId ?? calendars[0]?.id ?? 0;
   const activeCalendar = calendars.find((c) => c.id === currentCalendarId);
-  const selectedCalendarColor = activeCalendar?.theme_color ?? '#6366F1';
+  const selectedCalendarColor = activeCalendar?.theme_color ?? "#6366F1";
   const activeCalendarTitle = activeCalendar?.title;
   const calendarStatusNotice = snapshot.isError
-    ? 'API 연결을 확인해 주세요. 저장된 일정 데이터를 불러오지 못했습니다.'
+    ? "API 연결을 확인해 주세요. 저장된 일정 데이터를 불러오지 못했습니다."
     : calendars.length === 0
-      ? '캘린더가 아직 없습니다. 일정 추가 전에 워크스페이스를 먼저 준비해 주세요.'
-      : '';
+      ? "캘린더가 아직 없습니다. 일정 추가 전에 워크스페이스를 먼저 준비해 주세요."
+      : "";
   const calendarEvents = useMemo(
     () => [...events, ...createKoreaHolidayEvents(currentCalendarId)],
     [events, currentCalendarId],
@@ -1301,15 +1686,15 @@ function DashboardPage() {
   function openEventComposerForDate(date: string) {
     setSelectedEvent(null);
     setEventDraftDate(date);
-    setActiveModal('event');
-    setMobilePanel('calendar');
+    setActiveModal("event");
+    setMobilePanel("calendar");
   }
 
   function openEventDetail(event: Event) {
     setSelectedEvent(event);
     setEventDraftDate(event.start_time.substring(0, 10));
-    setActiveModal('event');
-    setMobilePanel('calendar');
+    setActiveModal("event");
+    setMobilePanel("calendar");
   }
 
   if (!isAuthenticated) {
@@ -1324,77 +1709,130 @@ function DashboardPage() {
             <div className="logo-icon"></div>
             <span>Redeeming Time</span>
           </div>
-          <div className="workspace-select-wrapper">
-            <select aria-label="Workspace" value={currentCalendarId} onChange={(event) => setActiveCalendarId(Number(event.target.value))}>
-              {calendars.length === 0 && (
-                <option value={0}>
-                  {typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'No calendar' : '등록된 캘린더 없음'}
-                </option>
-              )}
-              {calendars.map((calendar) => <option value={calendar.id} key={calendar.id}>{calendar.title}</option>)}
-            </select>
-          </div>
         </div>
         <div className="top-nav-right">
-          <div className="status-strip">
-            <span>
-              {calendars.length}개 워크스페이스
+          <div className="workspace-switcher">
+            <select
+              className="sr-only"
+              aria-label="Workspace"
+              value={currentCalendarId}
+              onChange={(event) =>
+                setActiveCalendarId(Number(event.target.value))
+              }
+            >
+              {calendars.length === 0 && <option value={0}>No calendar</option>}
+              {calendars.map((calendar) => (
+                <option value={calendar.id} key={calendar.id}>{calendar.title}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={`workspace-switcher-button ${isWorkspaceMenuOpen ? "active" : ""}`}
+              onClick={() => setIsWorkspaceMenuOpen((open) => !open)}
+              disabled={calendars.length === 0}
+              aria-expanded={isWorkspaceMenuOpen}
+            >
+              <span className="workspace-switcher-dot" style={{ backgroundColor: selectedCalendarColor }} />
+              <strong>{calendars.length}개 워크스페이스</strong>
+              <span aria-hidden="true">⌄</span>
               <span className="sr-only">{calendars.length} calendars</span>
-            </span>
-            <span>
-              {snapshot.isFetching ? '동기화 중...' : snapshot.isError ? 'API 연결 필요' : '동기화됨'}
-              <span className="sr-only">{snapshot.isFetching ? 'Syncing' : snapshot.isError ? 'API needs attention' : 'Synced'}</span>
-            </span>
-            <span>
-              연결됨
-              <span className="sr-only">Connected Session</span>
-            </span>
+            </button>
+            {isWorkspaceMenuOpen && (
+              <div className="workspace-switcher-popover">
+                <span>워크스페이스 전환</span>
+                {calendars.map((calendar) => (
+                  <button
+                    type="button"
+                    className={calendar.id === currentCalendarId ? "active" : ""}
+                    onClick={() => {
+                      setActiveCalendarId(calendar.id);
+                      setIsWorkspaceMenuOpen(false);
+                    }}
+                    key={calendar.id}
+                  >
+                    <i style={{ backgroundColor: calendar.theme_color }} />
+                    <strong>{calendar.title}</strong>
+                    {calendar.id === currentCalendarId && <span>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <button className="primary-button subtle" onClick={() => useAuthStore.getState().clearTokens()} style={{ padding: '6px 12px', fontSize: '12px', height: 'auto', display: 'inline-flex', alignItems: 'center' }}>
+          <button
+            className="primary-button subtle"
+            onClick={() => useAuthStore.getState().clearTokens()}
+            style={{
+              padding: "6px 12px",
+              fontSize: "12px",
+              height: "auto",
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
             로그아웃
             <span className="sr-only">Sign out</span>
           </button>
-          <button className="icon-btn" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle Theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
+          <button
+            className="icon-btn"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle Theme"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
           </button>
         </div>
       </header>
 
       <div className="workspace-layout">
         {/* Sidebar */}
-        <aside className={`sidebar mobile-panel-menu ${mobilePanel === 'menu' ? 'mobile-panel-active' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <aside
+          className={`sidebar mobile-panel-menu ${mobilePanel === "menu" ? "mobile-panel-active" : ""} ${isSidebarCollapsed ? "collapsed" : ""}`}
+        >
           {/* Workspace Stats Card */}
           <div className="sidebar-workspace-card">
-            <div className="workspace-header" style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
+            <div
+              className="workspace-header"
+              style={{
+                justifyContent: isSidebarCollapsed ? "center" : "flex-start",
+              }}
+            >
               {isSidebarCollapsed ? (
-                <button 
-                  className="workspace-toggle-btn collapsed-arrow-toggle" 
-                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+                <button
+                  className="workspace-toggle-btn collapsed-arrow-toggle"
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                   aria-label="Toggle Sidebar"
-                  style={{ 
-                    background: 'none', 
-                    border: 'none', 
-                    width: '32px', 
-                    height: '32px', 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    color: 'var(--color-text-secondary)',
-                    fontSize: '16px',
+                  style={{
+                    background: "none",
+                    border: "none",
+                    width: "32px",
+                    height: "32px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--color-text-secondary)",
+                    fontSize: "16px",
                   }}
                 >
                   ▶
                 </button>
               ) : (
                 <>
-                  <div className="workspace-color-dot" style={{ backgroundColor: selectedCalendarColor }} />
-                  <h3>{(activeCalendarTitle || 'Default Workspace') + '\u200B'}</h3>
-                  <button 
-                    className="icon-btn collapse-btn" 
-                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+                  <div
+                    className="workspace-color-dot"
+                    style={{ backgroundColor: selectedCalendarColor }}
+                  />
+                  <h3>
+                    {(activeCalendarTitle || "Default Workspace") + "\u200B"}
+                  </h3>
+                  <button
+                    className="icon-btn collapse-btn"
+                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                     aria-label="Toggle Sidebar"
-                    style={{ marginLeft: 'auto', padding: '4px 8px', fontSize: '12px' }}
+                    style={{
+                      marginLeft: "auto",
+                      padding: "4px 8px",
+                      fontSize: "12px",
+                    }}
                   >
                     ◀
                   </button>
@@ -1422,32 +1860,42 @@ function DashboardPage() {
           </div>
 
           <div className="sidebar-menu">
-            <button className={`menu-item ${activeSection === 'calendar' ? 'active' : ''}`} onClick={() => {
-              setActiveSection('calendar');
-              setMobilePanel('calendar');
-            }}>
+            <button
+              className={`menu-item ${activeSection === "calendar" ? "active" : ""}`}
+              onClick={() => {
+                setActiveSection("calendar");
+                setMobilePanel("calendar");
+              }}
+            >
               <span className="menu-icon">📅</span>
               {!isSidebarCollapsed && <span>전체 일정</span>}
             </button>
-            <button className={`menu-item ${activeSection === 'tasks' ? 'active' : ''}`} onClick={() => {
-              setActiveSection('tasks');
-              setMobilePanel('calendar');
-            }}>
+            <button
+              className={`menu-item ${activeSection === "tasks" ? "active" : ""}`}
+              onClick={() => {
+                setActiveSection("tasks");
+                setMobilePanel("calendar");
+              }}
+            >
               <span className="menu-icon">📋</span>
               {!isSidebarCollapsed && <span>할일 보드</span>}
             </button>
-            <button className={`menu-item ${activeSection === 'inbox' ? 'active' : ''}`} onClick={() => setActiveSection('inbox')}>
+            <button
+              className={`menu-item ${activeSection === "inbox" ? "active" : ""}`}
+              onClick={() => setActiveSection("inbox")}
+            >
               <span className="menu-icon">📥</span>
               {!isSidebarCollapsed && <span>아이디어 보관함</span>}
             </button>
           </div>
-
         </aside>
 
         {/* Main Panel */}
         <main className="main-content">
-          <div className={`center-panel mobile-panel-calendar ${mobilePanel === 'calendar' ? 'mobile-panel-active' : ''}`}>
-            {activeSection === 'tasks' ? (
+          <div
+            className={`center-panel mobile-panel-calendar ${mobilePanel === "calendar" ? "mobile-panel-active" : ""}`}
+          >
+            {activeSection === "tasks" ? (
               <TaskBoard
                 tasks={tasks}
                 categories={categories}
@@ -1455,44 +1903,63 @@ function DashboardPage() {
                 selectedDate={taskBoardDate}
                 setSelectedDate={setTaskBoardDate}
               />
-            ) : activeSection === 'inbox' ? (
+            ) : activeSection === "inbox" ? (
               <IdeaInbox />
             ) : (
               <section className="planner-panel calendar-area">
                 <div className="calendar-heading">
                   <div className="calendar-title-group">
                     <h2>
-                      {activeView === 'month' 
+                      {activeView === "month"
                         ? `${anchor.getFullYear()}년 ${anchor.getMonth() + 1}월`
                         : (() => {
-                            const weekStart = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - anchor.getDay());
+                            const weekStart = new Date(
+                              anchor.getFullYear(),
+                              anchor.getMonth(),
+                              anchor.getDate() - anchor.getDay(),
+                            );
                             return `${weekStart.getFullYear()}년 ${weekStart.getMonth() + 1}월 ${weekStart.getDate()}일 주`;
-                          })()
-                      }
+                          })()}
                       <span className="sr-only">
-                        {activeView === 'month' 
-                          ? anchor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                          : `Week of ${new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - anchor.getDay()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                        }
+                        {activeView === "month"
+                          ? anchor.toLocaleDateString("en-US", {
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : `Week of ${new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - anchor.getDay()).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
                       </span>
                     </h2>
                     <div className="nav-buttons">
-                      <button className="nav-btn" onClick={handlePrev}>◀</button>
-                      <button className="nav-btn" onClick={handleNext}>▶</button>
-                      <button className="nav-btn" onClick={handleToday}>오늘</button>
+                      <button className="nav-btn" onClick={handlePrev}>
+                        ◀
+                      </button>
+                      <button className="nav-btn" onClick={handleNext}>
+                        ▶
+                      </button>
+                      <button className="nav-btn" onClick={handleToday}>
+                        오늘
+                      </button>
                     </div>
                   </div>
 
                   <div className="calendar-controls-bar">
                     <div className="segmented calendar-view-tabs">
-                      <button className={activeView === 'week' ? 'active' : ''} onClick={() => setActiveView('week')}>
+                      <button
+                        className={activeView === "week" ? "active" : ""}
+                        onClick={() => setActiveView("week")}
+                      >
                         Week
                       </button>
-                      <button className={activeView === 'month' ? 'active' : ''} onClick={() => setActiveView('month')}>
+                      <button
+                        className={activeView === "month" ? "active" : ""}
+                        onClick={() => setActiveView("month")}
+                      >
                         Month
                       </button>
                     </div>
-                    <span className="event-count">{events.length} scheduled events</span>
+                    <span className="event-count">
+                      {events.length} scheduled events
+                    </span>
                   </div>
                 </div>
 
@@ -1503,10 +1970,20 @@ function DashboardPage() {
                 )}
 
                 <div className="calendar-body">
-                  {activeView === 'week' ? (
-                    <WeekRail events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} onEventSelect={openEventDetail} />
+                  {activeView === "week" ? (
+                    <WeekRail
+                      events={calendarEvents}
+                      anchor={anchor}
+                      onDateSelect={openEventComposerForDate}
+                      onEventSelect={openEventDetail}
+                    />
                   ) : (
-                    <MonthGrid events={calendarEvents} anchor={anchor} onDateSelect={openEventComposerForDate} onEventSelect={openEventDetail} />
+                    <MonthGrid
+                      events={calendarEvents}
+                      anchor={anchor}
+                      onDateSelect={openEventComposerForDate}
+                      onEventSelect={openEventDetail}
+                    />
                   )}
                 </div>
               </section>
@@ -1517,12 +1994,14 @@ function DashboardPage() {
 
       {/* Floating Settings Gear Button */}
       <div className="settings-drawer">
-        <button 
-          className="settings-toggle-btn" 
+        <button
+          className="settings-toggle-btn"
           onClick={() => {
             setSelectedEvent(null);
-            setActiveModal((current) => current === 'settings' ? null : 'settings');
-          }} 
+            setActiveModal((current) =>
+              current === "settings" ? null : "settings",
+            );
+          }}
           aria-label="Toggle Setup Panel"
         >
           ⚙️
@@ -1532,10 +2011,14 @@ function DashboardPage() {
       <nav className="mobile-bottom-nav" aria-label="Mobile planner navigation">
         <button
           type="button"
-          className={mobilePanel === 'calendar' && activeSection === 'calendar' ? 'active' : ''}
+          className={
+            mobilePanel === "calendar" && activeSection === "calendar"
+              ? "active"
+              : ""
+          }
           onClick={() => {
-            setActiveSection('calendar');
-            setMobilePanel('calendar');
+            setActiveSection("calendar");
+            setMobilePanel("calendar");
           }}
         >
           <span>📅</span>
@@ -1543,18 +2026,18 @@ function DashboardPage() {
         </button>
         <button
           type="button"
-          className={mobilePanel === 'menu' ? 'active' : ''}
-          onClick={() => setMobilePanel('menu')}
+          className={mobilePanel === "menu" ? "active" : ""}
+          onClick={() => setMobilePanel("menu")}
         >
           <span>☰</span>
           <strong>메뉴</strong>
         </button>
         <button
           type="button"
-          className={activeSection === 'tasks' ? 'active' : ''}
+          className={activeSection === "tasks" ? "active" : ""}
           onClick={() => {
-            setActiveSection('tasks');
-            setMobilePanel('calendar');
+            setActiveSection("tasks");
+            setMobilePanel("calendar");
           }}
         >
           <span>✓</span>
@@ -1564,12 +2047,12 @@ function DashboardPage() {
           type="button"
           onClick={() => {
             setSelectedEvent(null);
-            if (activeSection === 'calendar') {
-              setActiveModal('event');
+            if (activeSection === "calendar") {
+              setActiveModal("event");
               return;
             }
-            setActiveSection('tasks');
-            setMobilePanel('calendar');
+            setActiveSection("tasks");
+            setMobilePanel("calendar");
           }}
         >
           <span>＋</span>
@@ -1578,12 +2061,18 @@ function DashboardPage() {
       </nav>
 
       {/* Centered Settings/Setup Modal Overlay */}
-      <div className={`modal-overlay ${activeModal ? 'visible' : 'hidden'}`} onClick={() => setActiveModal(null)}>
-        <div className="modal-content-wrapper" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`modal-overlay ${activeModal ? "visible" : "hidden"}`}
+        onClick={() => setActiveModal(null)}
+      >
+        <div
+          className="modal-content-wrapper"
+          onClick={(e) => e.stopPropagation()}
+        >
           <PlannerModals
-            calendars={calendars} 
-            isLoading={snapshot.isLoading} 
-            modalKind={activeModal ?? 'settings'}
+            calendars={calendars}
+            isLoading={snapshot.isLoading}
+            modalKind={activeModal ?? "settings"}
             eventDraftDate={eventDraftDate}
             selectedEvent={selectedEvent}
             onClose={() => setActiveModal(null)}

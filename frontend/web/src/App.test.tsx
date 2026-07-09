@@ -85,7 +85,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
-      expect(screen.getByText('Connected Session')).toBeInTheDocument();
+      expect(screen.getByText('Sign out')).toBeInTheDocument();
       fireEvent.click(screen.getByText('Sign out'));
 
       expect(useAuthStore.getState().accessToken).toBeNull();
@@ -701,7 +701,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
       // We can't change useState anchor date easily without exposing it, but we can verify grid generators.
       // The grid displays correctly when generated. Let's make sure the component loads.
-      expect(await screen.findByText('Synced')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Workspace')).toBeInTheDocument();
     });
 
     test('TC-T2-F5-02: Leap Year Grid Generation', async () => {
@@ -855,7 +855,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
         const eventLabel = satColumn.querySelector('.week-event');
-        expect(eventLabel).toHaveStyle({ color: 'rgb(20, 184, 166)' }); // #14B8A6
+        expect(eventLabel).toHaveStyle({ color: 'rgb(31, 157, 138)' }); // timed event accent
       });
     });
 
@@ -903,7 +903,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       await waitFor(() => {
         // App displays the event inside WeekRail (although sameDate only checks start date, let's verify rendering is successful)
-        expect(screen.getByText('Synced')).toBeInTheDocument();
+        expect(screen.getByLabelText('Workspace')).toBeInTheDocument();
       });
     });
 
@@ -936,7 +936,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
       await waitFor(() => {
-        expect(screen.getByText('Synced')).toBeInTheDocument();
+        expect(screen.getByLabelText('Workspace')).toBeInTheDocument();
       });
     });
 
@@ -944,8 +944,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       // Add two events on Saturday
       mockDb.events = [
-        { id: 114, calendar: 1, creator: 1, title: 'Later Event', start_time: '2026-07-04T15:00:00Z', end_time: '2026-07-04T16:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 115, calendar: 1, creator: 1, title: 'Earlier Event', start_time: '2026-07-04T08:00:00Z', end_time: '2026-07-04T09:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        { id: 114, calendar: 1, creator: 1, title: 'Later Event', start_time: '2026-07-04T06:00:00Z', end_time: '2026-07-04T07:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
+        { id: 115, calendar: 1, creator: 1, title: 'Earlier Event', start_time: '2026-07-04T01:00:00Z', end_time: '2026-07-04T02:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
       ];
       renderWithProviders(<App />);
 
