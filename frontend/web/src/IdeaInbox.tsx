@@ -121,6 +121,8 @@ export default function IdeaInbox() {
   const [selectedId, setSelectedId] = useState(() => notes[0]?.id ?? '');
   const [search, setSearch] = useState('');
   const [mode, setMode] = useState<'write' | 'preview' | 'split'>('write');
+  const [isCompactIdeaView, setIsCompactIdeaView] = useState(false);
+  const [mobilePane, setMobilePane] = useState<'list' | 'editor'>('list');
   const [tagDraft, setTagDraft] = useState(() => notes[0]?.tags.join(', ') ?? '');
   const selectedNote = notes.find((note) => note.id === selectedId) ?? null;
 
@@ -132,6 +134,20 @@ export default function IdeaInbox() {
     const note = notes.find((item) => item.id === selectedId);
     setTagDraft(note?.tags.join(', ') ?? '');
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!globalThis.matchMedia) return;
+    const query = globalThis.matchMedia('(max-width: 1024px)');
+    const syncViewMode = () => setIsCompactIdeaView(query.matches);
+
+    syncViewMode();
+    query.addEventListener?.('change', syncViewMode);
+    return () => query.removeEventListener?.('change', syncViewMode);
+  }, []);
+
+  useEffect(() => {
+    if (isCompactIdeaView && mode === 'split') setMode('write');
+  }, [isCompactIdeaView, mode]);
 
   const filteredNotes = useMemo(() => {
     const keyword = search.trim().toLocaleLowerCase();
@@ -155,6 +171,7 @@ export default function IdeaInbox() {
     setSelectedId(note.id);
     setTagDraft('');
     setMode('write');
+    setMobilePane('editor');
   }
 
   function updateNote(patch: Partial<IdeaNote>) {
@@ -169,11 +186,12 @@ export default function IdeaInbox() {
     const remaining = notes.filter((note) => note.id !== selectedNote.id);
     setNotes(remaining);
     setSelectedId(remaining[0]?.id ?? '');
+    setMobilePane('list');
   }
 
   return (
     <section className="idea-inbox">
-      <aside className="idea-note-rail">
+      <aside className={`idea-note-rail ${mobilePane === 'editor' ? 'mobile-pane-hidden' : ''}`}>
         <header className="idea-rail-header">
           <div>
             <p className="eyebrow">Idea Inbox</p>
@@ -190,7 +208,10 @@ export default function IdeaInbox() {
             <button
               type="button"
               className={`idea-note-card ${note.id === selectedId ? 'active' : ''}`}
-              onClick={() => setSelectedId(note.id)}
+              onClick={() => {
+                setSelectedId(note.id);
+                setMobilePane('editor');
+              }}
               key={note.id}
             >
               <span className="idea-card-heading">
@@ -208,14 +229,22 @@ export default function IdeaInbox() {
         </div>
       </aside>
 
-      <main className="idea-editor-shell">
+      <main className={`idea-editor-shell ${mobilePane === 'list' ? 'mobile-pane-hidden' : ''}`}>
         {selectedNote ? (
           <>
             <header className="idea-editor-toolbar">
+              <button
+                type="button"
+                className="idea-mobile-back"
+                onClick={() => setMobilePane('list')}
+                aria-label="아이디어 목록으로 돌아가기"
+              >
+                ← <span>목록</span>
+              </button>
               <span className="idea-save-state">자동 저장됨</span>
               <div className="idea-view-switch">
                 <button className={mode === 'write' ? 'active' : ''} onClick={() => setMode('write')}>편집</button>
-                <button className={mode === 'split' ? 'active' : ''} onClick={() => setMode('split')}>나란히</button>
+                {!isCompactIdeaView && <button className={mode === 'split' ? 'active' : ''} onClick={() => setMode('split')}>나란히</button>}
                 <button className={mode === 'preview' ? 'active' : ''} onClick={() => setMode('preview')}>미리보기</button>
               </div>
               <button

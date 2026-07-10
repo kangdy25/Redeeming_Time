@@ -903,7 +903,7 @@ function TaskBoard({
 
   useEffect(() => {
     if (!globalThis.matchMedia) return;
-    const query = globalThis.matchMedia("(max-width: 1024px)");
+    const query = globalThis.matchMedia("(max-width: 760px)");
     const syncCalendarMode = () => setUseWeeklyTaskCalendar(query.matches);
     syncCalendarMode();
     query.addEventListener?.("change", syncCalendarMode);
@@ -933,7 +933,7 @@ function TaskBoard({
         order: selectedTasks.length,
       });
       setQuickTaskTitle("");
-      setQuickTaskMessage("할일이 추가되었습니다.");
+      setQuickTaskMessage("");
     } catch (error) {
       setQuickTaskMessage(
         error instanceof Error ? error.message : "할일 추가에 실패했습니다.",
@@ -962,7 +962,7 @@ function TaskBoard({
       });
       setQuickTaskCategory(String(category.id));
       setNewCategoryName("");
-      setQuickTaskMessage("할일 카테고리가 추가되었습니다.");
+      setQuickTaskMessage("");
     } catch (error) {
       setQuickTaskMessage(
         error instanceof Error
@@ -1004,7 +1004,7 @@ function TaskBoard({
         overdueTasks.map((task) => apiClient.updateTaskTargetDate(task, today)),
       );
       jumpToToday();
-      setRolloverMessage(`${overdueTasks.length}개 할일을 오늘로 옮겼습니다.`);
+      setRolloverMessage("");
     } catch (error) {
       setRolloverMessage(
         error instanceof Error ? error.message : "이월 처리에 실패했습니다.",
@@ -2026,14 +2026,6 @@ function DashboardPage() {
         </button>
         <button
           type="button"
-          className={mobilePanel === "menu" ? "active" : ""}
-          onClick={() => setMobilePanel("menu")}
-        >
-          <span>☰</span>
-          <strong>메뉴</strong>
-        </button>
-        <button
-          type="button"
           className={activeSection === "tasks" ? "active" : ""}
           onClick={() => {
             setActiveSection("tasks");
@@ -2045,18 +2037,25 @@ function DashboardPage() {
         </button>
         <button
           type="button"
+          className={activeSection === "inbox" ? "active" : ""}
           onClick={() => {
-            setSelectedEvent(null);
-            if (activeSection === "calendar") {
-              setActiveModal("event");
-              return;
-            }
-            setActiveSection("tasks");
+            setActiveSection("inbox");
             setMobilePanel("calendar");
           }}
         >
-          <span>＋</span>
-          <strong>추가</strong>
+          <span>✦</span>
+          <strong>아이디어</strong>
+        </button>
+        <button
+          type="button"
+          className={activeModal === "settings" ? "active" : ""}
+          onClick={() => {
+            setSelectedEvent(null);
+            setActiveModal("settings");
+          }}
+        >
+          <span>⚙</span>
+          <strong>설정</strong>
         </button>
       </nav>
 
