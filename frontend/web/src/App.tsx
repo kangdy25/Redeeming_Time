@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useRef, useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import {
   apiClient,
   useAuthStore,
@@ -1611,7 +1611,9 @@ function LoginPage() {
       <header className="top-nav">
         <div className="top-nav-left">
           <div className="brand-logo">
-            <div className="logo-icon"></div>
+            <div className="logo-icon">
+              <img src="/logo.png" alt="" />
+            </div>
             <span>Redeeming Time</span>
           </div>
         </div>
@@ -1668,6 +1670,7 @@ function LoginPage() {
 
 function DashboardPage() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
+  const navigate = useNavigate();
   const [anchor, setAnchor] = useState(initialDashboardAnchor);
 
   function handlePrev() {
@@ -1784,7 +1787,9 @@ function DashboardPage() {
       <header className="top-nav">
         <div className="top-nav-left">
           <div className="brand-logo">
-            <div className="logo-icon"></div>
+            <div className="logo-icon">
+              <img src="/logo.png" alt="" />
+            </div>
             <span>Redeeming Time</span>
           </div>
         </div>
@@ -1849,13 +1854,6 @@ function DashboardPage() {
           <button
             className="primary-button subtle"
             onClick={() => useAuthStore.getState().clearTokens()}
-            style={{
-              padding: "6px 12px",
-              fontSize: "12px",
-              height: "auto",
-              display: "inline-flex",
-              alignItems: "center",
-            }}
           >
             로그아웃
             <span className="sr-only">Sign out</span>
@@ -1867,6 +1865,7 @@ function DashboardPage() {
           >
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
+          <button className="icon-btn profile-nav-button" onClick={() => navigate("/profile")} aria-label="My profile">👤</button>
         </div>
       </header>
 
@@ -2170,13 +2169,50 @@ function DashboardPage() {
   );
 }
 
+function HomeRedirect() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
+  return <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />;
+}
+
+function ProfilePage() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
+  const navigate = useNavigate();
+  const [user, setUser] = useState<Awaited<ReturnType<typeof apiClient.currentUser>> | null>(null);
+  const [nickname, setNickname] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    void apiClient.currentUser().then((currentUser) => {
+      setUser(currentUser);
+      setNickname(currentUser?.nickname ?? "");
+      setImageUrl(currentUser?.profile_image_url ?? "");
+    }).catch(() => setMessage("프로필을 불러오지 못했습니다."));
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  async function saveProfile(event: FormEvent) {
+    event.preventDefault();
+    if (!user) return;
+    try {
+      const updatedUser = await apiClient.updateUser(user.id, { nickname: nickname.trim(), profile_image_url: imageUrl.trim() });
+      setUser(updatedUser);
+      setMessage("프로필을 저장했습니다.");
+    } catch { setMessage("프로필 저장에 실패했습니다."); }
+  }
+  return <main className="profile-page"><section className="profile-card"><button className="profile-back" onClick={() => navigate("/dashboard")}>← 대시보드</button><p className="eyebrow">My page</p><h1>내 프로필</h1><div className="profile-page-avatar">{imageUrl ? <img src={imageUrl} alt="프로필" /> : (nickname || user?.email || "?").slice(0, 1).toUpperCase()}</div><form onSubmit={saveProfile} className="profile-form"><label>이메일<input value={user?.email ?? ""} disabled /></label><label>닉네임<input value={nickname} onChange={(event) => setNickname(event.target.value)} required /></label><label>프로필 이미지 URL <span>(선택)</span><input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/profile.png" /></label><button className="primary-button" type="submit">저장</button></form>{message && <p className="form-message">{message}</p>}</section></main>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/" element={<HomeRedirect />} />
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>
   );

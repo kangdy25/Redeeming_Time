@@ -72,6 +72,12 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  currentUser: async () => (await request<User[]>('/users/'))[0],
+  updateUser: (userId: number, payload: Partial<Pick<User, 'nickname' | 'profile_image_url'>>) =>
+    request<User>(`/users/${userId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
   calendars: () => request<Calendar[]>('/calendars/'),
   createCalendar: async (payload: CalendarPayload) => {
     const calendar = await request<Calendar>('/calendars/', {
