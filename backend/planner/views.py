@@ -25,6 +25,11 @@ class CalendarViewSet(viewsets.ModelViewSet):
         calendar = serializer.save()
         CalendarMember.objects.create(calendar=calendar, user=self.request.user, role=CalendarMember.Role.OWNER)
 
+    def perform_destroy(self, instance):
+        if instance.is_global:
+            self.permission_denied(self.request, message='The global calendar cannot be deleted.')
+        instance.delete()
+
 
 class CalendarMemberViewSet(viewsets.ModelViewSet):
     queryset = CalendarMember.objects.all()

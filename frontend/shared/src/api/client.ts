@@ -78,6 +78,8 @@ export const apiClient = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
+  deleteUser: (userId: number) =>
+    request<void>(`/users/${userId}/`, { method: 'DELETE' }),
   calendars: () => request<Calendar[]>('/calendars/'),
   createCalendar: async (payload: CalendarPayload) => {
     const calendar = await request<Calendar>('/calendars/', {
@@ -86,6 +88,20 @@ export const apiClient = {
     });
     usePlannerStore.getState().syncPlanner({ calendars: [...usePlannerStore.getState().calendars, calendar] });
     return calendar;
+  },
+  deleteCalendar: async (calendarId: number) => {
+    await request<void>(`/calendars/${calendarId}/`, { method: 'DELETE' });
+    const state = usePlannerStore.getState();
+    const calendars = state.calendars.filter((calendar) => calendar.id !== calendarId);
+    state.syncPlanner({
+      calendars,
+      categories: state.categories.filter((category) => category.calendar !== calendarId),
+      events: state.events.filter((event) => event.calendar !== calendarId),
+      tasks: state.tasks.filter((task) => task.calendar !== calendarId),
+    });
+    if (state.activeCalendarId === calendarId) {
+      state.setActiveCalendarId(calendars[0]?.id ?? null);
+    }
   },
   categories: () => request<Category[]>('/categories/'),
   createCategory: async (payload: CategoryPayload) => {

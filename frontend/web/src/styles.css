@@ -157,6 +157,8 @@ textarea {
   gap: 10px;
 }
 
+.brand-home { border: 0; padding: 0; background: transparent; cursor: pointer; text-align: left; }
+
 .brand-logo > span {
   font-family: Georgia, "Times New Roman", serif;
   font-weight: 600;
@@ -271,17 +273,59 @@ textarea {
 }
 
 .profile-nav-button { font-size: 22px !important; }
+.profile-nav-button img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 
-.profile-page { min-height: 100dvh; display: grid; place-items: center; padding: 48px 24px; background: var(--color-bg); }
+.profile-page { min-height: 100dvh; display: flex; padding: 32px; background: var(--color-bg); }
+.profile-app .workspace-layout { min-height: calc(100dvh - 92px); }
+.profile-app .profile-sidebar { width: 230px; flex: 0 0 230px; padding-top: 18px; }
+.profile-app .profile-page { min-height: 0; flex: 1; }
+.profile-app .profile-card { width: 100%; min-height: 100%; box-sizing: border-box; }
 .profile-card { width: min(100%, 520px); padding: 38px; border: 1px solid var(--color-border); border-radius: 24px; background: var(--color-bg-card); box-shadow: 0 28px 70px rgba(0, 0, 0, .2); }
 .profile-card h1 { margin: 4px 0 24px; }
 .profile-back { border: 0; background: none; color: var(--color-text-secondary); cursor: pointer; font-weight: 700; padding: 0; }
 .profile-page-avatar { width: 80px; height: 80px; margin-bottom: 24px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: var(--gradient-accent); color: #fff; font-size: 32px; font-weight: 900; }
 .profile-page-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dashboard-profile-page { --profile-divider: rgba(148, 163, 184, 0.32); }
+.profile-hero { display: flex; align-items: center; gap: 20px; padding-bottom: 24px; border-bottom: 1px solid var(--profile-divider); }
+.profile-hero .profile-page-avatar { margin: 0; width: 96px; height: 96px; }
+.profile-hero h1 { margin: 4px 0; }
+.profile-hero p:last-child { margin: 0; color: var(--color-text-secondary); }
+.profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 24px 0; }
+.profile-stats div { padding: 18px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-bg-input); }
+.profile-stats strong, .profile-stats span { display: block; }
+.profile-stats strong { font-size: 26px; }
+.profile-stats span { margin-top: 4px; color: var(--color-text-secondary); font-size: 13px; }
+.profile-form h2,
+.workspace-settings h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
 .profile-form { display: grid; gap: 16px; }
-.profile-form label { display: grid; gap: 7px; color: var(--color-text-secondary); font-size: 14px; font-weight: 700; }
+.profile-form label { display: block; color: var(--color-text-secondary); font-size: 14px; font-weight: 700; }
 .profile-form label span { font-weight: 400; }
-.profile-form input { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-bg-input); color: var(--color-text-primary); }
+.profile-form input { display: block; width: 100%; box-sizing: border-box; margin-top: 7px; padding: 12px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-bg-input); color: var(--color-text-primary); }
+.profile-form .primary-button { width: fit-content; padding-inline: 24px; }
+.danger-zone { display: flex; justify-content: flex-end; margin-top: 16px; }
+.profile-settings { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--color-border); }
+.profile-settings h2 { margin: 0; font-size: 18px; }
+.danger-zone h2 { margin: 0; color: var(--color-sunday); font-size: 18px; }
+.danger-zone p { color: var(--color-text-secondary); }
+.danger-button { padding: 10px 14px; border: 1px solid var(--color-sunday); border-radius: 9px; background: transparent; color: var(--color-sunday); cursor: pointer; font-weight: 800; }
+.profile-footer { display: flex; width: 100%; justify-content: center; flex-wrap: wrap; gap: 10px; align-self: end; margin-top: auto; padding: 24px 0 4px; border-top: 1px solid var(--profile-divider); color: var(--color-text-muted); font-size: 13px; }
+.profile-footer a, .profile-footer button { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-decoration: none; }
+.profile-footer a:hover, .profile-footer button:hover { color: var(--color-text-primary); text-decoration: underline; }
+.profile-footer button { color: var(--color-sunday); }
+.workspace-settings { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--color-border); }
+.workspace-settings .profile-stats { padding: 0 0 20px; }
+.workspace-settings-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.workspace-settings-list span { padding: 7px 10px; border-radius: 999px; background: var(--color-bg-input); color: var(--color-text-secondary); font-size: 13px; }
+.workspace-settings-list button { margin-left: 7px; border: 0; padding: 0; background: transparent; color: var(--color-sunday); font: inherit; cursor: pointer; }
+.workspace-create-form { display: flex; gap: 10px; }
+.workspace-create-form input { flex: 1; min-width: 0; padding: 12px; border: 1px solid var(--color-border); border-radius: 9px; background: var(--color-bg-input); color: var(--color-text-primary); }
+.workspace-create-form .primary-button { width: auto; padding: 10px 16px; }
 
 .workspace-switcher-popover {
   position: absolute;
@@ -328,11 +372,18 @@ textarea {
   color: var(--color-text-primary);
 }
 
+.workspace-switcher-popover .workspace-delete-action { color: var(--color-sunday); }
+
 .workspace-switcher-popover button i {
   width: 9px;
   height: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   border-radius: 50%;
+  font-style: normal;
+  line-height: 1;
 }
 
 .workspace-switcher-popover button strong {
@@ -818,6 +869,85 @@ textarea {
   max-width: 1200px;
   margin: 0 auto;
   min-width: 0;
+}
+
+.profile-main-panel {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-main-panel .dashboard-profile-page {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-profile-page .profile-card {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-profile-page {
+  padding: 32px 40px;
+}
+
+.dashboard-profile-page .profile-hero,
+.dashboard-profile-page .profile-footer {
+  grid-column: 1 / -1;
+}
+
+.profile-settings-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 32px;
+}
+
+.profile-settings-column { padding-bottom: 28px; }
+
+.profile-settings-column h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.profile-settings-column + .profile-settings-column {
+  padding-left: 32px;
+  border-left: 1px solid var(--profile-divider);
+}
+
+.dashboard-profile-page .profile-form,
+.dashboard-profile-page .workspace-settings {
+  margin-top: 0;
+}
+
+@media (min-width: 1025px) {
+  .dashboard-profile-page .profile-form {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+  }
+
+  .dashboard-profile-page .workspace-settings {
+    grid-column: 2;
+    grid-row: 2;
+    padding-left: 28px;
+    border-left: 1px solid var(--color-border);
+  }
+
+  .dashboard-profile-page .profile-footer {
+    grid-row: 3;
+  }
 }
 
 /* Calendar Card - Elevated Glassmorphism */
@@ -3189,6 +3319,11 @@ textarea {
 }
 
 @media (max-width: 1024px) {
+  .dashboard-profile-page { padding: 24px; }
+  .profile-settings-layout { grid-template-columns: 1fr; }
+  .profile-settings-column + .profile-settings-column { padding-left: 0; padding-top: 28px; border-left: 0; border-top: 1px solid var(--color-border); }
+  .profile-app .profile-sidebar { display: none; }
+  .profile-app .workspace-layout { padding-bottom: 0; }
   .auth-page-main {
     grid-template-columns: minmax(0, 0.8fr) minmax(420px, 1.2fr);
   }

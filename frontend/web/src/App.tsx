@@ -1670,7 +1670,8 @@ function LoginPage() {
 
 function DashboardPage() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  const navigate = useNavigate();
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  useEffect(() => { if (isAuthenticated) void apiClient.currentUser().then((user) => setProfileImageUrl(user?.profile_image_url ?? "")); }, [isAuthenticated]);
   const [anchor, setAnchor] = useState(initialDashboardAnchor);
 
   function handlePrev() {
@@ -1709,11 +1710,12 @@ function DashboardPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeModal, setActiveModal] = useState<PlannerModalKind | null>(null);
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
+  const workspaceSwitcherRef = useRef<HTMLDivElement>(null);
   const [mobilePanel, setMobilePanel] = useState<"calendar" | "menu" | "tasks">(
     "calendar",
   );
   const [activeSection, setActiveSection] = useState<
-    "calendar" | "tasks" | "inbox"
+    "calendar" | "tasks" | "inbox" | "profile"
   >("calendar");
   const [taskBoardDate, setTaskBoardDate] = useState(isoDate(new Date()));
   const [eventDraftDate, setEventDraftDate] = useState(isoDate(new Date()));
@@ -1726,6 +1728,16 @@ function DashboardPage() {
       document.documentElement.classList.remove("light-theme");
     }
   }, [theme]);
+
+  useEffect(() => {
+    function closeWorkspaceMenu(event: MouseEvent) {
+      if (!workspaceSwitcherRef.current?.contains(event.target as Node)) {
+        setIsWorkspaceMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", closeWorkspaceMenu);
+    return () => document.removeEventListener("mousedown", closeWorkspaceMenu);
+  }, []);
 
   const snapshot = usePlannerSnapshot();
   const events = usePlannerStore((state) => state.events);
@@ -1778,6 +1790,12 @@ function DashboardPage() {
     setMobilePanel("calendar");
   }
 
+  async function deleteWorkspace(calendar: Calendar) {
+    if (!window.confirm(`"${calendar.title}" 워크스페이스와 해당 일정이 삭제됩니다. 계속할까요?`)) return;
+    await apiClient.deleteCalendar(calendar.id);
+    setIsWorkspaceMenuOpen(false);
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -1786,15 +1804,15 @@ function DashboardPage() {
     <div className="app-container">
       <header className="top-nav">
         <div className="top-nav-left">
-          <div className="brand-logo">
+          <button type="button" className="brand-logo brand-home" onClick={() => { setActiveSection("calendar"); setMobilePanel("calendar"); }}>
             <div className="logo-icon">
               <img src="/logo.png" alt="" />
             </div>
             <span>Redeeming Time</span>
-          </div>
+          </button>
         </div>
         <div className="top-nav-right">
-          <div className="workspace-switcher">
+          <div className="workspace-switcher" ref={workspaceSwitcherRef}>
             <select
               className="sr-only"
               aria-label="Workspace"
@@ -1848,6 +1866,12 @@ function DashboardPage() {
                   <i aria-hidden="true">＋</i>
                   <strong>워크스페이스 만들기</strong>
                 </button>
+                {activeCalendar && !activeCalendar.is_global && (
+                  <button type="button" className="workspace-delete-action" onClick={() => void deleteWorkspace(activeCalendar)}>
+                    <i aria-hidden="true">−</i>
+                    <strong>현재 워크스페이스 삭제</strong>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -1865,7 +1889,7 @@ function DashboardPage() {
           >
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
-          <button className="icon-btn profile-nav-button" onClick={() => navigate("/profile")} aria-label="My profile">👤</button>
+          <button className="icon-btn profile-nav-button" onClick={() => setActiveSection("profile")} aria-label="My profile">{profileImageUrl ? <img src={profileImageUrl} alt="" /> : "👤"}</button>
         </div>
       </header>
 
@@ -1974,15 +1998,24 @@ function DashboardPage() {
               <span className="menu-icon">📥</span>
               {!isSidebarCollapsed && <span>아이디어 보관함</span>}
             </button>
+            <button
+              className={`menu-item ${activeSection === "profile" ? "active" : ""}`}
+              onClick={() => setActiveSection("profile")}
+            >
+              <span className="menu-icon">👤</span>
+              {!isSidebarCollapsed && <span>마이페이지</span>}
+            </button>
           </div>
         </aside>
 
         {/* Main Panel */}
         <main className="main-content">
           <div
-            className={`center-panel mobile-panel-calendar ${mobilePanel === "calendar" ? "mobile-panel-active" : ""}`}
+            className={`center-panel mobile-panel-calendar ${activeSection === "profile" ? "profile-main-panel" : ""} ${mobilePanel === "calendar" ? "mobile-panel-active" : ""}`}
           >
-            {activeSection === "tasks" ? (
+            {activeSection === "profile" ? (
+              <ProfilePanel />
+            ) : activeSection === "tasks" ? (
               <TaskBoard
                 tasks={tasks}
                 categories={categories}
@@ -2079,22 +2112,6 @@ function DashboardPage() {
         </main>
       </div>
 
-      {/* Floating Settings Gear Button */}
-      <div className="settings-drawer">
-        <button
-          className="settings-toggle-btn"
-          onClick={() => {
-            setSelectedEvent(null);
-            setActiveModal((current) =>
-              current === "settings" ? null : "settings",
-            );
-          }}
-          aria-label="Toggle Setup Panel"
-        >
-          ⚙️
-        </button>
-      </div>
-
       <nav className="mobile-bottom-nav" aria-label="Mobile planner navigation">
         <button
           type="button"
@@ -2135,14 +2152,13 @@ function DashboardPage() {
         </button>
         <button
           type="button"
-          className={activeModal === "settings" ? "active" : ""}
           onClick={() => {
-            setSelectedEvent(null);
-            setActiveModal("settings");
+            setActiveSection("profile");
+            setMobilePanel("calendar");
           }}
         >
-          <span>⚙</span>
-          <strong>설정</strong>
+          <span>👤</span>
+          <strong>마이페이지</strong>
         </button>
       </nav>
 
@@ -2169,6 +2185,50 @@ function DashboardPage() {
   );
 }
 
+function ProfilePanel() {
+  const [user, setUser] = useState<Awaited<ReturnType<typeof apiClient.currentUser>> | null>(null);
+  const [nickname, setNickname] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const calendars = usePlannerStore((state) => state.calendars);
+  const events = usePlannerStore((state) => state.events);
+  const tasks = usePlannerStore((state) => state.tasks);
+  const createCalendar = useCreateCalendar();
+  const [workspaceTitle, setWorkspaceTitle] = useState("");
+  useEffect(() => { void apiClient.currentUser().then((currentUser) => { setUser(currentUser); setNickname(currentUser?.nickname ?? ""); setImageUrl(currentUser?.profile_image_url ?? ""); }); }, []);
+  async function saveProfile(event: FormEvent) { event.preventDefault(); if (!user) return; const updatedUser = await apiClient.updateUser(user.id, { nickname: nickname.trim(), profile_image_url: imageUrl.trim() }); setUser(updatedUser); }
+  async function deleteAccount() { if (!user || !window.confirm("계정과 모든 데이터가 삭제됩니다. 정말 탈퇴할까요?")) return; await apiClient.deleteUser(user.id); useAuthStore.getState().clearTokens(); }
+  async function createWorkspace(event: FormEvent) { event.preventDefault(); const title = workspaceTitle.trim(); if (!title) return; await createCalendar.mutateAsync({ title, description: "", theme_color: "#2F80ED" }); setWorkspaceTitle(""); }
+  async function deleteWorkspace(calendar: Calendar) { if (!window.confirm(`"${calendar.title}" 워크스페이스를 삭제할까요?`)) return; await apiClient.deleteCalendar(calendar.id); }
+  return (
+    <section className="profile-page dashboard-profile-page">
+      <section className="profile-card">
+        <div className="profile-hero">
+          <div className="profile-page-avatar">{imageUrl ? <img src={imageUrl} alt="프로필" /> : (nickname || user?.email || "?").slice(0, 1).toUpperCase()}</div>
+          <div><p className="eyebrow">My page</p><h1>{nickname || "내 프로필"}</h1><p>{user?.email}</p></div>
+        </div>
+        <div className="profile-settings-layout">
+          <section className="profile-settings-column">
+            <h2>프로필 설정</h2>
+            <form onSubmit={saveProfile} className="profile-form">
+              <label>이메일<input value={user?.email ?? ""} disabled /></label>
+              <label>이름<input value={nickname} onChange={(event) => setNickname(event.target.value)} required /></label>
+              <label>프로필 사진 URL <span>(선택)</span><input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/profile.png" /></label>
+              <button className="primary-button" type="submit">프로필 저장</button>
+            </form>
+          </section>
+          <section className="profile-settings-column">
+            <h2>워크스페이스 설정</h2>
+            <div className="profile-stats"><div><strong>{calendars.length}</strong><span>워크스페이스</span></div><div><strong>{events.length}</strong><span>일정</span></div><div><strong>{tasks.length}</strong><span>할 일</span></div></div>
+            <div className="workspace-settings-list">{calendars.map((calendar) => <span key={calendar.id}>{calendar.title}{!calendar.is_global && <button type="button" onClick={() => void deleteWorkspace(calendar)} aria-label={`${calendar.title} 삭제`}>×</button>}</span>)}</div>
+            <form onSubmit={createWorkspace} className="workspace-create-form"><input value={workspaceTitle} onChange={(event) => setWorkspaceTitle(event.target.value)} placeholder="새 워크스페이스 이름" maxLength={120} /><button type="submit" className="primary-button" disabled={createCalendar.isPending}>추가</button></form>
+          </section>
+        </div>
+        <footer className="profile-footer"><a href="#terms">이용약관</a><span>|</span><a href="#privacy">개인정보 처리방침</a><span>|</span><a href="mailto:support@redeemingtime.app">고객센터</a><span>|</span><button type="button" onClick={deleteAccount}>회원 탈퇴</button></footer>
+      </section>
+    </section>
+  );
+}
+
 function HomeRedirect() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
   return <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />;
@@ -2181,6 +2241,15 @@ function ProfilePage() {
   const [nickname, setNickname] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [message, setMessage] = useState("");
+  usePlannerSnapshot();
+  const calendars = usePlannerStore((state) => state.calendars);
+  const events = usePlannerStore((state) => state.events);
+  const tasks = usePlannerStore((state) => state.tasks);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("light-theme", theme === "light");
+  }, [theme]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -2198,10 +2267,14 @@ function ProfilePage() {
     try {
       const updatedUser = await apiClient.updateUser(user.id, { nickname: nickname.trim(), profile_image_url: imageUrl.trim() });
       setUser(updatedUser);
-      setMessage("프로필을 저장했습니다.");
     } catch { setMessage("프로필 저장에 실패했습니다."); }
   }
-  return <main className="profile-page"><section className="profile-card"><button className="profile-back" onClick={() => navigate("/dashboard")}>← 대시보드</button><p className="eyebrow">My page</p><h1>내 프로필</h1><div className="profile-page-avatar">{imageUrl ? <img src={imageUrl} alt="프로필" /> : (nickname || user?.email || "?").slice(0, 1).toUpperCase()}</div><form onSubmit={saveProfile} className="profile-form"><label>이메일<input value={user?.email ?? ""} disabled /></label><label>닉네임<input value={nickname} onChange={(event) => setNickname(event.target.value)} required /></label><label>프로필 이미지 URL <span>(선택)</span><input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/profile.png" /></label><button className="primary-button" type="submit">저장</button></form>{message && <p className="form-message">{message}</p>}</section></main>;
+  async function deleteAccount() {
+    if (!user || !window.confirm("계정과 모든 데이터가 삭제됩니다. 정말 탈퇴할까요?")) return;
+    try { await apiClient.deleteUser(user.id); useAuthStore.getState().clearTokens(); navigate("/login"); }
+    catch { setMessage("회원 탈퇴에 실패했습니다."); }
+  }
+  return <div className="app-container profile-app"><header className="top-nav"><div className="top-nav-left"><button type="button" className="brand-logo brand-home" onClick={() => navigate("/dashboard")}><div className="logo-icon"><img src="/logo.png" alt="" /></div><span>Redeeming Time</span></button></div><div className="top-nav-right"><button className="icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle Theme">{theme === "dark" ? "☀️" : "🌙"}</button><button className="icon-btn profile-nav-button" aria-label="My profile">{imageUrl ? <img src={imageUrl} alt="" /> : "👤"}</button><button className="primary-button subtle" onClick={() => { useAuthStore.getState().clearTokens(); navigate("/login"); }}>로그아웃</button></div></header><div className="workspace-layout"><aside className="sidebar profile-sidebar"><div className="sidebar-menu"><button className="menu-item" onClick={() => navigate("/dashboard")}><span className="menu-icon">📅</span><span>대시보드</span></button><button className="menu-item active"><span className="menu-icon">👤</span><span>마이페이지</span></button></div></aside><main className="profile-page"><section className="profile-card"><div className="profile-hero"><div className="profile-page-avatar">{imageUrl ? <img src={imageUrl} alt="프로필" /> : (nickname || user?.email || "?").slice(0, 1).toUpperCase()}</div><div><p className="eyebrow">My page</p><h1>{nickname || "내 프로필"}</h1><p>{user?.email}</p></div></div><div className="profile-stats"><div><strong>{calendars.length}</strong><span>워크스페이스</span></div><div><strong>{events.length}</strong><span>일정</span></div><div><strong>{tasks.length}</strong><span>할 일</span></div></div><form onSubmit={saveProfile} className="profile-form"><h2>프로필 설정</h2><label>이메일<input value={user?.email ?? ""} disabled /></label><label>이름<input value={nickname} onChange={(event) => setNickname(event.target.value)} required /></label><label>프로필 사진 URL <span>(선택)</span><input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/profile.png" /></label><button className="primary-button" type="submit">프로필 저장</button></form><section className="profile-settings"><h2>앱 설정</h2><button type="button" className="primary-button subtle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}</button></section><section className="danger-zone"><button type="button" className="danger-button" onClick={deleteAccount}>회원 탈퇴</button></section>{message && <p className="form-message">{message}</p>}</section></main></div></div>;
 }
 
 export default function App() {
@@ -2210,7 +2283,6 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/" element={<HomeRedirect />} />
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
