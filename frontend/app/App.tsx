@@ -58,9 +58,9 @@ function TaskRow({ task }: { task: Task }) {
 function MobileAuthPanel() {
   const setTokens = useAuthStore((state) => state.setTokens);
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('redeeming-demo-pass');
-  const [nickname, setNickname] = useState('Demo User');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
   const [message, setMessage] = useState('');
 
   async function submit() {
@@ -147,10 +147,7 @@ export function PlannerScreen() {
     () => (currentCalendarId ? events.filter((event) => event.calendar === currentCalendarId) : events),
     [currentCalendarId, events],
   );
-  const visibleTasks = useMemo(
-    () => (currentCalendarId ? tasks.filter((task) => task.calendar === currentCalendarId) : tasks),
-    [currentCalendarId, tasks],
-  );
+  const visibleTasks = tasks;
 
   return (
     <SafeAreaView className="flex-1 bg-mist">

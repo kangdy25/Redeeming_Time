@@ -790,14 +790,11 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         expect(screen.getByText('Busy Task')).toBeInTheDocument();
       });
 
-      // Switch to Calendar 2 (New Space) which has no tasks
+      // The task board is shared, so switching workspaces keeps its tasks visible.
       usePlannerStore.getState().setActiveCalendarId(2);
-      // Filter tasks list in store
-      usePlannerStore.getState().syncPlanner({ tasks: [] });
 
       await waitFor(() => {
-        expect(screen.queryByText('Busy Task')).toBeNull();
-        expect(screen.getByText('No tasks returned from the planner API.')).toBeInTheDocument();
+        expect(screen.getByText('Busy Task')).toBeInTheDocument();
       });
     });
   });

@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
-from django.db import models
+from django.db import models, transaction
 
 
 class UserManager(BaseUserManager):
@@ -11,9 +11,27 @@ class UserManager(BaseUserManager):
             raise ValueError('Users must provide an email address.')
 
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
+        with transaction.atomic(using=self._db):
+            user = self.model(email=email, **extra_fields)
+            user.set_password(password)
+            user.save(using=self._db)
+
+            # Keep every newly registered account immediately usable.  Importing
+            # here avoids a module-level dependency from the accounts app back
+            # to planner while Django is loading models.
+            from planner.models import Calendar, CalendarMember
+
+            calendar = Calendar.objects.create(
+                title='전체 캘린더',
+                description='모든 일정을 한눈에 관리하는 기본 캘린더',
+                theme_color='#2F80ED',
+                is_global=True,
+            )
+            CalendarMember.objects.create(
+                calendar=calendar,
+                user=user,
+                role=CalendarMember.Role.OWNER,
+            )
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):

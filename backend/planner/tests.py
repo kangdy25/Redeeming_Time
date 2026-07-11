@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .models import Calendar, CalendarMember, Category, Event, Task
+from .serializers import CategorySerializer, EventSerializer, TaskSerializer
 
 
 class PlannerModelTests(TestCase):
@@ -52,3 +53,28 @@ class PlannerModelTests(TestCase):
         self.assertEqual(self.calendar.events.count(), 1)
         self.assertEqual(self.calendar.tasks.count(), 1)
         self.assertEqual(category.tasks.first(), task)
+
+    def test_global_calendar_allows_shared_tasks_but_rejects_events(self):
+        global_calendar = CalendarMember.objects.get(user=self.user).calendar
+        start = timezone.now()
+
+        category = CategorySerializer(data={
+            'calendar': global_calendar.id,
+            'name': 'General',
+            'color_code': '#E11D48',
+        })
+        event = EventSerializer(data={
+            'calendar': global_calendar.id,
+            'title': 'Should not save',
+            'start_time': start,
+            'end_time': start + timezone.timedelta(hours=1),
+        })
+        task = TaskSerializer(data={
+            'calendar': global_calendar.id,
+            'title': 'Should not save',
+            'target_date': timezone.localdate(),
+        })
+
+        self.assertTrue(category.is_valid())
+        self.assertFalse(event.is_valid())
+        self.assertTrue(task.is_valid())

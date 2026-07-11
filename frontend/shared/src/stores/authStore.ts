@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { usePlannerStore } from './plannerStore';
+
 interface TokenStorage {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
@@ -37,11 +39,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshToken: getStorage()?.getItem(refreshKey) ?? null,
   isAuthenticated: () => Boolean(get().accessToken),
   setTokens: ({ access, refresh }) => {
+    usePlannerStore.getState().resetPlanner();
     getStorage()?.setItem(accessKey, access);
     getStorage()?.setItem(refreshKey, refresh);
     set({ accessToken: access, refreshToken: refresh });
   },
   clearTokens: () => {
+    usePlannerStore.getState().resetPlanner();
     getStorage()?.removeItem(accessKey);
     getStorage()?.removeItem(refreshKey);
     set({ accessToken: null, refreshToken: null });

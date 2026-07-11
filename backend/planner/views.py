@@ -19,7 +19,7 @@ class CalendarViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCalendarMemberReadEditorWrite]
 
     def get_queryset(self):
-        return Calendar.objects.filter(memberships__user=self.request.user).distinct()
+        return Calendar.objects.filter(memberships__user=self.request.user).distinct().order_by('-is_global', 'title')
 
     def perform_create(self, serializer):
         calendar = serializer.save()

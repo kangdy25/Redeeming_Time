@@ -13,6 +13,7 @@ class Calendar(models.Model):
     title = models.CharField(max_length=120)
     description = models.TextField(blank=True)
     theme_color = models.CharField(max_length=7, validators=[hex_color_validator], default='#2F80ED')
+    is_global = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

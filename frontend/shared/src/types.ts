@@ -19,6 +19,7 @@ export interface Calendar {
   title: string;
   description: string;
   theme_color: string;
+  is_global?: boolean;
   created_at: string;
 }
 

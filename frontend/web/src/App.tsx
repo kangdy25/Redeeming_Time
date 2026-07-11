@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   apiClient,
   useAuthStore,
+  useCreateCalendar,
   useCreateCategory,
   useCreateEvent,
   useCreateTask,
@@ -153,9 +154,9 @@ function AuthPanel() {
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState("demo@example.com");
-  const [password, setPassword] = useState("redeeming-demo-pass");
-  const [nickname, setNickname] = useState("Demo User");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [nickname, setNickname] = useState("");
   const [message, setMessage] = useState("");
 
   async function submit(event: FormEvent) {
@@ -318,24 +319,35 @@ function PlannerModals({
   onClose: () => void;
 }) {
   const activeCalendarId = usePlannerStore((state) => state.activeCalendarId);
+  const setActiveCalendarId = usePlannerStore(
+    (state) => state.setActiveCalendarId,
+  );
+  const createCalendar = useCreateCalendar();
   const createEvent = useCreateEvent();
   const today = new Date();
 
   const selectedCalendarId = activeCalendarId ?? calendars[0]?.id ?? 0;
+  const selectedCalendar = calendars.find(
+    (calendar) => calendar.id === selectedCalendarId,
+  );
+  const isGlobalCalendar = Boolean(selectedCalendar?.is_global);
   const activeCalendarExists = calendars.some((c) => c.id === activeCalendarId);
   const dbCalendars = (globalThis as any).mockDb?.calendars;
   const isDbEmpty = dbCalendars && dbCalendars.length === 0;
   const isFormDisabled = isDbEmpty
     ? true
     : (!selectedCalendarId && !isLoading) ||
-      (activeCalendarId !== null && !activeCalendarExists);
-  const [eventTitle, setEventTitle] = useState("Focused planning block");
+      (activeCalendarId !== null && !activeCalendarExists) ||
+      isGlobalCalendar;
+  const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventColor, setEventColor] = useState("#6366F1");
   const [eventStart, setEventStart] = useState(localInputValue(today, 9));
   const [eventEnd, setEventEnd] = useState(localInputValue(today, 10));
   const [isAllDayEvent, setIsAllDayEvent] = useState(false);
   const [eventRrule, setEventRrule] = useState("");
+  const [workspaceTitle, setWorkspaceTitle] = useState("");
+  const [workspaceDescription, setWorkspaceDescription] = useState("");
   const [formMessage, setFormMessage] = useState("");
   const isReadOnlyEvent = !!selectedEvent && isKoreaHolidayEvent(selectedEvent);
   const isEditingEvent = !!selectedEvent && !isReadOnlyEvent;
@@ -370,7 +382,7 @@ function PlannerModals({
     if (selectedEvent) return;
     if (!eventDraftDate) return;
     handleVisualDateChange(eventDraftDate);
-    setEventTitle("Focused planning block");
+    setEventTitle("");
     setEventDescription("");
     setEventColor("#6366F1");
     setIsAllDayEvent(false);
@@ -453,6 +465,32 @@ function PlannerModals({
     }
   }
 
+  async function addWorkspace(event: FormEvent) {
+    event.preventDefault();
+    const title = workspaceTitle.trim();
+    if (!title) {
+      setFormMessage("워크스페이스 이름을 입력해 주세요.");
+      return;
+    }
+
+    setFormMessage("");
+    try {
+      const calendar = await createCalendar.mutateAsync({
+        title,
+        description: workspaceDescription.trim(),
+        theme_color: "#2F80ED",
+      });
+      setActiveCalendarId(calendar.id);
+      setWorkspaceTitle("");
+      setWorkspaceDescription("");
+      onClose();
+    } catch (error) {
+      setFormMessage(
+        error instanceof Error ? error.message : "워크스페이스 생성에 실패했습니다.",
+      );
+    }
+  }
+
   return (
     <section className="planner-panel controls-panel">
       <div className="control-header">
@@ -498,6 +536,42 @@ function PlannerModals({
               </strong>
             </div>
           </div>
+          <form className="event-form" onSubmit={addWorkspace}>
+            <div className="event-form-grid">
+              <div className="field-stack field-span-2">
+                <label htmlFor="workspace-title-input">새 워크스페이스</label>
+                <input
+                  id="workspace-title-input"
+                  aria-label="Workspace name"
+                  value={workspaceTitle}
+                  onChange={(event) => setWorkspaceTitle(event.target.value)}
+                  placeholder="예: 업무"
+                  maxLength={120}
+                  required
+                />
+              </div>
+              <div className="field-stack field-span-2">
+                <label htmlFor="workspace-description-input">설명 (선택)</label>
+                <textarea
+                  id="workspace-description-input"
+                  aria-label="Workspace description"
+                  value={workspaceDescription}
+                  onChange={(event) => setWorkspaceDescription(event.target.value)}
+                  rows={2}
+                />
+              </div>
+            </div>
+            <div className="modal-action-row">
+              <button
+                type="submit"
+                aria-label="Create Workspace"
+                className="primary-button"
+                disabled={createCalendar.isPending}
+              >
+                {createCalendar.isPending ? "생성 중..." : "워크스페이스 만들기"}
+              </button>
+            </div>
+          </form>
         </div>
 
         <div
@@ -873,9 +947,7 @@ function TaskBoard({
     selectedTasks.length === 0
       ? 0
       : Math.round((selectedCompletedCount / selectedTasks.length) * 100);
-  const taskCategories = categories.filter(
-    (category) => category.calendar === calendarId,
-  );
+  const taskCategories = categories;
   const categorySections = [
     ...taskCategories.map((category) => ({
       id: String(category.id),
@@ -1673,14 +1745,20 @@ function DashboardPage() {
   const activeCalendar = calendars.find((c) => c.id === currentCalendarId);
   const selectedCalendarColor = activeCalendar?.theme_color ?? "#6366F1";
   const activeCalendarTitle = activeCalendar?.title;
+  const isGlobalCalendar = Boolean(activeCalendar?.is_global);
+  const globalCalendar = calendars.find((calendar) => calendar.is_global);
+  const activeCalendarEvents = useMemo(
+    () => isGlobalCalendar ? events : events.filter((event) => event.calendar === currentCalendarId),
+    [events, currentCalendarId, isGlobalCalendar],
+  );
   const calendarStatusNotice = snapshot.isError
     ? "API 연결을 확인해 주세요. 저장된 일정 데이터를 불러오지 못했습니다."
     : calendars.length === 0
       ? "캘린더가 아직 없습니다. 일정 추가 전에 워크스페이스를 먼저 준비해 주세요."
       : "";
   const calendarEvents = useMemo(
-    () => [...events, ...createKoreaHolidayEvents(currentCalendarId)],
-    [events, currentCalendarId],
+    () => [...activeCalendarEvents, ...createKoreaHolidayEvents(currentCalendarId)],
+    [activeCalendarEvents, currentCalendarId],
   );
 
   function openEventComposerForDate(date: string) {
@@ -1755,6 +1833,16 @@ function DashboardPage() {
                     {calendar.id === currentCalendarId && <span>✓</span>}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsWorkspaceMenuOpen(false);
+                    setActiveModal("settings");
+                  }}
+                >
+                  <i aria-hidden="true">＋</i>
+                  <strong>워크스페이스 만들기</strong>
+                </button>
               </div>
             )}
           </div>
@@ -1822,7 +1910,7 @@ function DashboardPage() {
                     style={{ backgroundColor: selectedCalendarColor }}
                   />
                   <h3>
-                    {(activeCalendarTitle || "Default Workspace") + "\u200B"}
+                    {(activeCalendarTitle || "전체 캘린더") + "\u200B"}
                   </h3>
                   <button
                     className="icon-btn collapse-btn"
@@ -1842,7 +1930,7 @@ function DashboardPage() {
             {!isSidebarCollapsed && (
               <div className="workspace-stats">
                 <div className="stat-item">
-                  <span className="stat-val">{events.length}</span>
+                  <span className="stat-val">{activeCalendarEvents.length}</span>
                   <span className="stat-lbl">
                     일정
                     <span className="sr-only">Events</span>
@@ -1899,7 +1987,7 @@ function DashboardPage() {
               <TaskBoard
                 tasks={tasks}
                 categories={categories}
-                calendarId={activeCalendar?.id ?? 0}
+                calendarId={globalCalendar?.id ?? activeCalendar?.id ?? 0}
                 selectedDate={taskBoardDate}
                 setSelectedDate={setTaskBoardDate}
               />
@@ -1958,7 +2046,7 @@ function DashboardPage() {
                       </button>
                     </div>
                     <span className="event-count">
-                      {events.length} scheduled events
+                      {activeCalendarEvents.length} scheduled events
                     </span>
                   </div>
                 </div>

@@ -10,8 +10,8 @@ from .services import analyze_schedule_density
 class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
-        fields = ['id', 'title', 'description', 'theme_color', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'title', 'description', 'theme_color', 'is_global', 'created_at']
+        read_only_fields = ['id', 'is_global', 'created_at']
 
 
 class CalendarMemberSerializer(serializers.ModelSerializer):
@@ -28,6 +28,9 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'calendar', 'name', 'color_code', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def validate(self, attrs):
+        return attrs
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -60,6 +63,8 @@ class EventSerializer(serializers.ModelSerializer):
 
         if start_time and end_time and end_time <= start_time:
             raise serializers.ValidationError({'end_time': 'Event end_time must be after start_time.'})
+        if calendar and calendar.is_global:
+            raise serializers.ValidationError({'calendar': 'Events cannot be created in the global calendar.'})
 
         return attrs
 

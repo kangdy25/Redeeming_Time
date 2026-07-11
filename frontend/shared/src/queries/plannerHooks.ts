@@ -7,13 +7,13 @@ import { usePlannerStore } from '../stores/plannerStore';
 import type { Calendar, CalendarPayload, Category, CategoryPayload, Event, EventPayload, Task, TaskPayload } from '../types';
 
 export function usePlannerSnapshot() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
+  const accessToken = useAuthStore((state) => state.accessToken);
   const syncPlanner = usePlannerStore((state) => state.syncPlanner);
 
   const query = useQuery({
-    queryKey: ['planner-snapshot'],
+    queryKey: ['planner-snapshot', accessToken],
     queryFn: apiClient.plannerSnapshot,
-    enabled: isAuthenticated,
+    enabled: Boolean(accessToken),
   });
 
   useEffect(() => {
