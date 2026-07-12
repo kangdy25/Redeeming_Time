@@ -10,7 +10,9 @@ interface PlannerState {
   tasks: Task[];
   setActiveCalendarId: (calendarId: number | null) => void;
   resetPlanner: () => void;
-  syncPlanner: (payload: Partial<Pick<PlannerState, 'calendars' | 'categories' | 'events' | 'tasks'>>) => void;
+  syncPlanner: (
+    payload: Partial<Pick<PlannerState, 'calendars' | 'categories' | 'events' | 'tasks'>>,
+  ) => void;
   toggleTaskCompletion: (taskId: number) => void;
 }
 
@@ -21,13 +23,14 @@ export const usePlannerStore = create<PlannerState>((set) => ({
   events: [],
   tasks: [],
   setActiveCalendarId: (calendarId) => set({ activeCalendarId: calendarId }),
-  resetPlanner: () => set({
-    activeCalendarId: null,
-    calendars: [],
-    categories: [],
-    events: [],
-    tasks: [],
-  }),
+  resetPlanner: () =>
+    set({
+      activeCalendarId: null,
+      calendars: [],
+      categories: [],
+      events: [],
+      tasks: [],
+    }),
   syncPlanner: (payload) => set((state) => ({ ...state, ...payload })),
   toggleTaskCompletion: (taskId) =>
     set((state) => ({

@@ -29,7 +29,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F7-02: Create Task Action', async () => {
       renderWithProviders(<PlannerScreen />);
-      
+
       // Let's directly call create task api or simulate adding it to db
       const newTask = {
         id: 205,
@@ -41,7 +41,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         priority: 'HIGH',
         order: 1,
         created_at: '',
-        updated_at: ''
+        updated_at: '',
       };
       mockDb.tasks.push(newTask);
       usePlannerStore.getState().syncPlanner({ tasks: mockDb.tasks });
@@ -53,7 +53,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F7-03: Priority Level Display', async () => {
       mockDb.tasks = [
-        { id: 201, calendar: 1, creator: 1, title: 'Priority Task', is_completed: false, target_date: '2026-07-04', priority: 'HIGH', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Priority Task',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'HIGH',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -65,8 +76,30 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
     test('TC-T1-F7-04: Sorting Constraints', async () => {
       // Unsorted list
       mockDb.tasks = [
-        { id: 202, calendar: 1, creator: 1, title: 'Task B', is_completed: false, target_date: '2026-07-04', priority: 'LOW', order: 2, created_at: '', updated_at: '' },
-        { id: 201, calendar: 1, creator: 1, title: 'Task A', is_completed: false, target_date: '2026-07-04', priority: 'HIGH', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 202,
+          calendar: 1,
+          creator: 1,
+          title: 'Task B',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'LOW',
+          order: 2,
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Task A',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'HIGH',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -79,7 +112,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F7-05: Task Checkmark Toggle Action', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Task to Toggle', is_completed: false, target_date: '2026-07-04', priority: 'NONE', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Task to Toggle',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'NONE',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -101,10 +145,12 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         http.post('http://localhost:8000/api/tasks/', async ({ request }) => {
           const body = (await request.json()) as any;
           if (!body.title || body.title.trim() === '') {
-            return new HttpResponse(JSON.stringify({ detail: 'Title cannot be empty.' }), { status: 400 });
+            return new HttpResponse(JSON.stringify({ detail: 'Title cannot be empty.' }), {
+              status: 400,
+            });
           }
           return new HttpResponse(JSON.stringify({ id: 999, ...body }), { status: 201 });
-        })
+        }),
       );
 
       // 2. Perform the API call using the client
@@ -113,7 +159,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         title: '',
         target_date: '2026-07-04',
         priority: 'MEDIUM' as const,
-        order: 0
+        order: 0,
       };
 
       // 3. Expect real network response rejection
@@ -122,8 +168,30 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T2-F7-02: Order Key Duplicate Resolutions', async () => {
       mockDb.tasks = [
-        { id: 201, calendar: 1, creator: 1, title: 'Task A', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 0, created_at: '', updated_at: '' },
-        { id: 202, calendar: 1, creator: 1, title: 'Task B', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 0, created_at: '', updated_at: '' }
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Task A',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 0,
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 202,
+          calendar: 1,
+          creator: 1,
+          title: 'Task B',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 0,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -137,10 +205,21 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       server.use(
         http.patch('http://localhost:8000/api/tasks/200/', () => {
           return new HttpResponse(null, { status: 500 });
-        })
+        }),
       );
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Fail Toggle Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Fail Toggle Task',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -160,7 +239,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T2-F7-04: Rapid Double-Click Debounce', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Debounce Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Debounce Task',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -179,7 +269,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T2-F7-05: Title Script Injection Safety (XSS)', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: "<script>alert('xss')</script>", is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: "<script>alert('xss')</script>",
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -195,7 +296,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
   describe('Feature 8: Rollover Continuity & Overdue Task Indicator', () => {
     test('TC-T1-F8-01: Past Incomplete Task Flag', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Overdue Task', is_completed: false, target_date: '2026-07-03', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Overdue Task',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -206,7 +318,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F8-02: Rollover Visual Badge', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Overdue Task', is_completed: false, target_date: '2026-07-03', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Overdue Task',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -217,7 +340,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F8-03: Rollover Text Cue', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Overdue Task', is_completed: false, target_date: '2026-07-03', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Overdue Task',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -228,7 +362,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F8-04: Past Completed Task Exclusion', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Completed Past Task', is_completed: true, target_date: '2026-07-03', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Completed Past Task',
+          is_completed: true,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -240,7 +385,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F8-05: Completion Clears Rollover', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Check to Clear', is_completed: false, target_date: '2026-07-03', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Check to Clear',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -258,7 +414,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T2-F8-01: Today Task Target Boundary', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Today Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Today Task',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -275,7 +442,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
         // 2. Load a task due on July 4th
         mockDb.tasks = [
-          { id: 200, calendar: 1, creator: 1, title: 'Midnight Bound Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+          {
+            id: 200,
+            calendar: 1,
+            creator: 1,
+            title: 'Midnight Bound Task',
+            is_completed: false,
+            target_date: '2026-07-04',
+            priority: 'MEDIUM',
+            order: 1,
+            created_at: '',
+            updated_at: '',
+          },
         ];
 
         // 3. Render the screen and verify the task is NOT marked as overdue
@@ -303,7 +481,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T2-F8-03: Distant Past Rollover Boundary', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Old Task', is_completed: false, target_date: '1999-01-01', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Old Task',
+          is_completed: false,
+          target_date: '1999-01-01',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -314,8 +503,30 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T2-F8-04: Multi-Overdue Rollover Sorting', async () => {
       mockDb.tasks = [
-        { id: 202, calendar: 1, creator: 1, title: 'Task B', is_completed: false, target_date: '2026-07-03', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' },
-        { id: 201, calendar: 1, creator: 1, title: 'Task A', is_completed: false, target_date: '2026-07-02', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 202,
+          calendar: 1,
+          creator: 1,
+          title: 'Task B',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Task A',
+          is_completed: false,
+          target_date: '2026-07-02',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -338,8 +549,8 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
 
       // 2. Mock timezone to Asia/Tokyo (UTC+9) -> event should render on July 4th
@@ -401,8 +612,8 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -414,7 +625,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T1-F9-04: Mobile TaskRow Toggle', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Mobile Toggle', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Mobile Toggle',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -450,7 +672,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         priority: 'MEDIUM',
         order: i,
         created_at: '',
-        updated_at: ''
+        updated_at: '',
       }));
       renderWithProviders(<PlannerScreen />);
 
@@ -463,7 +685,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
     test('TC-T2-F9-02: EventCard Title Wrapping', async () => {
       const longWord = 'W'.repeat(100);
       mockDb.events = [
-        { id: 101, calendar: 1, creator: 1, title: longWord, start_time: '2026-07-04T10:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        {
+          id: 101,
+          calendar: 1,
+          creator: 1,
+          title: longWord,
+          start_time: '2026-07-04T10:00:00Z',
+          end_time: '2026-07-04T11:00:00Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -476,13 +709,26 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       server.use(
         http.patch('http://localhost:8000/api/tasks/200/', async () => {
           // Simulate latency
-          return new Promise(resolve => setTimeout(() => {
-            resolve(HttpResponse.json({ id: 200, is_completed: true }));
-          }, 100));
-        })
+          return new Promise((resolve) =>
+            setTimeout(() => {
+              resolve(HttpResponse.json({ id: 200, is_completed: true }));
+            }, 100),
+          );
+        }),
       );
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Latent Task', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Latent Task',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -508,7 +754,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       server.use(
         http.get('http://localhost:8000/api/calendars/', () => {
           return new HttpResponse(null, { status: 500 });
-        })
+        }),
       );
       renderWithProviders(<PlannerScreen />);
 
@@ -537,12 +783,12 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       usePlannerStore.getState().syncPlanner({
         calendars: [
           { id: 1, title: 'Workspace A', description: '', theme_color: '' },
-          { id: 2, title: 'Workspace B', description: '', theme_color: '' }
+          { id: 2, title: 'Workspace B', description: '', theme_color: '' },
         ],
         categories: [
           { id: 10, calendar: 1, name: 'Cat A', color_code: '#E11D48', created_at: '' },
-          { id: 11, calendar: 2, name: 'Cat B', color_code: '#3B82F6', created_at: '' }
-        ]
+          { id: 11, calendar: 2, name: 'Cat B', color_code: '#3B82F6', created_at: '' },
+        ],
       });
 
       // 2. Set active calendar to ID 2 (Workspace B)
@@ -551,7 +797,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // 3. Query the store and ensure we isolate categories matching only the active calendar
       const state = usePlannerStore.getState();
       const activeCalendarId = state.activeCalendarId;
-      const filtered = state.categories.filter(c => c.calendar === activeCalendarId);
+      const filtered = state.categories.filter((c) => c.calendar === activeCalendarId);
 
       expect(filtered.length).toBe(1);
       expect(filtered[0].name).toBe('Cat B');
@@ -569,8 +815,8 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -592,7 +838,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         start_time: '2026-07-04T09:00:00Z',
         end_time: '2026-07-04T10:00:00Z',
         is_all_day: false,
-        rrule: ''
+        rrule: '',
       });
 
       // 3. Invalidate query to trigger refetch and update Zustand store
@@ -609,12 +855,34 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       usePlannerStore.getState().syncPlanner({
         calendars: [
           { id: 1, title: 'Space A', description: '', theme_color: '' },
-          { id: 2, title: 'Space B', description: '', theme_color: '' }
+          { id: 2, title: 'Space B', description: '', theme_color: '' },
         ],
         tasks: [
-          { id: 201, calendar: 1, creator: 1, title: 'Task A', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 0, created_at: '', updated_at: '' },
-          { id: 202, calendar: 2, creator: 1, title: 'Task B', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 0, created_at: '', updated_at: '' }
-        ]
+          {
+            id: 201,
+            calendar: 1,
+            creator: 1,
+            title: 'Task A',
+            is_completed: false,
+            target_date: '2026-07-04',
+            priority: 'MEDIUM',
+            order: 0,
+            created_at: '',
+            updated_at: '',
+          },
+          {
+            id: 202,
+            calendar: 2,
+            creator: 1,
+            title: 'Task B',
+            is_completed: false,
+            target_date: '2026-07-04',
+            priority: 'MEDIUM',
+            order: 0,
+            created_at: '',
+            updated_at: '',
+          },
+        ],
       });
 
       // 2. Switch workspace context
@@ -623,7 +891,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // 3. Verify task selector filters tasks by active workspace ID
       const state = usePlannerStore.getState();
       const activeCalendarId = state.activeCalendarId;
-      const filtered = state.tasks.filter(t => t.calendar === activeCalendarId);
+      const filtered = state.tasks.filter((t) => t.calendar === activeCalendarId);
 
       expect(filtered.length).toBe(1);
       expect(filtered[0].title).toBe('Task B');
@@ -631,7 +899,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T3-06: Task Overdue Target + Rollover Sidebar Visibility', async () => {
       mockDb.tasks = [
-        { id: 201, calendar: 1, creator: 1, title: 'Unfinished business', is_completed: false, target_date: '2026-07-03', priority: 'HIGH', order: 0, created_at: '', updated_at: '' }
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Unfinished business',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'HIGH',
+          order: 0,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -653,8 +932,8 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -665,7 +944,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T3-08: Overdue Task + Mobile TaskRow Continuity', async () => {
       mockDb.tasks = [
-        { id: 201, calendar: 1, creator: 1, title: 'Past Task', is_completed: false, target_date: '2026-07-03', priority: 'MEDIUM', order: 0, created_at: '', updated_at: '' }
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Past Task',
+          is_completed: false,
+          target_date: '2026-07-03',
+          priority: 'MEDIUM',
+          order: 0,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -700,9 +990,30 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // 2. Setup DB with new calendar, category, event, task
       mockDb.calendars = [{ id: 5, title: 'My First Space', description: '', theme_color: '' }];
       mockDb.categories = [{ id: 50, calendar: 5, name: 'Dev Focus', color_code: '#3B82F6' }];
-      mockDb.events = [{ id: 500, calendar: 5, title: 'E2E Architecture Session', start_time: '2026-07-04T09:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '' }];
-      mockDb.tasks = [{ id: 5000, calendar: 5, creator: 1, title: 'Define E2E features', is_completed: false, target_date: '2026-07-04', priority: 'HIGH', order: 0 }];
-      
+      mockDb.events = [
+        {
+          id: 500,
+          calendar: 5,
+          title: 'E2E Architecture Session',
+          start_time: '2026-07-04T09:00:00Z',
+          end_time: '2026-07-04T11:00:00Z',
+          is_all_day: false,
+          rrule: '',
+        },
+      ];
+      mockDb.tasks = [
+        {
+          id: 5000,
+          calendar: 5,
+          creator: 1,
+          title: 'Define E2E features',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'HIGH',
+          order: 0,
+        },
+      ];
+
       renderWithProviders(<PlannerScreen />);
 
       await waitFor(() => {
@@ -713,7 +1024,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T4-02: Midnight Rollover Review Scenario', async () => {
       mockDb.tasks = [
-        { id: 201, calendar: 1, creator: 1, title: 'Finish Report', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 0, created_at: '', updated_at: '' }
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Finish Report',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 0,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -746,9 +1068,9 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
             is_congested: true,
             daily_hours: 9.0,
             overlap_count: 3,
-            reasons: ['Daily total duration exceeds 8 hours.']
-          }
-        }
+            reasons: ['Daily total duration exceeds 8 hours.'],
+          },
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -759,7 +1081,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
     test('TC-T4-04: Cross-Device Offline Resiliency Scenario', async () => {
       mockDb.tasks = [
-        { id: 200, calendar: 1, creator: 1, title: 'Sync data structures', is_completed: false, target_date: '2026-07-04', priority: 'MEDIUM', order: 1, created_at: '', updated_at: '' }
+        {
+          id: 200,
+          calendar: 1,
+          creator: 1,
+          title: 'Sync data structures',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'MEDIUM',
+          order: 1,
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<PlannerScreen />);
 
@@ -777,10 +1110,19 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // Start with populated calendar
       mockDb.calendars = [
         { id: 1, title: 'Busy Space' },
-        { id: 2, title: 'New Space' }
+        { id: 2, title: 'New Space' },
       ];
       mockDb.tasks = [
-        { id: 201, calendar: 1, creator: 1, title: 'Busy Task', is_completed: false, target_date: '2026-07-04', priority: 'HIGH', order: 0 }
+        {
+          id: 201,
+          calendar: 1,
+          creator: 1,
+          title: 'Busy Task',
+          is_completed: false,
+          target_date: '2026-07-04',
+          priority: 'HIGH',
+          order: 0,
+        },
       ];
       usePlannerStore.getState().syncPlanner({ calendars: mockDb.calendars, tasks: mockDb.tasks });
 

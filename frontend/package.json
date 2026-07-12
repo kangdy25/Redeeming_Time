@@ -12,7 +12,9 @@
     "build:web": "npm --workspace @redeeming-time/web run build",
     "typecheck:app": "npm --workspace @redeeming-time/app run typecheck",
     "typecheck:shared": "npm --workspace @redeeming-time/shared run typecheck",
-    "test": "vitest run"
+    "test": "vitest run",
+    "format": "prettier --write \"{web,app,shared}/**/*.{ts,tsx,js,json,css,md}\"",
+    "format:check": "prettier --check \"{web,app,shared}/**/*.{ts,tsx,js,json,css,md}\""
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -20,6 +22,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^25.0.1",
     "msw": "^2.6.8",
+    "prettier": "^3.9.5",
     "vitest": "^2.1.9"
   },
   "dependencies": {

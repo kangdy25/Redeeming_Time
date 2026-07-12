@@ -13,7 +13,9 @@ type IdeaNote = {
 const STORAGE_KEY = 'redeeming-time.idea-notes';
 
 function noteId() {
-  return globalThis.crypto?.randomUUID?.() ?? `idea-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ?? `idea-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
 }
 
 function starterNote(): IdeaNote {
@@ -62,7 +64,11 @@ function inlineMarkdown(text: string): ReactNode[] {
     }
     const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (link) {
-      return <a href={link[2]} target="_blank" rel="noreferrer" key={index}>{link[1]}</a>;
+      return (
+        <a href={link[2]} target="_blank" rel="noreferrer" key={index}>
+          {link[1]}
+        </a>
+      );
     }
     return <Fragment key={index}>{part}</Fragment>;
   });
@@ -76,7 +82,11 @@ function MarkdownPreview({ content }: { content: string }) {
   content.split('\n').forEach((line, index) => {
     if (line.trim().startsWith('```')) {
       if (inCodeBlock) {
-        rendered.push(<pre key={`code-${index}`}><code>{codeLines.join('\n')}</code></pre>);
+        rendered.push(
+          <pre key={`code-${index}`}>
+            <code>{codeLines.join('\n')}</code>
+          </pre>,
+        );
         codeLines.length = 0;
       }
       inCodeBlock = !inCodeBlock;
@@ -86,9 +96,12 @@ function MarkdownPreview({ content }: { content: string }) {
       codeLines.push(line);
       return;
     }
-    if (line.startsWith('### ')) rendered.push(<h3 key={index}>{inlineMarkdown(line.slice(4))}</h3>);
-    else if (line.startsWith('## ')) rendered.push(<h2 key={index}>{inlineMarkdown(line.slice(3))}</h2>);
-    else if (line.startsWith('# ')) rendered.push(<h1 key={index}>{inlineMarkdown(line.slice(2))}</h1>);
+    if (line.startsWith('### '))
+      rendered.push(<h3 key={index}>{inlineMarkdown(line.slice(4))}</h3>);
+    else if (line.startsWith('## '))
+      rendered.push(<h2 key={index}>{inlineMarkdown(line.slice(3))}</h2>);
+    else if (line.startsWith('# '))
+      rendered.push(<h1 key={index}>{inlineMarkdown(line.slice(2))}</h1>);
     else if (/^- \[[ xX]\] /.test(line)) {
       const checked = /^- \[[xX]\]/.test(line);
       rendered.push(
@@ -97,23 +110,36 @@ function MarkdownPreview({ content }: { content: string }) {
           <span>{inlineMarkdown(line.replace(/^- \[[ xX]\] /, ''))}</span>
         </label>,
       );
-    } else if (line.startsWith('- ')) rendered.push(<div className="markdown-list-item" key={index}>• <span>{inlineMarkdown(line.slice(2))}</span></div>);
-    else if (line.startsWith('> ')) rendered.push(<blockquote key={index}>{inlineMarkdown(line.slice(2))}</blockquote>);
+    } else if (line.startsWith('- '))
+      rendered.push(
+        <div className="markdown-list-item" key={index}>
+          • <span>{inlineMarkdown(line.slice(2))}</span>
+        </div>,
+      );
+    else if (line.startsWith('> '))
+      rendered.push(<blockquote key={index}>{inlineMarkdown(line.slice(2))}</blockquote>);
     else if (/^---+$/.test(line.trim())) rendered.push(<hr key={index} />);
     else if (line.trim()) rendered.push(<p key={index}>{inlineMarkdown(line)}</p>);
     else rendered.push(<div className="markdown-spacer" key={index} />);
   });
 
-  if (inCodeBlock && codeLines.length) rendered.push(<pre key="code-final"><code>{codeLines.join('\n')}</code></pre>);
+  if (inCodeBlock && codeLines.length)
+    rendered.push(
+      <pre key="code-final">
+        <code>{codeLines.join('\n')}</code>
+      </pre>,
+    );
   return <article className="markdown-preview">{rendered}</article>;
 }
 
 function excerpt(note: IdeaNote) {
-  return note.content
-    .replace(/[#>*_`\-[\]()]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 90) || '내용 없는 메모';
+  return (
+    note.content
+      .replace(/[#>*_`\-[\]()]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 90) || '내용 없는 메모'
+  );
 }
 
 export default function IdeaInbox() {
@@ -152,8 +178,16 @@ export default function IdeaInbox() {
   const filteredNotes = useMemo(() => {
     const keyword = search.trim().toLocaleLowerCase();
     return [...notes]
-      .filter((note) => !keyword || `${note.title} ${note.content} ${note.tags.join(' ')}`.toLocaleLowerCase().includes(keyword))
-      .sort((a, b) => Number(b.isPinned) - Number(a.isPinned) || b.updatedAt.localeCompare(a.updatedAt));
+      .filter(
+        (note) =>
+          !keyword ||
+          `${note.title} ${note.content} ${note.tags.join(' ')}`
+            .toLocaleLowerCase()
+            .includes(keyword),
+      )
+      .sort(
+        (a, b) => Number(b.isPinned) - Number(a.isPinned) || b.updatedAt.localeCompare(a.updatedAt),
+      );
   }, [notes, search]);
 
   function createNote() {
@@ -176,9 +210,13 @@ export default function IdeaInbox() {
 
   function updateNote(patch: Partial<IdeaNote>) {
     if (!selectedNote) return;
-    setNotes((current) => current.map((note) => (
-      note.id === selectedNote.id ? { ...note, ...patch, updatedAt: new Date().toISOString() } : note
-    )));
+    setNotes((current) =>
+      current.map((note) =>
+        note.id === selectedNote.id
+          ? { ...note, ...patch, updatedAt: new Date().toISOString() }
+          : note,
+      ),
+    );
   }
 
   function deleteNote() {
@@ -197,11 +235,17 @@ export default function IdeaInbox() {
             <p className="eyebrow">Idea Inbox</p>
             <h2>아이디어 보관함</h2>
           </div>
-          <button type="button" onClick={createNote} aria-label="새 아이디어">+</button>
+          <button type="button" onClick={createNote} aria-label="새 아이디어">
+            +
+          </button>
         </header>
         <label className="idea-search">
           <span aria-hidden="true">⌕</span>
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="아이디어 검색" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="아이디어 검색"
+          />
         </label>
         <div className="idea-note-list">
           {filteredNotes.map((note) => (
@@ -216,12 +260,20 @@ export default function IdeaInbox() {
             >
               <span className="idea-card-heading">
                 <strong>{note.title || '제목 없는 아이디어'}</strong>
-                {note.isPinned && <span className="idea-card-pin" aria-label="고정된 메모">📌</span>}
+                {note.isPinned && (
+                  <span className="idea-card-pin" aria-label="고정된 메모">
+                    📌
+                  </span>
+                )}
               </span>
               <span className="idea-card-excerpt">{excerpt(note)}</span>
               <span className="idea-card-meta">
-                {new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(new Date(note.updatedAt))}
-                {note.tags.slice(0, 3).map((tag) => <em key={tag}>#{tag}</em>)}
+                {new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(
+                  new Date(note.updatedAt),
+                )}
+                {note.tags.slice(0, 3).map((tag) => (
+                  <em key={tag}>#{tag}</em>
+                ))}
               </span>
             </button>
           ))}
@@ -243,9 +295,26 @@ export default function IdeaInbox() {
               </button>
               <span className="idea-save-state">자동 저장됨</span>
               <div className="idea-view-switch">
-                <button className={mode === 'write' ? 'active' : ''} onClick={() => setMode('write')}>편집</button>
-                {!isCompactIdeaView && <button className={mode === 'split' ? 'active' : ''} onClick={() => setMode('split')}>나란히</button>}
-                <button className={mode === 'preview' ? 'active' : ''} onClick={() => setMode('preview')}>미리보기</button>
+                <button
+                  className={mode === 'write' ? 'active' : ''}
+                  onClick={() => setMode('write')}
+                >
+                  편집
+                </button>
+                {!isCompactIdeaView && (
+                  <button
+                    className={mode === 'split' ? 'active' : ''}
+                    onClick={() => setMode('split')}
+                  >
+                    나란히
+                  </button>
+                )}
+                <button
+                  className={mode === 'preview' ? 'active' : ''}
+                  onClick={() => setMode('preview')}
+                >
+                  미리보기
+                </button>
               </div>
               <button
                 type="button"
@@ -254,7 +323,9 @@ export default function IdeaInbox() {
               >
                 {selectedNote.isPinned ? '고정됨' : '고정'}
               </button>
-              <button type="button" className="idea-delete-button" onClick={deleteNote}>삭제</button>
+              <button type="button" className="idea-delete-button" onClick={deleteNote}>
+                삭제
+              </button>
             </header>
             <div className="idea-document-header">
               <input
@@ -272,12 +343,14 @@ export default function IdeaInbox() {
                   const draft = event.target.value.split(',').slice(0, 3).join(',');
                   setTagDraft(draft);
                   updateNote({
-                    tags: [...new Set(
-                      draft
-                      .split(',')
-                      .map((tag) => tag.trim())
-                      .filter(Boolean),
-                    )].slice(0, 3),
+                    tags: [
+                      ...new Set(
+                        draft
+                          .split(',')
+                          .map((tag) => tag.trim())
+                          .filter(Boolean),
+                      ),
+                    ].slice(0, 3),
                   });
                 }}
                 onBlur={() => setTagDraft(selectedNote.tags.join(', '))}
@@ -302,7 +375,9 @@ export default function IdeaInbox() {
             <span>✦</span>
             <h2>첫 아이디어를 기록해 보세요</h2>
             <p>완성되지 않은 생각도 괜찮습니다.</p>
-            <button type="button" onClick={createNote}>새 아이디어 만들기</button>
+            <button type="button" onClick={createNote}>
+              새 아이디어 만들기
+            </button>
           </div>
         )}
       </main>

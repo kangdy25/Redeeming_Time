@@ -4,7 +4,16 @@ import { useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import { usePlannerStore } from '../stores/plannerStore';
-import type { Calendar, CalendarPayload, Category, CategoryPayload, Event, EventPayload, Task, TaskPayload } from '../types';
+import type {
+  Calendar,
+  CalendarPayload,
+  Category,
+  CategoryPayload,
+  Event,
+  EventPayload,
+  Task,
+  TaskPayload,
+} from '../types';
 
 export function usePlannerSnapshot() {
   const accessToken = useAuthStore((state) => state.accessToken);

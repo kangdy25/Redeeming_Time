@@ -31,11 +31,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F1-01: Toggle Auth Modes', () => {
       renderWithProviders(<App />);
       expect(screen.queryByPlaceholderText('Nickname')).toBeNull();
-      
+
       const registerTab = screen.getByText('Register');
       fireEvent.click(registerTab);
       expect(screen.getByPlaceholderText('Nickname')).toBeInTheDocument();
-      
+
       const loginTab = screen.getByText('Login');
       fireEvent.click(loginTab);
       expect(screen.queryByPlaceholderText('Nickname')).toBeNull();
@@ -56,11 +56,13 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F1-03: Local Registration Workflow', async () => {
       renderWithProviders(<App />);
       fireEvent.click(screen.getByText('Register'));
-      
-      fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'reg@example.com' } });
+
+      fireEvent.change(screen.getByPlaceholderText('Email'), {
+        target: { value: 'reg@example.com' },
+      });
       fireEvent.change(screen.getByPlaceholderText('Nickname'), { target: { value: 'Reggy' } });
       fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'pass123' } });
-      
+
       fireEvent.click(screen.getByRole('button', { name: 'Create & Connect' }));
 
       await waitFor(() => {
@@ -70,8 +72,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
     test('TC-T1-F1-04: Local Login Token Storage', async () => {
       renderWithProviders(<App />);
-      fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'demo@example.com' } });
-      fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'redeeming-demo-pass' } });
+      fireEvent.change(screen.getByPlaceholderText('Email'), {
+        target: { value: 'demo@example.com' },
+      });
+      fireEvent.change(screen.getByPlaceholderText('Password'), {
+        target: { value: 'redeeming-demo-pass' },
+      });
       fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
       await waitFor(() => {
@@ -95,7 +101,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T2-F1-01: Malformed Email Input Submission', async () => {
       renderWithProviders(<App />);
       fireEvent.click(screen.getByText('Register'));
-      fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'invalid-email@invalid' } });
+      fireEvent.change(screen.getByPlaceholderText('Email'), {
+        target: { value: 'invalid-email@invalid' },
+      });
       fireEvent.change(screen.getByPlaceholderText('Nickname'), { target: { value: 'Fail' } });
       fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'pass' } });
       fireEvent.click(screen.getByRole('button', { name: 'Create & Connect' }));
@@ -109,11 +117,15 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       // Simulate backend rejecting authentication with specific text
       server.use(
         http.post('http://localhost:8000/api/auth/token/', () => {
-          return new HttpResponse(JSON.stringify({ detail: 'Password too short' }), { status: 400 });
-        })
+          return new HttpResponse(JSON.stringify({ detail: 'Password too short' }), {
+            status: 400,
+          });
+        }),
       );
       renderWithProviders(<App />);
-      fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'demo@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText('Email'), {
+        target: { value: 'demo@example.com' },
+      });
       fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: '12' } });
       fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
@@ -124,8 +136,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
     test('TC-T2-F1-03: Server Authentication Rejection', async () => {
       renderWithProviders(<App />);
-      fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'demo@example.com' } });
-      fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'wrong-password' } });
+      fireEvent.change(screen.getByPlaceholderText('Email'), {
+        target: { value: 'demo@example.com' },
+      });
+      fireEvent.change(screen.getByPlaceholderText('Password'), {
+        target: { value: 'wrong-password' },
+      });
       fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
       await waitFor(() => {
@@ -137,10 +153,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       server.use(
         http.post('http://localhost:8000/api/auth/token/', () => {
           return HttpResponse.error(); // Simulates a network failure/timeout
-        })
+        }),
       );
       renderWithProviders(<App />);
-      fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'demo@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText('Email'), {
+        target: { value: 'demo@example.com' },
+      });
       fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'pass' } });
       fireEvent.click(screen.getByRole('button', { name: 'Connect' }));
 
@@ -178,8 +196,20 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F2-03: Switch Active Calendar', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.calendars = [
-        { id: 1, title: 'Personal Space', description: 'Primary', theme_color: '#1F9D8A', created_at: '2026-07-04T00:00:00Z' },
-        { id: 2, title: 'Professional Space', description: 'Office', theme_color: '#1F9D8A', created_at: '2026-07-04T00:00:00Z' }
+        {
+          id: 1,
+          title: 'Personal Space',
+          description: 'Primary',
+          theme_color: '#1F9D8A',
+          created_at: '2026-07-04T00:00:00Z',
+        },
+        {
+          id: 2,
+          title: 'Professional Space',
+          description: 'Office',
+          theme_color: '#1F9D8A',
+          created_at: '2026-07-04T00:00:00Z',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -200,7 +230,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       mockDb.calendars = [
         { id: 1, title: 'Cal 1', description: '', theme_color: '', created_at: '' },
         { id: 2, title: 'Cal 2', description: '', theme_color: '', created_at: '' },
-        { id: 3, title: 'Cal 3', description: '', theme_color: '', created_at: '' }
+        { id: 3, title: 'Cal 3', description: '', theme_color: '', created_at: '' },
       ];
       renderWithProviders(<App />);
 
@@ -218,7 +248,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
       // Set value in store directly
       usePlannerStore.getState().setActiveCalendarId(1);
-      
+
       const select = screen.getByLabelText('Workspace') as HTMLSelectElement;
       expect(select.value).toBe('1');
     });
@@ -243,16 +273,15 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T2-F2-04: Select Inactive calendar ID', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
-      
+
       // Set to invalid calendar ID
       usePlannerStore.getState().setActiveCalendarId(999);
-      
+
       openTaskBoard();
       await waitFor(() => {
         expect(screen.getByRole('button', { name: 'Add Category' })).toBeDisabled();
       });
     });
-
   });
 
   // ==========================================
@@ -289,7 +318,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
 
       await waitFor(() => {
-        expect(mockDb.categories.some(c => c.name === 'Health' && c.color_code === '#00ff00')).toBe(true);
+        expect(
+          mockDb.categories.some((c) => c.name === 'Health' && c.color_code === '#00ff00'),
+        ).toBe(true);
       });
     });
 
@@ -297,13 +328,15 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.categories = [
         { id: 10, calendar: 1, name: 'Deep Work', color_code: '#E11D48', created_at: '' },
-        { id: 11, calendar: 2, name: 'Leisure', color_code: '#E11D48', created_at: '' }
+        { id: 11, calendar: 2, name: 'Leisure', color_code: '#E11D48', created_at: '' },
       ];
       renderWithProviders(<App />);
 
       // Active Calendar is 1 (default)
       await waitFor(() => {
-        expect(usePlannerStore.getState().categories.filter(c => c.calendar === 1).length).toBe(1);
+        expect(usePlannerStore.getState().categories.filter((c) => c.calendar === 1).length).toBe(
+          1,
+        );
       });
     });
 
@@ -326,7 +359,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       // Form requires non-empty string or UI handles whitespace trimming
       await waitFor(() => {
-        expect(mockDb.categories.some(c => c.name === '   ')).toBe(false);
+        expect(mockDb.categories.some((c) => c.name === '   ')).toBe(false);
       });
     });
 
@@ -350,7 +383,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
 
       await waitFor(() => {
-        expect(mockDb.categories.filter(c => c.name === 'Deep Work').length).toBe(2);
+        expect(mockDb.categories.filter((c) => c.name === 'Deep Work').length).toBe(2);
       });
     });
 
@@ -367,8 +400,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -409,7 +442,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
 
       await waitFor(() => {
-        expect(mockDb.events.some(e => e.title === 'Sprint Planning')).toBe(true);
+        expect(mockDb.events.some((e) => e.title === 'Sprint Planning')).toBe(true);
       });
     });
 
@@ -421,7 +454,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
 
       await waitFor(() => {
-        const studyEvent = mockDb.events.find(e => e.title === 'Study Session');
+        const studyEvent = mockDb.events.find((e) => e.title === 'Study Session');
         expect(studyEvent).toBeDefined();
         expect(studyEvent).not.toHaveProperty('category');
       });
@@ -430,8 +463,30 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F4-04: Event Count Display Update', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.events = [
-        { id: 101, calendar: 1, creator: 1, title: 'E1', start_time: '2026-07-04T00:00:00Z', end_time: '2026-07-04T01:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 102, calendar: 1, creator: 1, title: 'E2', start_time: '2026-07-04T00:00:00Z', end_time: '2026-07-04T01:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        {
+          id: 101,
+          calendar: 1,
+          creator: 1,
+          title: 'E1',
+          start_time: '2026-07-04T00:00:00Z',
+          end_time: '2026-07-04T01:00:00Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 102,
+          calendar: 1,
+          creator: 1,
+          title: 'E2',
+          start_time: '2026-07-04T00:00:00Z',
+          end_time: '2026-07-04T01:00:00Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -451,7 +506,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       // Form doesn't explicitly clear to blank but resets title or retains it. The implementation keeps title state or resets.
       // Wait for execution success
       await waitFor(() => {
-        expect(mockDb.events.some(e => e.title === 'Sprint Planning')).toBe(true);
+        expect(mockDb.events.some((e) => e.title === 'Sprint Planning')).toBe(true);
       });
     });
 
@@ -462,7 +517,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       // Let's configure inputs with end time before start time
       const datetimeInputs = screen.getAllByPlaceholderText('') as HTMLInputElement[];
       // We will select datetime-local inputs in setup
-      const startInput = screen.getAllByRole('textbox').find(x => x.getAttribute('type') === 'datetime-local') as HTMLInputElement;
+      const startInput = screen
+        .getAllByRole('textbox')
+        .find((x) => x.getAttribute('type') === 'datetime-local') as HTMLInputElement;
       // Alternatively, we can use the inputs based on container queries or class.
       // In App.tsx:
       // <input value={eventStart} onChange={(event) => setEventStart(event.target.value)} type="datetime-local" />
@@ -476,7 +533,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
 
       await waitFor(() => {
-        expect(mockDb.events.some(e => e.title === 'Focused planning block' && e.start_time === '2026-07-04T12:00:00Z')).toBe(false);
+        expect(
+          mockDb.events.some(
+            (e) => e.title === 'Focused planning block' && e.start_time === '2026-07-04T12:00:00Z',
+          ),
+        ).toBe(false);
       });
     });
 
@@ -493,8 +554,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -506,8 +567,30 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T2-F4-03: Overlapping Event Milliseconds', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       mockDb.events = [
-        { id: 101, calendar: 1, creator: 1, title: 'E1', start_time: '2026-07-04T10:00:00.000Z', end_time: '2026-07-04T11:00:00.000Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 102, calendar: 1, creator: 1, title: 'E2', start_time: '2026-07-04T10:00:00.000Z', end_time: '2026-07-04T11:00:00.000Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        {
+          id: 101,
+          calendar: 1,
+          creator: 1,
+          title: 'E1',
+          start_time: '2026-07-04T10:00:00.000Z',
+          end_time: '2026-07-04T11:00:00.000Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 102,
+          calendar: 1,
+          creator: 1,
+          title: 'E2',
+          start_time: '2026-07-04T10:00:00.000Z',
+          end_time: '2026-07-04T11:00:00.000Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -521,7 +604,18 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       const giantTitle = 'E'.repeat(250);
       mockDb.events = [
-        { id: 101, calendar: 1, creator: 1, title: giantTitle, start_time: '2026-07-04T10:00:00Z', end_time: '2026-07-04T11:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        {
+          id: 101,
+          calendar: 1,
+          creator: 1,
+          title: giantTitle,
+          start_time: '2026-07-04T10:00:00Z',
+          end_time: '2026-07-04T11:00:00Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -538,7 +632,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
 
       await waitFor(() => {
-        expect(mockDb.events.some(e => e.title === 'No Desc Event' && e.description !== undefined)).toBe(true);
+        expect(
+          mockDb.events.some((e) => e.title === 'No Desc Event' && e.description !== undefined),
+        ).toBe(true);
       });
     });
   });
@@ -585,7 +681,10 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
 
       const julyFourthCell = Array.from(document.querySelectorAll('.date-cell')).find((cell) => {
-        return !cell.classList.contains('muted-cell') && cell.querySelector('.date-number')?.textContent === '4';
+        return (
+          !cell.classList.contains('muted-cell') &&
+          cell.querySelector('.date-number')?.textContent === '4'
+        );
       });
 
       expect(julyFourthCell).toBeDefined();
@@ -628,7 +727,10 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
 
       const childrenDayCell = Array.from(document.querySelectorAll('.date-cell')).find((cell) => {
-        return !cell.classList.contains('muted-cell') && cell.querySelector('.date-number')?.textContent === '5';
+        return (
+          !cell.classList.contains('muted-cell') &&
+          cell.querySelector('.date-number')?.textContent === '5'
+        );
       });
 
       expect(childrenDayCell).toBeDefined();
@@ -661,7 +763,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         is_all_day: false,
         rrule: '',
         created_at: '',
-        updated_at: ''
+        updated_at: '',
       }));
       renderWithProviders(<App />);
 
@@ -686,7 +788,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         is_all_day: false,
         rrule: '',
         created_at: '',
-        updated_at: ''
+        updated_at: '',
       }));
       renderWithProviders(<App />);
 
@@ -721,8 +823,10 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         expect(cells.length).toBe(42);
 
         // Verify that one of the non-muted calendar cells displays "29"
-        const activeCells = Array.from(cells).filter(cell => !cell.classList.contains('muted-cell'));
-        const hasLeapDay = activeCells.some(cell => {
+        const activeCells = Array.from(cells).filter(
+          (cell) => !cell.classList.contains('muted-cell'),
+        );
+        const hasLeapDay = activeCells.some((cell) => {
           const numEl = cell.querySelector('.date-number');
           return numEl && numEl.textContent === '29';
         });
@@ -744,7 +848,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         is_all_day: false,
         rrule: '',
         created_at: '',
-        updated_at: ''
+        updated_at: '',
       }));
       renderWithProviders(<App />);
 
@@ -766,8 +870,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -791,8 +895,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -821,7 +925,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        const weekDays = Array.from(document.querySelectorAll('.week-day span')).map(el => el.textContent);
+        const weekDays = Array.from(document.querySelectorAll('.week-day span')).map(
+          (el) => el.textContent,
+        );
         expect(weekDays).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
       });
     });
@@ -831,7 +937,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        const dates = Array.from(document.querySelectorAll('.week-day strong')).map(el => el.textContent);
+        const dates = Array.from(document.querySelectorAll('.week-day strong')).map(
+          (el) => el.textContent,
+        );
         // Anchor date is July 4, 2026 (Saturday)
         // Week starts June 28 (Sunday) and ends July 4 (Saturday)
         expect(dates).toEqual(['28', '29', '30', '1', '2', '3', '4']);
@@ -875,7 +983,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         const weekDayStrongEls = document.querySelectorAll('.week-day strong');
         expect(weekDayStrongEls.length).toBe(7);
 
-        const renderedDates = Array.from(weekDayStrongEls).map(el => el.textContent);
+        const renderedDates = Array.from(weekDayStrongEls).map((el) => el.textContent);
         // Expected week layout: Sunday Dec 27 to Saturday Jan 2
         expect(renderedDates).toEqual(['27', '28', '29', '30', '31', '1', '2']);
       });
@@ -896,8 +1004,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
           is_all_day: true,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -920,8 +1028,8 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
           is_all_day: false,
           rrule: '',
           created_at: '',
-          updated_at: ''
-        }
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
@@ -944,14 +1052,38 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       // Add two events on Saturday
       mockDb.events = [
-        { id: 114, calendar: 1, creator: 1, title: 'Later Event', start_time: '2026-07-04T06:00:00Z', end_time: '2026-07-04T07:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' },
-        { id: 115, calendar: 1, creator: 1, title: 'Earlier Event', start_time: '2026-07-04T01:00:00Z', end_time: '2026-07-04T02:00:00Z', is_all_day: false, rrule: '', created_at: '', updated_at: '' }
+        {
+          id: 114,
+          calendar: 1,
+          creator: 1,
+          title: 'Later Event',
+          start_time: '2026-07-04T06:00:00Z',
+          end_time: '2026-07-04T07:00:00Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
+        {
+          id: 115,
+          calendar: 1,
+          creator: 1,
+          title: 'Earlier Event',
+          start_time: '2026-07-04T01:00:00Z',
+          end_time: '2026-07-04T02:00:00Z',
+          is_all_day: false,
+          rrule: '',
+          created_at: '',
+          updated_at: '',
+        },
       ];
       renderWithProviders(<App />);
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
-        const labels = Array.from(satColumn.querySelectorAll('.week-event')).map(el => el.textContent);
+        const labels = Array.from(satColumn.querySelectorAll('.week-event')).map(
+          (el) => el.textContent,
+        );
         // Sorted chronological order, or the way the backend returns them. They should both be in the rail.
         expect(labels).toContain('Earlier Event');
         expect(labels).toContain('Later Event');

@@ -14,7 +14,8 @@ import type {
 import { useAuthStore } from '../stores/authStore';
 import { usePlannerStore } from '../stores/plannerStore';
 
-const runtimeEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
+const runtimeEnv =
+  (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
 
 function inferApiBaseUrl() {
   const explicitUrl = runtimeEnv.EXPO_PUBLIC_API_BASE_URL ?? runtimeEnv.VITE_API_BASE_URL;
@@ -78,15 +79,16 @@ export const apiClient = {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
-  deleteUser: (userId: number) =>
-    request<void>(`/users/${userId}/`, { method: 'DELETE' }),
+  deleteUser: (userId: number) => request<void>(`/users/${userId}/`, { method: 'DELETE' }),
   calendars: () => request<Calendar[]>('/calendars/'),
   createCalendar: async (payload: CalendarPayload) => {
     const calendar = await request<Calendar>('/calendars/', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    usePlannerStore.getState().syncPlanner({ calendars: [...usePlannerStore.getState().calendars, calendar] });
+    usePlannerStore
+      .getState()
+      .syncPlanner({ calendars: [...usePlannerStore.getState().calendars, calendar] });
     return calendar;
   },
   deleteCalendar: async (calendarId: number) => {
@@ -109,7 +111,9 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    usePlannerStore.getState().syncPlanner({ categories: [...usePlannerStore.getState().categories, category] });
+    usePlannerStore
+      .getState()
+      .syncPlanner({ categories: [...usePlannerStore.getState().categories, category] });
     return category;
   },
   updateCategory: async (categoryId: number, payload: Partial<CategoryPayload>) => {
@@ -118,17 +122,23 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
     usePlannerStore.getState().syncPlanner({
-      categories: usePlannerStore.getState().categories.map((item) => (item.id === category.id ? category : item)),
+      categories: usePlannerStore
+        .getState()
+        .categories.map((item) => (item.id === category.id ? category : item)),
     });
     return category;
   },
   deleteCategory: async (categoryId: number) => {
     await request<void>(`/categories/${categoryId}/`, { method: 'DELETE' });
     usePlannerStore.getState().syncPlanner({
-      categories: usePlannerStore.getState().categories.filter((category) => category.id !== categoryId),
-      tasks: usePlannerStore.getState().tasks.map((task) => (
-        task.category === categoryId ? { ...task, category: null, category_detail: null } : task
-      )),
+      categories: usePlannerStore
+        .getState()
+        .categories.filter((category) => category.id !== categoryId),
+      tasks: usePlannerStore
+        .getState()
+        .tasks.map((task) =>
+          task.category === categoryId ? { ...task, category: null, category_detail: null } : task,
+        ),
     });
   },
   events: () => request<Event[]>('/events/'),
@@ -137,7 +147,9 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    usePlannerStore.getState().syncPlanner({ events: [...usePlannerStore.getState().events, event] });
+    usePlannerStore
+      .getState()
+      .syncPlanner({ events: [...usePlannerStore.getState().events, event] });
     return event;
   },
   updateEvent: async (eventId: number, payload: Partial<EventPayload>) => {
@@ -146,7 +158,9 @@ export const apiClient = {
       body: JSON.stringify(payload),
     });
     usePlannerStore.getState().syncPlanner({
-      events: usePlannerStore.getState().events.map((item) => (item.id === event.id ? event : item)),
+      events: usePlannerStore
+        .getState()
+        .events.map((item) => (item.id === event.id ? event : item)),
     });
     return event;
   },
@@ -194,7 +208,9 @@ export const apiClient = {
       body: JSON.stringify({ target_date: targetDate }),
     });
     usePlannerStore.getState().syncPlanner({
-      tasks: usePlannerStore.getState().tasks.map((item) => (item.id === updatedTask.id ? updatedTask : item)),
+      tasks: usePlannerStore
+        .getState()
+        .tasks.map((item) => (item.id === updatedTask.id ? updatedTask : item)),
     });
     return updatedTask;
   },
