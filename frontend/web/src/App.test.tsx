@@ -1,5 +1,5 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { act, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import App from './App';
 import { renderWithProviders } from '../../test.utils';
@@ -263,7 +263,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       // Clear DB and trigger snapshot reload
       mockDb.calendars = [];
-      usePlannerStore.getState().syncPlanner({ calendars: [] });
+      act(() => usePlannerStore.getState().syncPlanner({ calendars: [] }));
 
       await waitFor(() => {
         expect(screen.getByText('No calendar')).toBeInTheDocument();
@@ -275,7 +275,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       // Set to invalid calendar ID
-      usePlannerStore.getState().setActiveCalendarId(999);
+      act(() => usePlannerStore.getState().setActiveCalendarId(999));
 
       openTaskBoard();
       await waitFor(() => {
@@ -425,9 +425,16 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
   // FEATURE 4: Calendar Event Creation & Scheduling
   // ==========================================
   describe('Feature 4: Calendar Event Creation & Scheduling', () => {
-    test('TC-T1-F4-01: Event Creation Input Handlers', () => {
+    async function waitForEventFormReady() {
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'Add Event' })).not.toBeDisabled(),
+      );
+    }
+
+    test('TC-T1-F4-01: Event Creation Input Handlers', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       const titleInput = screen.getByLabelText('Event') as HTMLInputElement;
       fireEvent.change(titleInput, { target: { value: 'Standup' } });
@@ -437,6 +444,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F4-02: Create Event API Hook', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       fireEvent.change(screen.getByLabelText('Event'), { target: { value: 'Sprint Planning' } });
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
@@ -449,6 +457,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F4-03: Event Todo Category Separation', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       fireEvent.change(screen.getByLabelText('Event'), { target: { value: 'Study Session' } });
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
@@ -489,6 +498,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       await waitFor(() => {
         expect(screen.getByText('2 scheduled events')).toBeInTheDocument();
@@ -498,6 +508,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F4-05: Form State Reset on Success', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       const titleInput = screen.getByLabelText('Event') as HTMLInputElement;
       fireEvent.change(titleInput, { target: { value: 'Sprint Planning' } });
@@ -513,6 +524,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T2-F4-01: End Time Before Start Time Validation', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       // Let's configure inputs with end time before start time
       const datetimeInputs = screen.getAllByPlaceholderText('') as HTMLInputElement[];
@@ -558,6 +570,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       await waitFor(() => {
         expect(screen.getByText('3-Day Hackathon')).toBeInTheDocument();
@@ -593,6 +606,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       await waitFor(() => {
         expect(screen.getByText('E1')).toBeInTheDocument();
@@ -618,6 +632,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       await waitFor(() => {
         expect(screen.getByText(giantTitle)).toBeInTheDocument();
@@ -627,6 +642,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T2-F4-05: Missing Description Field', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      await waitForEventFormReady();
 
       fireEvent.change(screen.getByLabelText('Event'), { target: { value: 'No Desc Event' } });
       fireEvent.click(screen.getByRole('button', { name: 'Add Event' }));
@@ -910,9 +926,19 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
   // FEATURE 6: Week Rail Short-Term Glance View
   // ==========================================
   describe('Feature 6: Week Rail Short-Term Glance View', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-07-04T12:00:00Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     test('TC-T1-F6-01: 7-Day Rendering', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const weekDays = document.querySelectorAll('.week-day');
@@ -923,6 +949,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F6-02: Weekday Label Order', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const weekDays = Array.from(document.querySelectorAll('.week-day span')).map(
@@ -935,6 +962,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F6-03: Date Label Correctness', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const dates = Array.from(document.querySelectorAll('.week-day strong')).map(
@@ -949,6 +977,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F6-04: Event Matching', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
@@ -959,6 +988,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     test('TC-T1-F6-05: Calendar Event Labels Use Event Color', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
@@ -977,6 +1007,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       // 3. Render Web App
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       // 4. Verify the dates generated in the WeekRail wrapping from 2026 into 2027
       await waitFor(() => {
@@ -1008,6 +1039,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         // App displays the event inside WeekRail (although sameDate only checks start date, let's verify rendering is successful)
@@ -1032,6 +1064,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
@@ -1043,6 +1076,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       // Validates browser timezone mocks if needed. Make sure it loads successfully.
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
       await waitFor(() => {
         expect(screen.getByLabelText('Workspace')).toBeInTheDocument();
       });
@@ -1078,6 +1112,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         },
       ];
       renderWithProviders(<App />);
+      fireEvent.click(screen.getByRole('button', { name: 'Week' }));
 
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];

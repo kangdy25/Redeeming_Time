@@ -1,9 +1,26 @@
 import { useAuthStore } from '@redeeming-time/shared';
-import { type useDashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../hooks/useDashboardModel';
 
-type DashboardModel = ReturnType<typeof useDashboardModel>;
+type DashboardHeaderProps = Pick<
+  DashboardModel,
+  | 'setActiveSection'
+  | 'setMobilePanel'
+  | 'workspaceSwitcherRef'
+  | 'currentCalendarId'
+  | 'setActiveCalendarId'
+  | 'calendars'
+  | 'isWorkspaceMenuOpen'
+  | 'setIsWorkspaceMenuOpen'
+  | 'selectedCalendarColor'
+  | 'activeCalendar'
+  | 'setActiveModal'
+  | 'deleteWorkspace'
+  | 'theme'
+  | 'setTheme'
+  | 'profileImageUrl'
+>;
 
-export function DashboardHeader({ model }: { model: DashboardModel }) {
+export function DashboardHeader(props: DashboardHeaderProps) {
   const {
     setActiveSection,
     setMobilePanel,
@@ -20,7 +37,7 @@ export function DashboardHeader({ model }: { model: DashboardModel }) {
     theme,
     setTheme,
     profileImageUrl,
-  } = model;
+  } = props;
 
   return (
     <header className="top-nav">

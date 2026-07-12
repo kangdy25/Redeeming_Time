@@ -1,9 +1,22 @@
-import { type useDashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../hooks/useDashboardModel';
 import { MonthGrid, WeekRail } from './CalendarViews';
 
-type DashboardModel = ReturnType<typeof useDashboardModel>;
+type CalendarPanelProps = Pick<
+  DashboardModel,
+  | 'activeView'
+  | 'anchor'
+  | 'handlePrev'
+  | 'handleNext'
+  | 'handleToday'
+  | 'setActiveView'
+  | 'activeCalendarEvents'
+  | 'calendarStatusNotice'
+  | 'calendarEvents'
+  | 'openEventComposerForDate'
+  | 'openEventDetail'
+>;
 
-export function CalendarPanel({ model }: { model: DashboardModel }) {
+export function CalendarPanel(props: CalendarPanelProps) {
   const {
     activeView,
     anchor,
@@ -16,7 +29,7 @@ export function CalendarPanel({ model }: { model: DashboardModel }) {
     calendarEvents,
     openEventComposerForDate,
     openEventDetail,
-  } = model;
+  } = props;
 
   return (
     <section className="planner-panel calendar-area">

@@ -11,16 +11,6 @@ import { type PlannerModalKind } from '../components/PlannerModals';
 import { createKoreaHolidayEvents, isoDate } from '../utils/planner';
 
 function initialDashboardAnchor() {
-  const testName = (globalThis as any).expect?.getState?.().currentTestName as string | undefined;
-  if (
-    typeof process !== 'undefined' &&
-    process.env.NODE_ENV === 'test' &&
-    testName?.includes('Feature 6')
-  ) {
-    if (!testName.includes('End-of-Year Week Wrap')) {
-      return new Date('2026-07-04T12:00:00Z');
-    }
-  }
   return new Date();
 }
 
@@ -60,10 +50,7 @@ export function useDashboardModel() {
     setAnchor(new Date());
   }
 
-  const isFeature6Test =
-    typeof (globalThis as any).expect !== 'undefined' &&
-    (globalThis as any).expect.getState()?.currentTestName?.includes('Feature 6');
-  const [activeView, setActiveView] = useState<'week' | 'month'>(isFeature6Test ? 'week' : 'month');
+  const [activeView, setActiveView] = useState<'week' | 'month'>('month');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activeModal, setActiveModal] = useState<PlannerModalKind | null>(null);
@@ -196,3 +183,5 @@ export function useDashboardModel() {
     deleteWorkspace,
   };
 }
+
+export type DashboardModel = ReturnType<typeof useDashboardModel>;

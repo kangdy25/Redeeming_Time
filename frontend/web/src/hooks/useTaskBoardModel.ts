@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import {
   apiClient,
   useCreateCategory,
@@ -8,7 +8,8 @@ import {
   type Task,
   type TaskPriority,
 } from '@redeeming-time/shared';
-import { isoDate, monthCells } from '../utils/planner';
+import { isoDate } from '../utils/planner';
+import { useTaskBoardData } from './useTaskBoardData';
 
 type TaskBoardModelInput = {
   tasks: Task[];
@@ -28,7 +29,6 @@ export function useTaskBoardModel({
   const toggleTask = useToggleTask();
   const createTask = useCreateTask();
   const createCategory = useCreateCategory();
-  const today = isoDate(new Date());
   const [miniMonth, setMiniMonth] = useState(() => {
     const date = new Date(`${selectedDate}T00:00:00`);
     return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -55,45 +55,23 @@ export function useTaskBoardModel({
   } | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const quickTaskInputRef = useRef<HTMLInputElement>(null);
-  const miniCells = useMemo(() => {
-    if (!useWeeklyTaskCalendar) return monthCells(miniMonth);
-    const selected = new Date(`${selectedDate}T00:00:00`);
-    const start = new Date(selected);
-    start.setDate(selected.getDate() - selected.getDay());
-    return Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(start);
-      date.setDate(start.getDate() + index);
-      return date;
-    });
-  }, [miniMonth, selectedDate, useWeeklyTaskCalendar]);
-  const sortedTasks = [...tasks].sort(
-    (a, b) => a.target_date.localeCompare(b.target_date) || a.order - b.order,
-  );
-  const overdueTasks = tasks.filter((task) => !task.is_completed && task.target_date < today);
-  const selectedTasks = sortedTasks.filter((task) => task.target_date === selectedDate);
-  const selectedOpenTasks = selectedTasks.filter((task) => !task.is_completed);
-  const selectedCompletedCount = selectedTasks.length - selectedOpenTasks.length;
-  const completionRate =
-    selectedTasks.length === 0
-      ? 0
-      : Math.round((selectedCompletedCount / selectedTasks.length) * 100);
-  const taskCategories = categories;
-  const categorySections = [
-    ...taskCategories.map((category) => ({
-      id: String(category.id),
-      category,
-      tasks: selectedTasks.filter((task) => task.category === category.id),
-    })),
-    {
-      id: 'uncategorized',
-      category: null,
-      tasks: selectedTasks.filter((task) => task.category === null),
-    },
-  ].filter((section) => section.tasks.length > 0 || section.category !== null);
-  const taskCountByDate = tasks.reduce<Record<string, number>>((counts, task) => {
-    counts[task.target_date] = (counts[task.target_date] ?? 0) + 1;
-    return counts;
-  }, {});
+  const {
+    today,
+    miniCells,
+    selectedTasks,
+    selectedOpenTasks,
+    completionRate,
+    overdueTasks,
+    taskCategories,
+    categorySections,
+    taskCountByDate,
+  } = useTaskBoardData({
+    tasks,
+    categories,
+    selectedDate,
+    miniMonth,
+    weekly: useWeeklyTaskCalendar,
+  });
 
   useEffect(() => {
     const date = new Date(`${selectedDate}T00:00:00`);
@@ -320,3 +298,5 @@ export function useTaskBoardModel({
     toggleTask,
   };
 }
+
+export type TaskBoardModel = ReturnType<typeof useTaskBoardModel>;

@@ -159,7 +159,7 @@ export default function IdeaInbox() {
   useEffect(() => {
     const note = notes.find((item) => item.id === selectedId);
     setTagDraft(note?.tags.join(', ') ?? '');
-  }, [selectedId]);
+  }, [notes, selectedId]);
 
   useEffect(() => {
     if (!globalThis.matchMedia) return;

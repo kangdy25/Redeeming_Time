@@ -1,8 +1,20 @@
-import { type useDashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../hooks/useDashboardModel';
 
-type DashboardModel = ReturnType<typeof useDashboardModel>;
+type DashboardSidebarProps = Pick<
+  DashboardModel,
+  | 'mobilePanel'
+  | 'isSidebarCollapsed'
+  | 'setIsSidebarCollapsed'
+  | 'selectedCalendarColor'
+  | 'activeCalendarTitle'
+  | 'activeCalendarEvents'
+  | 'tasks'
+  | 'activeSection'
+  | 'setActiveSection'
+  | 'setMobilePanel'
+>;
 
-export function DashboardSidebar({ model }: { model: DashboardModel }) {
+export function DashboardSidebar(props: DashboardSidebarProps) {
   const {
     mobilePanel,
     isSidebarCollapsed,
@@ -14,7 +26,7 @@ export function DashboardSidebar({ model }: { model: DashboardModel }) {
     activeSection,
     setActiveSection,
     setMobilePanel,
-  } = model;
+  } = props;
 
   return (
     <aside

@@ -28,11 +28,11 @@ export function DashboardPage() {
 
   return (
     <div className="app-container">
-      <DashboardHeader model={model} />
+      <DashboardHeader {...model} />
 
       <div className="workspace-layout">
         {/* Sidebar */}
-        <DashboardSidebar model={model} />
+        <DashboardSidebar {...model} />
 
         {/* Main Panel */}
         <main className="main-content">
@@ -52,15 +52,15 @@ export function DashboardPage() {
             ) : activeSection === 'inbox' ? (
               <IdeaInbox />
             ) : (
-              <CalendarPanel model={model} />
+              <CalendarPanel {...model} />
             )}
           </div>
         </main>
       </div>
 
-      <DashboardMobileNav model={model} />
+      <DashboardMobileNav {...model} />
 
-      <DashboardModalLayer model={model} />
+      <DashboardModalLayer {...model} />
     </div>
   );
 }

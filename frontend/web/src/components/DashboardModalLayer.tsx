@@ -1,10 +1,13 @@
-import { type useDashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../hooks/useDashboardModel';
 import { PlannerModals } from './PlannerModals';
 
-type DashboardModel = ReturnType<typeof useDashboardModel>;
+type DashboardModalLayerProps = Pick<
+  DashboardModel,
+  'activeModal' | 'setActiveModal' | 'calendars' | 'snapshot' | 'eventDraftDate' | 'selectedEvent'
+>;
 
-export function DashboardModalLayer({ model }: { model: DashboardModel }) {
-  const { activeModal, setActiveModal, calendars, snapshot, eventDraftDate, selectedEvent } = model;
+export function DashboardModalLayer(props: DashboardModalLayerProps) {
+  const { activeModal, setActiveModal, calendars, snapshot, eventDraftDate, selectedEvent } = props;
   return (
     <div
       className={`modal-overlay ${activeModal ? 'visible' : 'hidden'}`}

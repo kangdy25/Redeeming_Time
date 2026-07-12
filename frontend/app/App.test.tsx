@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { PlannerScreen } from './App';
 import { renderWithProviders } from '../test.utils';
@@ -44,7 +44,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         updated_at: '',
       };
       mockDb.tasks.push(newTask);
-      usePlannerStore.getState().syncPlanner({ tasks: mockDb.tasks });
+      act(() => usePlannerStore.getState().syncPlanner({ tasks: mockDb.tasks }));
 
       await waitFor(() => {
         expect(screen.getByText('New Task')).toBeInTheDocument();
@@ -435,7 +435,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
     });
 
     test('TC-T2-F8-02: Midnight Boundary Transition', async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
+      vi.useFakeTimers({ toFake: ['Date'] });
       try {
         // 1. Set the initial system time to late July 4th, 2026
         vi.setSystemTime(new Date('2026-07-04T23:59:00Z'));
@@ -457,22 +457,26 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         ];
 
         // 3. Render the screen and verify the task is NOT marked as overdue
-        const { rerender } = renderWithProviders(<PlannerScreen />);
+        const { rerender, unmount, queryClient } = renderWithProviders(<PlannerScreen />);
         await waitFor(() => {
           expect(screen.queryByText('↷')).toBeNull();
           expect(screen.queryByText(/rollover ready/)).toBeNull();
         });
 
         // 4. Advance system time past midnight to July 5th
-        vi.setSystemTime(new Date('2026-07-05T00:01:00Z'));
-
-        // 5. Re-render the screen to pick up the updated system clock
-        rerender(<PlannerScreen />);
+        act(() => {
+          vi.setSystemTime(new Date('2026-07-05T00:01:00Z'));
+          rerender(<PlannerScreen />);
+        });
 
         // 6. Verify that it now displays the overdue/rollover indicators
         await waitFor(() => {
           expect(screen.getByText('↷')).toBeInTheDocument();
           expect(screen.getByText(/rollover ready/)).toBeInTheDocument();
+        });
+        act(() => {
+          unmount();
+          queryClient.clear();
         });
       } finally {
         vi.useRealTimers();
@@ -774,7 +778,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
         expect(screen.getByText('Today’s Planner')).toBeInTheDocument();
       });
       // User B switches account or tokens
-      useAuthStore.getState().setTokens({ access: 'user-b-acc', refresh: 'user-b-ref' });
+      act(() => useAuthStore.getState().setTokens({ access: 'user-b-acc', refresh: 'user-b-ref' }));
       expect(useAuthStore.getState().accessToken).toBe('user-b-acc');
     });
 
@@ -831,18 +835,18 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       expect(screen.queryByText('Team Sync')).toBeNull();
 
       // 2. Trigger a real event creation on the API client
-      await apiClient.createEvent({
-        calendar: 1,
-        title: 'Team Sync',
-        description: 'Weekly team meeting',
-        start_time: '2026-07-04T09:00:00Z',
-        end_time: '2026-07-04T10:00:00Z',
-        is_all_day: false,
-        rrule: '',
+      await act(async () => {
+        await apiClient.createEvent({
+          calendar: 1,
+          title: 'Team Sync',
+          description: 'Weekly team meeting',
+          start_time: '2026-07-04T09:00:00Z',
+          end_time: '2026-07-04T10:00:00Z',
+          is_all_day: false,
+          rrule: '',
+        });
+        await queryClient.invalidateQueries({ queryKey: ['planner-snapshot'] });
       });
-
-      // 3. Invalidate query to trigger refetch and update Zustand store
-      await queryClient.invalidateQueries({ queryKey: ['planner-snapshot'] });
 
       // 4. Verify the newly created event is rendered in the UI
       await waitFor(() => {
@@ -966,12 +970,13 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
     });
 
     test('TC-T3-09: Authentication + Web & Mobile Header Status Sync', async () => {
-      renderWithProviders(<PlannerScreen />);
+      const { unmount } = renderWithProviders(<PlannerScreen />);
       await waitFor(() => {
         expect(screen.getByText(/Synced/)).toBeInTheDocument();
       });
 
-      useAuthStore.getState().clearTokens();
+      unmount();
+      act(() => useAuthStore.getState().clearTokens());
       // Snapshot query now fails/disabled, app state shifts to offline/unauthorized
       renderWithProviders(<PlannerScreen />);
       await waitFor(() => {
@@ -1047,7 +1052,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       // Advance clock past midnight. Let's do this by updating target date check against tomorrow '2026-07-05'
       // We will reload screen with overdue state
       mockDb.tasks[0].target_date = '2026-07-03';
-      usePlannerStore.getState().syncPlanner({ tasks: mockDb.tasks });
+      act(() => usePlannerStore.getState().syncPlanner({ tasks: mockDb.tasks }));
 
       await waitFor(() => {
         expect(screen.getByText('↷')).toBeInTheDocument();
@@ -1133,7 +1138,7 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       });
 
       // The task board is shared, so switching workspaces keeps its tasks visible.
-      usePlannerStore.getState().setActiveCalendarId(2);
+      act(() => usePlannerStore.getState().setActiveCalendarId(2));
 
       await waitFor(() => {
         expect(screen.getByText('Busy Task')).toBeInTheDocument();

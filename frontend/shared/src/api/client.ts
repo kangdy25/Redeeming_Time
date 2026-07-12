@@ -45,7 +45,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const detail = await response.text();
-    let message = detail || `Request failed with ${response.status}`;
+    let message: string;
     try {
       const parsed = JSON.parse(detail) as { detail?: string; [key: string]: unknown };
       message = parsed.detail ?? JSON.stringify(parsed);
