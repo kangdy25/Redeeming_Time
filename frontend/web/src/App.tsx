@@ -18,6 +18,8 @@ import {
 } from '@redeeming-time/shared';
 import IdeaInbox from './IdeaInbox';
 import { AuthPanel as AuthPanelComponent } from './components/AuthPanel';
+import { ProfilePanel as ProfilePanelComponent } from './components/ProfilePanel';
+import { WorkspaceCreateForm } from './components/WorkspaceCreateForm';
 import {
   MonthGrid as CalendarMonthGrid,
   WeekRail as CalendarWeekRail,
@@ -47,148 +49,6 @@ function initialDashboardAnchor() {
     }
   }
   return new Date();
-}
-
-function AuthPanel() {
-  const setTokens = useAuthStore((state) => state.setTokens);
-  const clearTokens = useAuthStore((state) => state.clearTokens);
-  const isAuthenticated = useAuthStore((state) => !!state.accessToken);
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [message, setMessage] = useState('');
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setMessage('');
-    try {
-      if (mode === 'register') {
-        await apiClient.register({ email, password, nickname });
-      }
-      const tokens = await apiClient.token(email, password);
-      setTokens(tokens);
-      setMessage('Authenticated. Planner data is now synced with the API.');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Authentication failed.');
-    }
-  }
-
-  function socialLogin(provider: 'Google' | 'Kakao') {
-    setMessage(`${provider} 로그인 연동을 준비 중입니다.`);
-  }
-
-  return (
-    <section className="auth-panel">
-      <div className="auth-panel-heading">
-        <span className="auth-welcome-icon">✦</span>
-        <p className="eyebrow">{mode === 'login' ? 'Welcome back' : 'Start planning'}</p>
-        <h2>
-          {mode === 'login' ? '다시 만나서 반가워요' : '새로운 시간을 시작하세요'}
-          <span className="sr-only">{mode === 'login' ? 'Sign In' : 'Sign Up'}</span>
-        </h2>
-      </div>
-      {isAuthenticated ? null : (
-        <form className="auth-form" onSubmit={submit}>
-          <div className="auth-segmented segmented">
-            <button
-              type="button"
-              className={mode === 'login' ? 'active' : ''}
-              onClick={() => setMode('login')}
-            >
-              로그인
-              <span className="sr-only">Login</span>
-            </button>
-            <button
-              type="button"
-              className={mode === 'register' ? 'active' : ''}
-              onClick={() => setMode('register')}
-            >
-              회원가입
-              <span className="sr-only">Register</span>
-            </button>
-          </div>
-          <div className="social-login-grid">
-            <button
-              type="button"
-              className="social-login-button google"
-              onClick={() => socialLogin('Google')}
-            >
-              <span aria-hidden="true">G</span>
-              Google로 계속
-            </button>
-            <button
-              type="button"
-              className="social-login-button kakao"
-              onClick={() => socialLogin('Kakao')}
-            >
-              <span aria-hidden="true">K</span>
-              Kakao로 계속
-            </button>
-          </div>
-          <div className="auth-divider">
-            <span>또는 이메일로 계속</span>
-          </div>
-          <label className="auth-field">
-            <span>이메일</span>
-            <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder={
-                typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-                  ? 'Email'
-                  : 'name@example.com'
-              }
-              type="email"
-              required
-            />
-          </label>
-          {mode === 'register' && (
-            <label className="auth-field">
-              <span>닉네임</span>
-              <input
-                value={nickname}
-                onChange={(event) => setNickname(event.target.value)}
-                placeholder={
-                  typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-                    ? 'Nickname'
-                    : '어떻게 불러드릴까요?'
-                }
-                required
-              />
-            </label>
-          )}
-          <label className="auth-field">
-            <span>비밀번호</span>
-            <input
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={
-                typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-                  ? 'Password'
-                  : '비밀번호를 입력하세요'
-              }
-              type="password"
-              required
-            />
-          </label>
-          {mode === 'register' && (
-            <p className="auth-terms">
-              계정을 만들면 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.
-            </p>
-          )}
-          <button
-            className="primary-button auth-submit-button"
-            type="submit"
-            aria-label={mode === 'login' ? 'Connect' : 'Create & Connect'}
-          >
-            {mode === 'login' ? '로그인' : '무료로 시작하기'}
-          </button>
-        </form>
-      )}
-      {message && <p className="form-message">{message}</p>}
-    </section>
-  );
 }
 
 function PlannerModals({
@@ -400,42 +260,14 @@ function PlannerModals({
               <strong>{isLoading ? '불러오는 중' : isDbEmpty ? '캘린더 필요' : '준비됨'}</strong>
             </div>
           </div>
-          <form className="event-form" onSubmit={addWorkspace}>
-            <div className="event-form-grid">
-              <div className="field-stack field-span-2">
-                <label htmlFor="workspace-title-input">새 워크스페이스</label>
-                <input
-                  id="workspace-title-input"
-                  aria-label="Workspace name"
-                  value={workspaceTitle}
-                  onChange={(event) => setWorkspaceTitle(event.target.value)}
-                  placeholder="예: 업무"
-                  maxLength={120}
-                  required
-                />
-              </div>
-              <div className="field-stack field-span-2">
-                <label htmlFor="workspace-description-input">설명 (선택)</label>
-                <textarea
-                  id="workspace-description-input"
-                  aria-label="Workspace description"
-                  value={workspaceDescription}
-                  onChange={(event) => setWorkspaceDescription(event.target.value)}
-                  rows={2}
-                />
-              </div>
-            </div>
-            <div className="modal-action-row">
-              <button
-                type="submit"
-                aria-label="Create Workspace"
-                className="primary-button"
-                disabled={createCalendar.isPending}
-              >
-                {createCalendar.isPending ? '생성 중...' : '워크스페이스 만들기'}
-              </button>
-            </div>
-          </form>
+          <WorkspaceCreateForm
+            title={workspaceTitle}
+            description={workspaceDescription}
+            isSubmitting={createCalendar.isPending}
+            onTitleChange={setWorkspaceTitle}
+            onDescriptionChange={setWorkspaceDescription}
+            onSubmit={addWorkspace}
+          />
         </div>
 
         <div className={modalKind === 'event' ? 'tab-content active' : 'tab-content hidden-tab'}>
@@ -1672,7 +1504,7 @@ function DashboardPage() {
             className={`center-panel mobile-panel-calendar ${activeSection === 'profile' ? 'profile-main-panel' : ''} ${mobilePanel === 'calendar' ? 'mobile-panel-active' : ''}`}
           >
             {activeSection === 'profile' ? (
-              <ProfilePanel />
+              <ProfilePanelComponent />
             ) : activeSection === 'tasks' ? (
               <TaskBoard
                 tasks={tasks}
@@ -1831,162 +1663,6 @@ function DashboardPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function ProfilePanel() {
-  const [user, setUser] = useState<Awaited<ReturnType<typeof apiClient.currentUser>> | null>(null);
-  const [nickname, setNickname] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const calendars = usePlannerStore((state) => state.calendars);
-  const events = usePlannerStore((state) => state.events);
-  const tasks = usePlannerStore((state) => state.tasks);
-  const createCalendar = useCreateCalendar();
-  const [workspaceTitle, setWorkspaceTitle] = useState('');
-  useEffect(() => {
-    void apiClient
-      .currentUser()
-      .then((currentUser) => {
-        setUser(currentUser);
-        setNickname(currentUser?.nickname ?? '');
-        setImageUrl(currentUser?.profile_image_url ?? '');
-      })
-      .catch(() => {});
-  }, []);
-  async function saveProfile(event: FormEvent) {
-    event.preventDefault();
-    if (!user) return;
-    const updatedUser = await apiClient.updateUser(user.id, {
-      nickname: nickname.trim(),
-      profile_image_url: imageUrl.trim(),
-    });
-    setUser(updatedUser);
-  }
-  async function deleteAccount() {
-    if (!user || !window.confirm('계정과 모든 데이터가 삭제됩니다. 정말 탈퇴할까요?')) return;
-    await apiClient.deleteUser(user.id);
-    useAuthStore.getState().clearTokens();
-  }
-  async function createWorkspace(event: FormEvent) {
-    event.preventDefault();
-    const title = workspaceTitle.trim();
-    if (!title) return;
-    await createCalendar.mutateAsync({
-      title,
-      description: '',
-      theme_color: '#2F80ED',
-    });
-    setWorkspaceTitle('');
-  }
-  async function deleteWorkspace(calendar: Calendar) {
-    if (!window.confirm(`"${calendar.title}" 워크스페이스를 삭제할까요?`)) return;
-    await apiClient.deleteCalendar(calendar.id);
-  }
-  return (
-    <section className="profile-page dashboard-profile-page">
-      <section className="profile-card">
-        <div className="profile-hero">
-          <div className="profile-page-avatar">
-            {imageUrl ? (
-              <img src={imageUrl} alt="프로필" />
-            ) : (
-              (nickname || user?.email || '?').slice(0, 1).toUpperCase()
-            )}
-          </div>
-          <div>
-            <p className="eyebrow">My page</p>
-            <h1>{nickname || '내 프로필'}</h1>
-            <p>{user?.email}</p>
-          </div>
-        </div>
-        <div className="profile-settings-layout">
-          <section className="profile-settings-column">
-            <h2>프로필 설정</h2>
-            <form onSubmit={saveProfile} className="profile-form">
-              <label>
-                이메일
-                <input value={user?.email ?? ''} disabled />
-              </label>
-              <label>
-                이름
-                <input
-                  value={nickname}
-                  onChange={(event) => setNickname(event.target.value)}
-                  required
-                />
-              </label>
-              <label>
-                프로필 사진 URL <span>(선택)</span>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(event) => setImageUrl(event.target.value)}
-                  placeholder="https://example.com/profile.png"
-                />
-              </label>
-              <button className="primary-button" type="submit">
-                프로필 저장
-              </button>
-            </form>
-          </section>
-          <section className="profile-settings-column">
-            <h2>워크스페이스 설정</h2>
-            <div className="profile-stats">
-              <div>
-                <strong>{calendars.length}</strong>
-                <span>워크스페이스</span>
-              </div>
-              <div>
-                <strong>{events.length}</strong>
-                <span>일정</span>
-              </div>
-              <div>
-                <strong>{tasks.length}</strong>
-                <span>할 일</span>
-              </div>
-            </div>
-            <div className="workspace-settings-list">
-              {calendars.map((calendar) => (
-                <span key={calendar.id}>
-                  {calendar.title}
-                  {!calendar.is_global && (
-                    <button
-                      type="button"
-                      onClick={() => void deleteWorkspace(calendar)}
-                      aria-label={`${calendar.title} 삭제`}
-                    >
-                      ×
-                    </button>
-                  )}
-                </span>
-              ))}
-            </div>
-            <form onSubmit={createWorkspace} className="workspace-create-form">
-              <input
-                value={workspaceTitle}
-                onChange={(event) => setWorkspaceTitle(event.target.value)}
-                placeholder="새 워크스페이스 이름"
-                maxLength={120}
-              />
-              <button type="submit" className="primary-button" disabled={createCalendar.isPending}>
-                추가
-              </button>
-            </form>
-          </section>
-        </div>
-        <footer className="profile-footer">
-          <a href="#terms">이용약관</a>
-          <span>|</span>
-          <a href="#privacy">개인정보 처리방침</a>
-          <span>|</span>
-          <a href="mailto:support@redeemingtime.app">고객센터</a>
-          <span>|</span>
-          <button type="button" onClick={deleteAccount}>
-            회원 탈퇴
-          </button>
-        </footer>
-      </section>
-    </section>
   );
 }
 
