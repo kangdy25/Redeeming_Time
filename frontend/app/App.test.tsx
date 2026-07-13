@@ -559,9 +559,11 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
 
       // 2. Mock timezone to Asia/Tokyo (UTC+9) -> event should render on July 4th
       const originalDateTimeFormat = Intl.DateTimeFormat;
-      const tokyoSpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        return new originalDateTimeFormat('en-US', { ...options, timeZone: 'Asia/Tokyo' });
-      });
+      const tokyoSpy = vi
+        .spyOn(Intl, 'DateTimeFormat')
+        .mockImplementation(function DateTimeFormat(_locale, options) {
+          return new originalDateTimeFormat('en-US', { ...options, timeZone: 'Asia/Tokyo' });
+        });
 
       const { rerender } = renderWithProviders(<PlannerScreen />);
       await waitFor(() => {
@@ -571,9 +573,14 @@ describe('Mobile App Core Features, Cross-Feature and Real-World Scenarios (F7-F
       tokyoSpy.mockRestore();
 
       // 3. Mock timezone to America/New_York (UTC-4) -> event should render on July 3rd
-      const nySpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((locale, options) => {
-        return new originalDateTimeFormat('en-US', { ...options, timeZone: 'America/New_York' });
-      });
+      const nySpy = vi
+        .spyOn(Intl, 'DateTimeFormat')
+        .mockImplementation(function DateTimeFormat(_locale, options) {
+          return new originalDateTimeFormat('en-US', {
+            ...options,
+            timeZone: 'America/New_York',
+          });
+        });
 
       rerender(<PlannerScreen />);
       await waitFor(() => {
