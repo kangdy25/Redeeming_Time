@@ -1,6 +1,6 @@
 import { type FormEvent } from 'react';
 
-interface WorkspaceCreateFormProps {
+export interface WorkspaceCreateFormProps {
   title: string;
   description: string;
   isSubmitting: boolean;

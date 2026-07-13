@@ -1,5 +1,4 @@
 import { type FormEvent, useState } from 'react';
-
 import { apiClient, useAuthStore } from '@redeeming-time/shared';
 
 export function AuthPanel() {

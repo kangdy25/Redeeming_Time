@@ -1,7 +1,7 @@
 import { type Calendar, type Event } from '@redeeming-time/shared';
-import { usePlannerModalModel } from '../hooks/usePlannerModalModel';
-import { EventEditorForm } from './planner/EventEditorForm';
-import { WorkspaceSettingsPane } from './planner/WorkspaceSettingsPane';
+import { usePlannerModalModel } from '../../hooks/usePlannerModalModel';
+import { EventEditorForm } from './EventEditorForm';
+import { WorkspaceSettingsPane } from './WorkspaceSettingsPane';
 
 export type PlannerModalKind = 'settings' | 'event';
 

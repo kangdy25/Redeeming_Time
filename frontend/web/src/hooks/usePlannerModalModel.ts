@@ -1,5 +1,5 @@
 import { type Calendar, type Event } from '@redeeming-time/shared';
-import { type PlannerModalKind } from '../components/PlannerModals';
+import { type PlannerModalKind } from '../components/planner/PlannerModals';
 import { useEventEditor } from './planner/useEventEditor';
 import { useWorkspaceCreator } from './planner/useWorkspaceCreator';
 

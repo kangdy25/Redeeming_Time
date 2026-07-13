@@ -1,5 +1,5 @@
 import { useAuthStore } from '@redeeming-time/shared';
-import { type DashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../../hooks/useDashboardModel';
 
 type DashboardHeaderProps = Pick<DashboardModel, 'shell' | 'workspace'>;
 

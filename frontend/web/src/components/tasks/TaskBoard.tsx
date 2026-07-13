@@ -1,9 +1,9 @@
 import { type Category, type Task, type TaskPriority } from '@redeeming-time/shared';
-import { taskBoardDateLabel, taskBoardTitleLabel, taskPriorities } from '../utils/taskBoard';
-import { useTaskBoardModel } from '../hooks/useTaskBoardModel';
-import { TaskBoardHeader } from './tasks/TaskBoardHeader';
-import { TaskMiniCalendar } from './tasks/TaskMiniCalendar';
-import { TaskCategoryList } from './tasks/TaskCategoryList';
+import { taskBoardDateLabel, taskBoardTitleLabel, taskPriorities } from '../../utils/taskBoard';
+import { useTaskBoardModel } from '../../hooks/useTaskBoardModel';
+import { TaskBoardHeader } from './TaskBoardHeader';
+import { TaskMiniCalendar } from './TaskMiniCalendar';
+import { TaskCategoryList } from './TaskCategoryList';
 
 export function TaskBoard({
   tasks,

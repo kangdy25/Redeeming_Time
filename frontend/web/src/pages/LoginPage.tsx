@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@redeeming-time/shared';
-import { AuthPanel } from '../components/AuthPanel';
+import { AuthPanel } from '../components/auth/AuthPanel';
 
 export function LoginPage() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);

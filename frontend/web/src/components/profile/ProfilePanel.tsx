@@ -4,8 +4,8 @@ import {
   useAuthStore,
   useCreateCalendar,
   useDeleteCalendar,
-  usePlannerStore,
   type Calendar,
+  usePlannerStore,
 } from '@redeeming-time/shared';
 
 export function ProfilePanel() {

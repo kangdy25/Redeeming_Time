@@ -1,4 +1,4 @@
-import { type DashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../../hooks/useDashboardModel';
 import { MonthGrid, WeekRail } from './CalendarViews';
 
 type CalendarPanelProps = Pick<DashboardModel, 'calendar' | 'workspace'>;

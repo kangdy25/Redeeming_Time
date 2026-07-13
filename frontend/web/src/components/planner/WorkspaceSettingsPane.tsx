@@ -1,6 +1,6 @@
 import { type Calendar } from '@redeeming-time/shared';
 import { type PlannerModalModel } from '../../hooks/usePlannerModalModel';
-import { WorkspaceCreateForm } from '../WorkspaceCreateForm';
+import { WorkspaceCreateForm } from './WorkspaceCreateForm';
 
 type Props = {
   calendars: Calendar[];

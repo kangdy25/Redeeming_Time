@@ -1,13 +1,13 @@
 import { Navigate } from 'react-router-dom';
-import IdeaInbox from '../IdeaInbox';
-import { ProfilePanel as ProfilePanelComponent } from '../components/ProfilePanel';
-import { TaskBoard } from '../components/TaskBoard';
+import IdeaInbox from '../components/ideas/IdeaInbox';
+import { ProfilePanel as ProfilePanelComponent } from '../components/profile/ProfilePanel';
+import { TaskBoard } from '../components/tasks/TaskBoard';
 import { useDashboardModel } from '../hooks/useDashboardModel';
-import { DashboardHeader } from '../components/DashboardHeader';
-import { DashboardSidebar } from '../components/DashboardSidebar';
-import { CalendarPanel } from '../components/CalendarPanel';
-import { DashboardMobileNav } from '../components/DashboardMobileNav';
-import { DashboardModalLayer } from '../components/DashboardModalLayer';
+import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
+import { CalendarPanel } from '../components/calendar/CalendarPanel';
+import { DashboardMobileNav } from '../components/dashboard/DashboardMobileNav';
+import { DashboardModalLayer } from '../components/dashboard/DashboardModalLayer';
 
 export function DashboardPage() {
   const model = useDashboardModel();

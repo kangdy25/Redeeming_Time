@@ -1,5 +1,5 @@
-import { type DashboardModel } from '../hooks/useDashboardModel';
-import { PlannerModals } from './PlannerModals';
+import { type DashboardModel } from '../../hooks/useDashboardModel';
+import { PlannerModals } from '../planner/PlannerModals';
 
 type DashboardModalLayerProps = Pick<DashboardModel, 'shell' | 'calendar' | 'workspace'>;
 

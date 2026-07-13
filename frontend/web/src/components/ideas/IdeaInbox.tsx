@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-type IdeaNote = {
+export type IdeaNote = {
   id: string;
   title: string;
   content: string;

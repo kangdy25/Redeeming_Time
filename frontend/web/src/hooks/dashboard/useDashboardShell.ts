@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiClient, useAuthStore } from '@redeeming-time/shared';
-import { type PlannerModalKind } from '../../components/PlannerModals';
+import { type PlannerModalKind } from '../../components/planner/PlannerModals';
 import { isoDate } from '../../utils/planner';
 
 export type DashboardSection = 'calendar' | 'tasks' | 'inbox' | 'profile';

@@ -1,4 +1,4 @@
-import { type DashboardModel } from '../hooks/useDashboardModel';
+import { type DashboardModel } from '../../hooks/useDashboardModel';
 
 type DashboardSidebarProps = Pick<DashboardModel, 'shell' | 'workspace'>;
 
