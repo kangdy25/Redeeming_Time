@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import {
+  getErrorMessage,
   useDeleteCategory,
   useDeleteTask,
   useEditTask,
@@ -42,7 +43,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
       });
       setCategory(null);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '카테고리 수정에 실패했습니다.');
+      setMessage(getErrorMessage(error, '카테고리 수정에 실패했습니다.'));
     } finally {
       setIsSaving(false);
     }
@@ -60,7 +61,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
       if (selectedCategory === String(target.id)) setSelectedCategory('');
       setCategory(null);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '카테고리 삭제에 실패했습니다.');
+      setMessage(getErrorMessage(error, '카테고리 삭제에 실패했습니다.'));
     }
   }
 
@@ -79,7 +80,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
       });
       setTask(null);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '할일 수정에 실패했습니다.');
+      setMessage(getErrorMessage(error, '할일 수정에 실패했습니다.'));
     } finally {
       setIsSaving(false);
     }
@@ -91,7 +92,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
       await deleteTask.mutateAsync(target.id);
       setTask(null);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '할일 삭제에 실패했습니다.');
+      setMessage(getErrorMessage(error, '할일 삭제에 실패했습니다.'));
     }
   }
 

@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react';
-import { apiClient, useAuthStore } from '@redeeming-time/shared';
+import { apiClient, getErrorMessage, useAuthStore } from '@redeeming-time/shared';
 
 export function AuthPanel() {
   const setTokens = useAuthStore((state) => state.setTokens);
@@ -19,7 +19,7 @@ export function AuthPanel() {
       setTokens(await apiClient.token(email, password));
       setMessage('Authenticated. Planner data is now synced with the API.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Authentication failed.');
+      setMessage(getErrorMessage(error, '로그인에 실패했습니다.'));
     }
   }
 

@@ -1,5 +1,10 @@
 import { type FormEvent, useState } from 'react';
-import { useCreateCalendar, usePlannerStore, type Calendar } from '@redeeming-time/shared';
+import {
+  getErrorMessage,
+  useCreateCalendar,
+  usePlannerStore,
+  type Calendar,
+} from '@redeeming-time/shared';
 
 export function useWorkspaceCreator(
   calendars: Calendar[],
@@ -37,7 +42,7 @@ export function useWorkspaceCreator(
       setDescription('');
       onClose();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '워크스페이스 생성에 실패했습니다.');
+      setMessage(getErrorMessage(error, '워크스페이스 생성에 실패했습니다.'));
     }
   }
 

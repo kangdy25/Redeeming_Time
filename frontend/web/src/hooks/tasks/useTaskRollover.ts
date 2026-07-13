@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useRolloverTasks, type Task } from '@redeeming-time/shared';
+import { getErrorMessage, useRolloverTasks, type Task } from '@redeeming-time/shared';
 
 export function useTaskRollover(overdueTasks: Task[], today: string, onComplete: () => void) {
   const mutation = useRolloverTasks();
@@ -14,7 +14,7 @@ export function useTaskRollover(overdueTasks: Task[], today: string, onComplete:
       await mutation.mutateAsync({ tasks: overdueTasks, targetDate: today });
       onComplete();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '이월 처리에 실패했습니다.');
+      setMessage(getErrorMessage(error, '이월 처리에 실패했습니다.'));
     } finally {
       setIsPending(false);
     }

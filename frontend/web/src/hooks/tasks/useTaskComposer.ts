@@ -1,5 +1,10 @@
 import { type FormEvent, useState } from 'react';
-import { useCreateCategory, useCreateTask, type TaskPriority } from '@redeeming-time/shared';
+import {
+  getErrorMessage,
+  useCreateCategory,
+  useCreateTask,
+  type TaskPriority,
+} from '@redeeming-time/shared';
 
 type Input = {
   calendarId: number;
@@ -34,7 +39,7 @@ export function useTaskComposer({ calendarId, selectedDate, selectedTaskCount }:
       });
       setTitle('');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '할일 추가에 실패했습니다.');
+      setMessage(getErrorMessage(error, '할일 추가에 실패했습니다.'));
     }
   }
 
@@ -53,7 +58,7 @@ export function useTaskComposer({ calendarId, selectedDate, selectedTaskCount }:
       setCategory(String(created.id));
       setCategoryName('');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '카테고리 추가에 실패했습니다.');
+      setMessage(getErrorMessage(error, '카테고리 추가에 실패했습니다.'));
     }
   }
 

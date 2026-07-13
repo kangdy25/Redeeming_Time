@@ -6,12 +6,17 @@ db.sqlite3
 venv/
 .venv/
 .uv-cache/
+backend/.coverage
+backend/htmlcov/
 
 # Node / React / RN
 node_modules/
 .expo/
 dist/
 .eslintcache
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
 
 # OS
 .DS_Store

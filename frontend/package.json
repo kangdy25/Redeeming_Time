@@ -13,15 +13,19 @@
     "typecheck:app": "npm --workspace @redeeming-time/app run typecheck",
     "typecheck:shared": "npm --workspace @redeeming-time/shared run typecheck",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings=0",
-    "format": "prettier --write \"{web,app,shared}/**/*.{ts,tsx,js,json,css,md}\"",
-    "format:check": "prettier --check \"{web,app,shared}/**/*.{ts,tsx,js,json,css,md}\""
+    "format": "prettier --write \"{web,app,shared,e2e}/**/*.{ts,tsx,js,json,css,md}\" \"*.{ts,json}\"",
+    "format:check": "prettier --check \"{web,app,shared,e2e}/**/*.{ts,tsx,js,json,css,md}\" \"*.{ts,json}\""
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.7.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^25.0.1",

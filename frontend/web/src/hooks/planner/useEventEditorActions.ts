@@ -1,5 +1,6 @@
 import { type FormEvent } from 'react';
 import {
+  getErrorMessage,
   useCreateEvent,
   useDeleteEvent,
   useUpdateEvent,
@@ -49,11 +50,10 @@ export function useEventEditorActions({
       onClose();
     } catch (error) {
       form.setMessage(
-        error instanceof Error
-          ? error.message
-          : form.editing
-            ? '일정 수정에 실패했습니다.'
-            : '일정 추가에 실패했습니다.',
+        getErrorMessage(
+          error,
+          form.editing ? '일정 수정에 실패했습니다.' : '일정 추가에 실패했습니다.',
+        ),
       );
     }
   }
@@ -69,7 +69,7 @@ export function useEventEditorActions({
       await deleteMutation.mutateAsync(selectedEvent.id);
       onClose();
     } catch (error) {
-      form.setMessage(error instanceof Error ? error.message : '일정 삭제에 실패했습니다.');
+      form.setMessage(getErrorMessage(error, '일정 삭제에 실패했습니다.'));
     }
   }
 

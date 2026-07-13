@@ -1,4 +1,4 @@
-/* Task Sidebar (Rollover Director) - Compact Width */
+/* Task sidebar rollover panel - compact width */
 .task-sidebar {
   width: 260px; /* Reduced width from 330px */
   background-color: var(--color-bg-card);

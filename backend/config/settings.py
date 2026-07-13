@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'accounts',
     'planner',
-    'agent_harness',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,7 +60,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'agent_harness.middleware.AgentRequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -148,18 +146,18 @@ CORS_ALLOWED_ORIGINS = env.list(
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'agent_harness.authentication.AgentScopedJWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'config.exceptions.api_exception_handler',
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
-    'AUTH_HEADER_TYPES': ('Bearer', 'Agent'),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 SPECTACULAR_SETTINGS = {

@@ -33,26 +33,79 @@ function inferApiBaseUrl() {
 
 export const API_BASE_URL = inferApiBaseUrl();
 
+export type ApiErrorFields = Record<string, unknown> | null;
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code: string,
+    readonly fields: ApiErrorFields = null,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+type ApiErrorResponse = {
+  error?: { code?: string; message?: string; fields?: ApiErrorFields };
+  detail?: string;
+  [key: string]: unknown;
+};
+
+function firstLegacyError(payload: ApiErrorResponse): string | undefined {
+  if (payload.detail) return payload.detail;
+  for (const value of Object.values(payload)) {
+    if (Array.isArray(value) && value.length > 0) return String(value[0]);
+    if (typeof value === 'string') return value;
+  }
+  return undefined;
+}
+
+export function getErrorMessage(error: unknown, fallback = '요청을 처리하지 못했습니다.') {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...useAuthStore.getState().authorizationHeader(),
-      ...init.headers,
-    },
-  });
+  const authorization = useAuthStore.getState().authorizationHeader();
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authorization,
+        ...init.headers,
+      },
+    });
+  } catch {
+    throw new ApiError(
+      '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+      0,
+      'NETWORK_ERROR',
+    );
+  }
 
   if (!response.ok) {
-    const detail = await response.text();
-    let message: string;
+    const body = await response.text();
+    let payload: ApiErrorResponse = {};
     try {
-      const parsed = JSON.parse(detail) as { detail?: string; [key: string]: unknown };
-      message = parsed.detail ?? JSON.stringify(parsed);
+      payload = JSON.parse(body) as ApiErrorResponse;
     } catch {
-      message = detail || `Request failed with ${response.status}`;
+      // Non-JSON errors can be returned by proxies before a request reaches the API.
     }
-    throw new Error(message);
+    if (response.status === 401 && authorization.Authorization) {
+      useAuthStore.getState().clearTokens();
+    }
+    throw new ApiError(
+      payload.error?.message ??
+        firstLegacyError(payload) ??
+        body ??
+        `요청을 처리하지 못했습니다. (${response.status})`,
+      response.status,
+      payload.error?.code ?? `HTTP_${response.status}`,
+      payload.error?.fields ?? null,
+    );
   }
 
   if (response.status === 204) {

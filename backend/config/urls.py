@@ -21,7 +21,6 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.views import UserViewSet
-from agent_harness.views import AgentSkillViewSet
 from planner.views import CalendarMemberViewSet, CalendarViewSet, CategoryViewSet, EventAttendeeViewSet, EventViewSet, TaskViewSet
 
 router = DefaultRouter()
@@ -32,7 +31,6 @@ router.register('categories', CategoryViewSet, basename='category')
 router.register('events', EventViewSet, basename='event')
 router.register('event-attendees', EventAttendeeViewSet, basename='event-attendee')
 router.register('tasks', TaskViewSet, basename='task')
-router.register('agent/skills', AgentSkillViewSet, basename='agent-skill')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,3 +40,5 @@ urlpatterns = [
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+
+handler500 = 'config.exceptions.server_error'
