@@ -22,6 +22,18 @@ class CalendarMemberSerializer(serializers.ModelSerializer):
         fields = ['id', 'calendar', 'user', 'user_detail', 'role', 'joined_at']
         read_only_fields = ['id', 'joined_at']
 
+    def validate(self, attrs):
+        if self.instance:
+            immutable_fields = ('calendar', 'user')
+            errors = {
+                field: 'This field cannot be changed after a membership is created.'
+                for field in immutable_fields
+                if field in attrs and getattr(self.instance, f'{field}_id') != attrs[field].id
+            }
+            if errors:
+                raise serializers.ValidationError(errors)
+        return attrs
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,8 +42,11 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
     def validate(self, attrs):
+        if self.instance and 'calendar' in attrs and attrs['calendar'].id != self.instance.calendar_id:
+            raise serializers.ValidationError(
+                {'calendar': 'Move a category with an explicit migration workflow instead.'},
+            )
         return attrs
-
 
 class EventSerializer(serializers.ModelSerializer):
     congestion_warning = serializers.SerializerMethodField()
@@ -65,6 +80,10 @@ class EventSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'end_time': 'Event end_time must be after start_time.'})
         if calendar and calendar.is_global:
             raise serializers.ValidationError({'calendar': 'Events cannot be created in the global calendar.'})
+        if instance and 'calendar' in attrs and attrs['calendar'].id != instance.calendar_id:
+            raise serializers.ValidationError(
+                {'calendar': 'Move an event with an explicit migration workflow instead.'},
+            )
 
         return attrs
 
@@ -82,10 +101,19 @@ class EventAttendeeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def validate(self, attrs):
-        event = attrs.get('event') or getattr(self.instance, 'event', None)
-        user = attrs.get('user') or getattr(self.instance, 'user', None)
+        event = attrs['event'] if 'event' in attrs else getattr(self.instance, 'event', None)
+        user = attrs['user'] if 'user' in attrs else getattr(self.instance, 'user', None)
         if event and user and not CalendarMember.objects.filter(calendar=event.calendar, user=user).exists():
             raise serializers.ValidationError({'user': 'Attendee must be a member of the event calendar.'})
+        if self.instance:
+            immutable_fields = ('event', 'user')
+            errors = {
+                field: 'This field cannot be changed after an attendee is created.'
+                for field in immutable_fields
+                if field in attrs and getattr(self.instance, f'{field}_id') != attrs[field].id
+            }
+            if errors:
+                raise serializers.ValidationError(errors)
         return attrs
 
 
@@ -112,10 +140,14 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
-        calendar = attrs.get('calendar') or getattr(instance, 'calendar', None)
-        category = attrs.get('category') or getattr(instance, 'category', None)
+        calendar = attrs['calendar'] if 'calendar' in attrs else getattr(instance, 'calendar', None)
+        category = attrs['category'] if 'category' in attrs else getattr(instance, 'category', None)
 
         if category and calendar and category.calendar_id != calendar.id:
             raise serializers.ValidationError({'category': 'Category must belong to the selected calendar.'})
+        if instance and 'calendar' in attrs and attrs['calendar'].id != instance.calendar_id:
+            raise serializers.ValidationError(
+                {'calendar': 'Move a task with an explicit migration workflow instead.'},
+            )
 
         return attrs

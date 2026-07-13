@@ -8,6 +8,8 @@ venv/
 .uv-cache/
 backend/.coverage
 backend/htmlcov/
+backend/staticfiles/*
+!backend/staticfiles/.gitkeep
 
 # Node / React / RN
 node_modules/

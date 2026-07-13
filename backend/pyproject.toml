@@ -10,7 +10,10 @@ dependencies = [
   "drf-spectacular==0.28.0",
   "djangorestframework==3.17.1",
   "djangorestframework-simplejwt==5.5.1",
+  "gunicorn>=23.0,<24.0",
   "psycopg2-binary==2.9.12",
+  "redis>=5.2,<7.0",
+  "whitenoise[brotli]>=6.8,<7.0",
 ]
 
 [tool.uv]

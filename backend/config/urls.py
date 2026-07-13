@@ -18,9 +18,15 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from accounts.views import UserViewSet
+from accounts.views import (
+    LoginView,
+    LogoutView,
+    PasswordChangeView,
+    TokenRefreshWithThrottleView,
+    UserViewSet,
+)
+from config.views import healthz
 from planner.views import CalendarMemberViewSet, CalendarViewSet, CategoryViewSet, EventAttendeeViewSet, EventViewSet, TaskViewSet
 
 router = DefaultRouter()
@@ -33,12 +39,15 @@ router.register('event-attendees', EventAttendeeViewSet, basename='event-attende
 router.register('tasks', TaskViewSet, basename='task')
 
 urlpatterns = [
+    path('healthz/', healthz, name='healthz'),
     path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/', include(router.urls)),
-    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/token/', LoginView.as_view(), name='token_obtain_pair'),
+    path('api/auth/token/refresh/', TokenRefreshWithThrottleView.as_view(), name='token_refresh'),
+    path('api/auth/token/blacklist/', LogoutView.as_view(), name='token_blacklist'),
+    path('api/auth/password/change/', PasswordChangeView.as_view(), name='password_change'),
 ]
 
 handler500 = 'config.exceptions.server_error'

@@ -15,6 +15,11 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      DEBUG: "True"
+      SECRET_KEY: ci-only-secret-key
+      DATABASE_URL: sqlite:////tmp/redeeming-time-ci.sqlite3
+      CACHE_URL: locmemcache://redeeming-time-ci
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

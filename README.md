@@ -131,6 +131,14 @@ access to `/login` and `/dashboard`, and baseline security headers. Deploy once 
 variable only to verify the static preview; set the Render API URL and redeploy before enabling
 login for users.
 
+### Backend Deployment
+
+The production API is Dockerized and has a Render Blueprint at `render.yaml`.
+It provisions PostgreSQL, a private Redis-compatible cache for authentication
+throttling, a health check, and a pre-deploy migration job. Follow
+[the backend deployment guide](docs/backend-deployment.md) before setting
+`VITE_API_BASE_URL` to the deployed API URL.
+
 For the Expo app:
 
 ```bash

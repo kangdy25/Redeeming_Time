@@ -130,6 +130,11 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  logout: (refresh: string) =>
+    request<void>('/auth/token/blacklist/', {
+      method: 'POST',
+      body: JSON.stringify({ refresh }),
+    }),
   currentUser: async () => (await request<User[]>('/users/'))[0],
   updateUser: (userId: number, payload: Partial<Pick<User, 'nickname' | 'profile_image_url'>>) =>
     request<User>(`/users/${userId}/`, {

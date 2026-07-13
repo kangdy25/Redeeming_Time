@@ -47,6 +47,19 @@ describe('API error handling', () => {
     expect(useAuthStore.getState().accessToken).toBeNull();
   });
 
+  it('blacklists the refresh token on logout', async () => {
+    useAuthStore.getState().setTokens({ access: 'active-access', refresh: 'active-refresh' });
+    server.use(
+      http.post('http://localhost:8000/api/auth/token/blacklist/', async ({ request }) => {
+        expect(request.headers.get('Authorization')).toBe('Bearer active-access');
+        await expect(request.json()).resolves.toEqual({ refresh: 'active-refresh' });
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    await expect(apiClient.logout('active-refresh')).resolves.toBeUndefined();
+  });
+
   it('keeps compatibility with legacy field errors', async () => {
     server.use(
       http.post('http://localhost:8000/api/users/', () =>

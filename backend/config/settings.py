@@ -10,30 +10,42 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import sys
 from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
-    DEBUG=(bool, True),
+    DEBUG=(bool, False),
     CORS_ALLOW_ALL_ORIGINS=(bool, False),
 )
 environ.Env.read_env(BASE_DIR / '.env')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+RUNNING_TESTS = any(argument in {'test', 'pytest'} for argument in sys.argv)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-redeeming-time-local-dev-key')
+DEBUG = env.bool('DEBUG', default=False)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+SECRET_KEY = env('SECRET_KEY', default='')
+if not SECRET_KEY:
+    if DEBUG or RUNNING_TESTS:
+        SECRET_KEY = 'django-insecure-redeeming-time-test-only-key'
+    else:
+        raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG=False.')
+if not DEBUG and SECRET_KEY.startswith('django-insecure-'):
+    raise ImproperlyConfigured('SECRET_KEY must not use a Django development value when DEBUG=False.')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'] if DEBUG else [])
+_development_hosts = ['localhost', '127.0.0.1', '[::1]']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=_development_hosts if DEBUG else [])
+render_external_hostname = env('RENDER_EXTERNAL_HOSTNAME', default='')
+if render_external_hostname and render_external_hostname not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_external_hostname)
+if not DEBUG and not RUNNING_TESTS and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('ALLOWED_HOSTS must be set when DEBUG=False.')
 
 
 # Application definition
@@ -43,6 +55,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'accounts',
     'planner',
     'django.contrib.admin',
@@ -55,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,11 +98,31 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+DATABASE_URL = env('DATABASE_URL', default='')
+if not DATABASE_URL:
+    if DEBUG or RUNNING_TESTS:
+        DATABASE_URL = f'sqlite:///{BASE_DIR / "db.sqlite3"}'
+    else:
+        raise ImproperlyConfigured('DATABASE_URL must be set when DEBUG=False.')
+if not DEBUG and not RUNNING_TESTS and not DATABASE_URL.startswith(('postgres://', 'postgresql://')):
+    raise ImproperlyConfigured('DATABASE_URL must point to PostgreSQL when DEBUG=False.')
 
 DATABASES = {
-    'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
+    'default': env.db_url('DATABASE_URL', default=DATABASE_URL),
+}
+DATABASES['default']['CONN_MAX_AGE'] = env.int('DB_CONN_MAX_AGE', default=60)
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
+
+CACHE_URL = env('CACHE_URL', default='')
+if not CACHE_URL:
+    if DEBUG or RUNNING_TESTS:
+        CACHE_URL = 'locmemcache://redeeming-time'
+    else:
+        raise ImproperlyConfigured('CACHE_URL must point to a shared Redis cache when DEBUG=False.')
+if not DEBUG and not RUNNING_TESTS and not CACHE_URL.startswith(('redis://', 'rediss://', 'valkey://', 'valkeys://')):
+    raise ImproperlyConfigured('CACHE_URL must point to a shared Redis-compatible cache when DEBUG=False.')
+CACHES = {
+    'default': env.cache_url('CACHE_URL', default=CACHE_URL),
 }
 
 
@@ -126,22 +160,57 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
-CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS', default=DEBUG)
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=False)
 CORS_ALLOWED_ORIGINS = env.list(
     'CORS_ALLOWED_ORIGINS',
-    default=[
+    default=(
+        [
+            'https://redeeming-time.vercel.app',
+        ]
+        if not DEBUG
+        else [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'http://localhost:8081',
         'http://127.0.0.1:8081',
-    ],
+        ]
+    ),
 )
+CORS_ALLOW_CREDENTIALS = False
+CORS_URLS_REGEX = r'^/api/.*$'
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=['https://redeeming-time.vercel.app'] if not DEBUG else [],
+)
+if not DEBUG and CORS_ALLOW_ALL_ORIGINS:
+    raise ImproperlyConfigured('CORS_ALLOW_ALL_ORIGINS must be False when DEBUG=False.')
+if not DEBUG and not CORS_ALLOWED_ORIGINS:
+    raise ImproperlyConfigured('CORS_ALLOWED_ORIGINS must be set when DEBUG=False.')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if not DEBUG else None
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=not DEBUG)
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=31_536_000 if not DEBUG else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=not DEBUG)
+SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', default=not DEBUG)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+X_FRAME_OPTIONS = 'DENY'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -152,12 +221,27 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'config.exceptions.api_exception_handler',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'login': '5/minute',
+        'registration': '5/hour',
+        'token_refresh': '20/minute',
+        'logout': '20/minute',
+        'password_change': '5/hour',
+    },
+    'NUM_PROXIES': env.int('NUM_PROXIES', default=1 if not DEBUG else 0),
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'CHECK_REVOKE_TOKEN': True,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -165,4 +249,10 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Django REST Framework API for the Redeeming Time planner.',
     'VERSION': '0.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PUBLIC': DEBUG,
+    'SERVE_PERMISSIONS': ['config.permissions.IsStaffOrDebug'],
+    'SERVE_AUTHENTICATION': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
 }

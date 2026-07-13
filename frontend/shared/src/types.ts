@@ -68,7 +68,7 @@ export interface Task {
   calendar: number;
   category: number | null;
   category_detail?: Category | null;
-  creator: number;
+  creator: number | null;
   title: string;
   is_completed: boolean;
   target_date: string;

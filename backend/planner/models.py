@@ -117,7 +117,13 @@ class Task(models.Model):
 
     calendar = models.ForeignKey(Calendar, related_name='tasks', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, related_name='tasks', null=True, blank=True, on_delete=models.SET_NULL)
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_tasks', on_delete=models.CASCADE)
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='created_tasks',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     title = models.CharField(max_length=160)
     is_completed = models.BooleanField(default=False)
     target_date = models.DateField()

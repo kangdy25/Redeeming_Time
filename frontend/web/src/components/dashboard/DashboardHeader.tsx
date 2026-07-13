@@ -1,4 +1,4 @@
-import { useAuthStore } from '@redeeming-time/shared';
+import { apiClient, useAuthStore } from '@redeeming-time/shared';
 import { type DashboardModel } from '../../hooks/useDashboardModel';
 
 type DashboardHeaderProps = Pick<DashboardModel, 'shell' | 'workspace'>;
@@ -21,6 +21,12 @@ export function DashboardHeader({ shell, workspace }: DashboardHeaderProps) {
     remove: deleteWorkspace,
   } = workspace;
   const setActiveModal = shell.modal.set;
+
+  function logout() {
+    const { clearTokens, refreshToken } = useAuthStore.getState();
+    if (refreshToken) void apiClient.logout(refreshToken).catch(() => {});
+    clearTokens();
+  }
 
   return (
     <header className="top-nav">
@@ -112,7 +118,7 @@ export function DashboardHeader({ shell, workspace }: DashboardHeaderProps) {
         </div>
         <button
           className="primary-button subtle"
-          onClick={() => useAuthStore.getState().clearTokens()}
+          onClick={logout}
         >
           로그아웃
           <span className="sr-only">Sign out</span>

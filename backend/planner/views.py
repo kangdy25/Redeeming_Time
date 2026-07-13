@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets
+from rest_framework.exceptions import ValidationError
 
 from .models import Calendar, CalendarMember, Category, Event, EventAttendee, Task
 from .permissions import IsCalendarMemberReadEditorWrite, IsCalendarOwner
@@ -26,6 +27,8 @@ class CalendarViewSet(viewsets.ModelViewSet):
         CalendarMember.objects.create(calendar=calendar, user=self.request.user, role=CalendarMember.Role.OWNER)
 
     def perform_destroy(self, instance):
+        if not user_is_calendar_owner(self.request.user, instance):
+            self.permission_denied(self.request, message='Only calendar owners can delete calendars.')
         if instance.is_global:
             self.permission_denied(self.request, message='The global calendar cannot be deleted.')
         instance.delete()
@@ -37,13 +40,36 @@ class CalendarMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCalendarOwner]
 
     def get_queryset(self):
-        return CalendarMember.objects.filter(calendar__memberships__user=self.request.user).select_related('calendar', 'user')
+        return CalendarMember.objects.filter(
+            calendar__memberships__user=self.request.user,
+            calendar__memberships__role=CalendarMember.Role.OWNER,
+        ).select_related('calendar', 'user')
 
     def perform_create(self, serializer):
         calendar = serializer.validated_data['calendar']
         if not user_is_calendar_owner(self.request.user, calendar):
             self.permission_denied(self.request, message='Only calendar owners can add members.')
         serializer.save()
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        new_role = serializer.validated_data.get('role', instance.role)
+        is_last_owner = not CalendarMember.objects.filter(
+            calendar=instance.calendar,
+            role=CalendarMember.Role.OWNER,
+        ).exclude(pk=instance.pk).exists()
+        if instance.role == CalendarMember.Role.OWNER and new_role != CalendarMember.Role.OWNER and is_last_owner:
+            raise ValidationError({'role': 'A calendar must retain at least one owner.'})
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        is_last_owner = not CalendarMember.objects.filter(
+            calendar=instance.calendar,
+            role=CalendarMember.Role.OWNER,
+        ).exclude(pk=instance.pk).exists()
+        if instance.role == CalendarMember.Role.OWNER and is_last_owner:
+            raise ValidationError({'detail': 'A calendar must retain at least one owner.'})
+        instance.delete()
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -58,6 +84,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
         calendar = serializer.validated_data['calendar']
         if not user_can_edit_calendar(self.request.user, calendar):
             self.permission_denied(self.request, message='Only owners or editors can create categories.')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        calendar = serializer.validated_data.get('calendar', serializer.instance.calendar)
+        if not user_can_edit_calendar(self.request.user, calendar):
+            self.permission_denied(self.request, message='Only owners or editors can edit categories in the selected calendar.')
         serializer.save()
 
 
@@ -75,6 +107,12 @@ class EventViewSet(viewsets.ModelViewSet):
             self.permission_denied(self.request, message='Only owners or editors can create events.')
         serializer.save(creator=self.request.user)
 
+    def perform_update(self, serializer):
+        calendar = serializer.validated_data.get('calendar', serializer.instance.calendar)
+        if not user_can_edit_calendar(self.request.user, calendar):
+            self.permission_denied(self.request, message='Only owners or editors can edit events in the selected calendar.')
+        serializer.save()
+
 
 class EventAttendeeViewSet(viewsets.ModelViewSet):
     queryset = EventAttendee.objects.all()
@@ -88,6 +126,12 @@ class EventAttendeeViewSet(viewsets.ModelViewSet):
         event = serializer.validated_data['event']
         if not user_can_edit_calendar(self.request.user, event.calendar):
             self.permission_denied(self.request, message='Only owners or editors can manage attendees.')
+        serializer.save()
+
+    def perform_update(self, serializer):
+        event = serializer.validated_data.get('event', serializer.instance.event)
+        if not user_can_edit_calendar(self.request.user, event.calendar):
+            self.permission_denied(self.request, message='Only owners or editors can manage attendees in the selected calendar.')
         serializer.save()
 
 
@@ -104,3 +148,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         if not user_can_edit_calendar(self.request.user, calendar):
             self.permission_denied(self.request, message='Only owners or editors can create tasks.')
         serializer.save(creator=self.request.user)
+
+    def perform_update(self, serializer):
+        calendar = serializer.validated_data.get('calendar', serializer.instance.calendar)
+        if not user_can_edit_calendar(self.request.user, calendar):
+            self.permission_denied(self.request, message='Only owners or editors can edit tasks in the selected calendar.')
+        serializer.save()
