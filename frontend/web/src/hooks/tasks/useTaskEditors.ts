@@ -1,5 +1,13 @@
 import { type FormEvent, useState } from 'react';
-import { apiClient, type Category, type Task, type TaskPriority } from '@redeeming-time/shared';
+import {
+  useDeleteCategory,
+  useDeleteTask,
+  useEditTask,
+  useUpdateCategory,
+  type Category,
+  type Task,
+  type TaskPriority,
+} from '@redeeming-time/shared';
 
 type Input = {
   selectedCategory: string;
@@ -8,6 +16,10 @@ type Input = {
 };
 
 export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessage }: Input) {
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+  const editTask = useEditTask();
+  const deleteTask = useDeleteTask();
   const [category, setCategory] = useState<{ id: number; name: string; color: string } | null>(
     null,
   );
@@ -24,9 +36,9 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
     if (!category?.name.trim()) return;
     setIsSaving(true);
     try {
-      await apiClient.updateCategory(category.id, {
-        name: category.name.trim(),
-        color_code: category.color,
+      await updateCategory.mutateAsync({
+        id: category.id,
+        payload: { name: category.name.trim(), color_code: category.color },
       });
       setCategory(null);
     } catch (error) {
@@ -44,7 +56,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
     )
       return;
     try {
-      await apiClient.deleteCategory(target.id);
+      await deleteCategory.mutateAsync(target.id);
       if (selectedCategory === String(target.id)) setSelectedCategory('');
       setCategory(null);
     } catch (error) {
@@ -57,10 +69,13 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
     if (!task?.title.trim()) return;
     setIsSaving(true);
     try {
-      await apiClient.editTask(task.id, {
-        title: task.title.trim(),
-        priority: task.priority,
-        category: task.category ? Number(task.category) : null,
+      await editTask.mutateAsync({
+        id: task.id,
+        payload: {
+          title: task.title.trim(),
+          priority: task.priority,
+          category: task.category ? Number(task.category) : null,
+        },
       });
       setTask(null);
     } catch (error) {
@@ -73,7 +88,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
   async function removeTask(target: Task) {
     if (!window.confirm(`"${target.title}" 할일을 삭제할까요?`)) return;
     try {
-      await apiClient.deleteTask(target.id);
+      await deleteTask.mutateAsync(target.id);
       setTask(null);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '할일 삭제에 실패했습니다.');

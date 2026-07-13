@@ -1,5 +1,11 @@
 import { type FormEvent } from 'react';
-import { apiClient, useCreateEvent, type Calendar, type Event } from '@redeeming-time/shared';
+import {
+  useCreateEvent,
+  useDeleteEvent,
+  useUpdateEvent,
+  type Calendar,
+  type Event,
+} from '@redeeming-time/shared';
 import { toApiDateTime } from '../../utils/planner';
 import { type EventEditorForm } from './useEventEditorForm';
 
@@ -19,6 +25,8 @@ export function useEventEditorActions({
   form,
 }: Input) {
   const mutation = useCreateEvent();
+  const updateMutation = useUpdateEvent();
+  const deleteMutation = useDeleteEvent();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -35,7 +43,8 @@ export function useEventEditorActions({
       color_code: form.color,
     };
     try {
-      if (form.editing && selectedEvent) await apiClient.updateEvent(selectedEvent.id, payload);
+      if (form.editing && selectedEvent)
+        await updateMutation.mutateAsync({ id: selectedEvent.id, payload });
       else await mutation.mutateAsync(payload);
       onClose();
     } catch (error) {
@@ -57,7 +66,7 @@ export function useEventEditorActions({
     )
       return;
     try {
-      await apiClient.deleteEvent(selectedEvent.id);
+      await deleteMutation.mutateAsync(selectedEvent.id);
       onClose();
     } catch (error) {
       form.setMessage(error instanceof Error ? error.message : '일정 삭제에 실패했습니다.');

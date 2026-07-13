@@ -1,0 +1,84 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+
+:root {
+  /* Premium Dark Theme: Deep Obsidian-Violet & Luminous Gradients */
+  --color-bg-root: #0b0f19;
+  --color-bg-card: rgba(17, 24, 39, 0.7);
+  --color-bg-sidebar: rgba(10, 14, 23, 0.95);
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-hover: rgba(99, 102, 241, 0.4);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e5e7eb;
+  --color-text-muted: #9ca3af;
+
+  /* Luminous Accent Gradients */
+  --color-accent: #6366f1; /* Indigo */
+  --color-accent-hover: #4f46e5;
+  --color-accent-muted: rgba(99, 102, 241, 0.12);
+  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --gradient-logo: linear-gradient(135deg, #10b981 0%, #6366f1 100%);
+
+  --color-bg-input: rgba(17, 24, 39, 0.9);
+
+  /* Calendar specific colors */
+  --color-sunday: #f87171;
+  --color-saturday: #60a5fa;
+  --color-today-bg: #6366f1;
+  --color-today-text: #ffffff;
+  --calendar-icon-filter: invert(1) sepia(1) saturate(5) hue-rotate(175deg);
+
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    sans-serif;
+  font-size: 16px; /* Scaled up default size */
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-root);
+  -webkit-font-smoothing: antialiased;
+}
+
+:root.light-theme {
+  /* Premium Light Theme: Warm Cream & Teal-Sage Accent */
+  --color-bg-root: #faf9f6;
+  --color-bg-card: rgba(255, 255, 255, 0.8);
+  --color-bg-sidebar: rgba(240, 238, 233, 0.95);
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-border-hover: rgba(13, 148, 136, 0.3);
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+
+  --color-accent: #0d9488; /* Teal */
+  --color-accent-hover: #0f766e;
+  --color-accent-muted: rgba(13, 148, 136, 0.08);
+  --gradient-accent: linear-gradient(135deg, #0d9488 0%, #3b82f6 100%);
+  --gradient-logo: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+
+  --color-bg-input: #ffffff;
+  --calendar-icon-filter: none;
+
+  --color-sunday: #ef4444;
+  --color-saturday: #2563eb;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  background-color: var(--color-bg-root);
+  color: var(--color-text-primary);
+  transition:
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}

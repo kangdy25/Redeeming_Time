@@ -36,3 +36,5 @@ export function usePlannerModalModel({
 
   return { workspace, event, copy };
 }
+
+export type PlannerModalModel = ReturnType<typeof usePlannerModalModel>;

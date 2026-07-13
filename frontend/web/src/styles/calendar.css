@@ -1,0 +1,404 @@
+/* CENTER DASHBOARD WORKSPACE */
+.main-content {
+  display: flex;
+  flex: 1;
+  background-color: var(--color-bg-root);
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+.center-panel {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.profile-main-panel {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-main-panel .dashboard-profile-page {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-profile-page .profile-card {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-profile-page {
+  padding: 40px 48px;
+}
+
+.dashboard-profile-page .profile-hero,
+.dashboard-profile-page .profile-footer {
+  grid-column: 1 / -1;
+}
+
+.profile-settings-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 32px;
+}
+
+.profile-settings-column {
+  padding-bottom: 28px;
+}
+
+.profile-settings-column h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.profile-settings-column + .profile-settings-column {
+  padding-left: 32px;
+  border-left: 1px solid var(--profile-divider);
+}
+
+.dashboard-profile-page .profile-form,
+.dashboard-profile-page .workspace-settings {
+  margin-top: 0;
+}
+
+@media (min-width: 1025px) {
+  .dashboard-profile-page .profile-form {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+  }
+
+  .dashboard-profile-page .workspace-settings {
+    grid-column: 2;
+    grid-row: 2;
+    padding-left: 28px;
+    border-left: 1px solid var(--color-border);
+  }
+
+  .dashboard-profile-page .profile-footer {
+    grid-row: 3;
+  }
+}
+
+/* Calendar Card - Elevated Glassmorphism */
+.calendar-area {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.calendar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.calendar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.calendar-title-group h2 {
+  margin: 0;
+  font-size: 30px; /* Scaled up */
+  font-weight: 900;
+  color: var(--color-text-primary);
+  letter-spacing: 0; /* Removed negative spacing */
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.nav-btn {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: 6px 12px; /* Slightly decreased */
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px; /* Slightly decreased */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-btn:hover {
+  background-color: var(--color-border);
+  border-color: var(--color-border-hover);
+}
+
+.calendar-controls-bar {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Segmented Tabs (Week/Month views switcher) */
+.segmented {
+  display: flex;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 3px;
+  width: fit-content;
+}
+
+.segmented button {
+  border: none;
+  background: none;
+  padding: 5px 12px; /* Slightly decreased */
+  border-radius: 6px;
+  font-size: 13px; /* Slightly decreased */
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segmented button.active {
+  background: var(--gradient-accent);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.event-count {
+  font-size: 13px; /* Slightly decreased */
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+/* Month Grid - High Contrast & Obsidian */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-top: 20px;
+  border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.weekday {
+  background-color: rgba(255, 255, 255, 0.02);
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 14px; /* Scaled up */
+  font-weight: 900;
+  color: var(--color-text-secondary);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.weekday:first-child {
+  color: var(--color-sunday);
+}
+.weekday:last-child {
+  color: var(--color-saturday);
+}
+
+.date-cell {
+  height: 120px;
+  min-height: 120px;
+  padding: 10px;
+  background-color: var(--color-bg-card);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.date-cell:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.muted-cell {
+  opacity: 0.35;
+}
+
+.date-number {
+  font-weight: 900;
+  font-size: 15px; /* Scaled up */
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; /* Adjusted to fit larger font */
+  height: 28px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.date-cell:nth-child(7n + 1) .date-number {
+  color: var(--color-sunday);
+}
+.date-cell:nth-child(7n) .date-number {
+  color: var(--color-saturday);
+}
+
+.date-cell.holiday-cell .date-number {
+  color: #ef4444;
+}
+
+/* Highlight Today's Cell */
+.date-cell.today-cell .date-number {
+  background: var(--gradient-accent);
+  color: var(--color-today-text) !important;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.event-stack {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.event-pill {
+  width: 100%;
+  font-size: 13px; /* Scaled up */
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.event-pill:hover {
+  transform: translateX(2px);
+  filter: brightness(1.1);
+}
+
+.more-count {
+  font-size: 13px; /* Scaled up */
+  font-weight: 900;
+  color: var(--color-accent);
+  margin-top: 2px;
+  padding-left: 6px;
+}
+
+/* Week Rail - Luminous Cards */
+.week-rail {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.week-day {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  height: 140px;
+  min-height: 140px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.week-day:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-hover);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.week-day span {
+  font-size: 13px; /* Scaled up */
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.week-day strong {
+  font-size: 34px; /* Scaled up */
+  font-weight: 900;
+  margin: 4px 0 10px;
+  display: block;
+}
+
+.week-day.today-week-day {
+  border-color: var(--color-border-hover);
+  background: var(--color-accent-muted);
+  box-shadow: inset 0 0 0 1px var(--color-accent-muted);
+}
+
+.week-day.today-week-day strong {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: var(--color-today-text) !important;
+  box-shadow: 0 5px 14px rgba(99, 102, 241, 0.28);
+}
+
+.week-day:nth-child(1) span,
+.week-day:nth-child(1) strong {
+  color: var(--color-sunday);
+}
+.week-day:nth-child(7) span,
+.week-day:nth-child(7) strong {
+  color: var(--color-saturday);
+}
+
+.week-event {
+  display: block;
+  width: 100%;
+  font-size: 13px; /* Scaled up */
+  font-weight: 800;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 3px 6px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 0;
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+}

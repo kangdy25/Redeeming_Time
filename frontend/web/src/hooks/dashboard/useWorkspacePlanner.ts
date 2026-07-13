@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import {
-  apiClient,
+  useDeleteCalendar,
   usePlannerSnapshot,
   usePlannerStore,
   type Calendar,
@@ -8,6 +8,7 @@ import {
 import { createKoreaHolidayEvents } from '../../utils/planner';
 
 export function useWorkspacePlanner(closeWorkspaceMenu: () => void) {
+  const deleteCalendar = useDeleteCalendar();
   const snapshot = usePlannerSnapshot();
   const events = usePlannerStore((state) => state.events);
   const tasks = usePlannerStore((state) => state.tasks);
@@ -40,7 +41,7 @@ export function useWorkspacePlanner(closeWorkspaceMenu: () => void) {
   async function remove(calendar: Calendar) {
     if (!window.confirm(`"${calendar.title}" 워크스페이스와 해당 일정이 삭제됩니다. 계속할까요?`))
       return;
-    await apiClient.deleteCalendar(calendar.id);
+    await deleteCalendar.mutateAsync(calendar.id);
     closeWorkspaceMenu();
   }
 

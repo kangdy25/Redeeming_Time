@@ -3,6 +3,7 @@ import {
   apiClient,
   useAuthStore,
   useCreateCalendar,
+  useDeleteCalendar,
   usePlannerStore,
   type Calendar,
 } from '@redeeming-time/shared';
@@ -16,6 +17,7 @@ export function ProfilePanel() {
   const events = usePlannerStore((state) => state.events);
   const tasks = usePlannerStore((state) => state.tasks);
   const createCalendar = useCreateCalendar();
+  const deleteCalendarMutation = useDeleteCalendar();
   useEffect(() => {
     void apiClient
       .currentUser()
@@ -48,7 +50,7 @@ export function ProfilePanel() {
   }
   async function deleteWorkspace(calendar: Calendar) {
     if (window.confirm(`"${calendar.title}" 워크스페이스를 삭제할까요?`))
-      await apiClient.deleteCalendar(calendar.id);
+      await deleteCalendarMutation.mutateAsync(calendar.id);
   }
   async function deleteAccount() {
     if (user && window.confirm('계정과 모든 데이터가 삭제됩니다. 정말 탈퇴할까요?')) {

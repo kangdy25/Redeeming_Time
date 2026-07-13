@@ -34,7 +34,9 @@ export function usePlannerSnapshot() {
   return query;
 }
 
-function useCreateMutation<TPayload, TResult>(mutationFn: (payload: TPayload) => Promise<TResult>) {
+function usePlannerMutation<TPayload, TResult>(
+  mutationFn: (payload: TPayload) => Promise<TResult>,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -44,19 +46,60 @@ function useCreateMutation<TPayload, TResult>(mutationFn: (payload: TPayload) =>
 }
 
 export function useCreateCalendar() {
-  return useCreateMutation<CalendarPayload, Calendar>(apiClient.createCalendar);
+  return usePlannerMutation<CalendarPayload, Calendar>(apiClient.createCalendar);
 }
 
 export function useCreateCategory() {
-  return useCreateMutation<CategoryPayload, Category>(apiClient.createCategory);
+  return usePlannerMutation<CategoryPayload, Category>(apiClient.createCategory);
 }
 
 export function useCreateEvent() {
-  return useCreateMutation<EventPayload, Event>(apiClient.createEvent);
+  return usePlannerMutation<EventPayload, Event>(apiClient.createEvent);
 }
 
 export function useCreateTask() {
-  return useCreateMutation<TaskPayload, Task>(apiClient.createTask);
+  return usePlannerMutation<TaskPayload, Task>(apiClient.createTask);
+}
+
+export function useDeleteCalendar() {
+  return usePlannerMutation<number, void>(apiClient.deleteCalendar);
+}
+
+export function useUpdateCategory() {
+  return usePlannerMutation<{ id: number; payload: Partial<CategoryPayload> }, Category>(
+    ({ id, payload }) => apiClient.updateCategory(id, payload),
+  );
+}
+
+export function useDeleteCategory() {
+  return usePlannerMutation<number, void>(apiClient.deleteCategory);
+}
+
+export function useUpdateEvent() {
+  return usePlannerMutation<{ id: number; payload: Partial<EventPayload> }, Event>(
+    ({ id, payload }) => apiClient.updateEvent(id, payload),
+  );
+}
+
+export function useDeleteEvent() {
+  return usePlannerMutation<number, void>(apiClient.deleteEvent);
+}
+
+export function useEditTask() {
+  return usePlannerMutation<{ id: number; payload: Partial<TaskPayload> }, Task>(
+    ({ id, payload }) => apiClient.editTask(id, payload),
+  );
+}
+
+export function useDeleteTask() {
+  return usePlannerMutation<number, void>(apiClient.deleteTask);
+}
+
+export function useRolloverTasks() {
+  return usePlannerMutation<{ tasks: Task[]; targetDate: string }, Task[]>(
+    ({ tasks, targetDate }) =>
+      Promise.all(tasks.map((task) => apiClient.updateTaskTargetDate(task, targetDate))),
+  );
 }
 
 export function useToggleTask() {
