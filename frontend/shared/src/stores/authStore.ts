@@ -28,8 +28,10 @@ const refreshKey = 'redeeming-time.refresh-token';
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
+  sessionValidated: boolean;
   isAuthenticated: () => boolean;
   setTokens: (tokens: { access: string; refresh: string }) => void;
+  markSessionValidated: () => void;
   clearTokens: () => void;
   authorizationHeader: () => Record<string, string>;
 }
@@ -37,18 +39,20 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: getStorage()?.getItem(accessKey) ?? null,
   refreshToken: getStorage()?.getItem(refreshKey) ?? null,
+  sessionValidated: false,
   isAuthenticated: () => Boolean(get().accessToken),
   setTokens: ({ access, refresh }) => {
     usePlannerStore.getState().resetPlanner();
     getStorage()?.setItem(accessKey, access);
     getStorage()?.setItem(refreshKey, refresh);
-    set({ accessToken: access, refreshToken: refresh });
+    set({ accessToken: access, refreshToken: refresh, sessionValidated: true });
   },
+  markSessionValidated: () => set({ sessionValidated: true }),
   clearTokens: () => {
     usePlannerStore.getState().resetPlanner();
     getStorage()?.removeItem(accessKey);
     getStorage()?.removeItem(refreshKey);
-    set({ accessToken: null, refreshToken: null });
+    set({ accessToken: null, refreshToken: null, sessionValidated: false });
   },
   authorizationHeader: () => {
     const token = get().accessToken;

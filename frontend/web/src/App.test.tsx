@@ -176,6 +176,35 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
       expect(screen.getByText('Sign in required')).toBeInTheDocument();
     });
+
+    test('restored session reaches dashboard only after server validation', async () => {
+      useAuthStore.setState({
+        accessToken: 'persisted-access',
+        refreshToken: 'persisted-refresh',
+        sessionValidated: false,
+      });
+
+      renderWithProviders(<App />);
+
+      expect(screen.getByRole('status')).toHaveTextContent('세션 확인 중...');
+      await waitFor(() => expect(screen.getByText('Sign out')).toBeInTheDocument());
+      expect(useAuthStore.getState().sessionValidated).toBe(true);
+    });
+
+    test('server connection failure clears a restored session and returns to login', async () => {
+      useAuthStore.setState({
+        accessToken: 'persisted-access',
+        refreshToken: 'persisted-refresh',
+        sessionValidated: false,
+      });
+      server.use(http.get('http://localhost:8000/api/users/', () => HttpResponse.error()));
+
+      renderWithProviders(<App />);
+
+      await waitFor(() => expect(screen.getByText('Sign in required')).toBeInTheDocument());
+      expect(useAuthStore.getState().accessToken).toBeNull();
+      expect(usePlannerStore.getState().calendars).toEqual([]);
+    });
   });
 
   // ==========================================

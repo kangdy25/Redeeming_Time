@@ -26,6 +26,7 @@ Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock });
 const initialAuthState = {
   accessToken: null,
   refreshToken: null,
+  sessionValidated: false,
 };
 
 const initialPlannerState = {
@@ -192,6 +193,21 @@ export const handlers = [
       access: 'mock-access-token',
       refresh: 'mock-refresh-token',
     });
+  }),
+
+  http.get('http://localhost:8000/api/users/', () => {
+    return HttpResponse.json([
+      {
+        id: 1,
+        email: 'demo@example.com',
+        nickname: 'Demo',
+        profile_image_url: '',
+        social_provider: 'LOCAL',
+        is_active: true,
+        created_at: '2026-07-04T00:00:00Z',
+        updated_at: '2026-07-04T00:00:00Z',
+      },
+    ]);
   }),
 
   // Calendars
