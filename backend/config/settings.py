@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import sys
 from datetime import timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import environ
 from django.core.exceptions import ImproperlyConfigured
@@ -152,6 +153,15 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
+# Planner dates are currently shared across the product, rather than stored per
+# calendar or per user. Keep that operational boundary explicit so rollover and
+# daily schedule density use the same day transition as the Korean UI.
+PLANNER_TIME_ZONE = env('PLANNER_TIME_ZONE', default='Asia/Seoul')
+try:
+    ZoneInfo(PLANNER_TIME_ZONE)
+except ZoneInfoNotFoundError as exc:
+    raise ImproperlyConfigured('PLANNER_TIME_ZONE must be a valid IANA timezone.') from exc
+
 USE_I18N = True
 
 USE_TZ = True
@@ -220,6 +230,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'config.pagination.StandardResultsSetPagination',
+    'PAGE_SIZE': 100,
     'EXCEPTION_HANDLER': 'config.exceptions.api_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',

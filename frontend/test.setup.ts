@@ -210,6 +210,19 @@ export const handlers = [
     ]);
   }),
 
+  http.get('http://localhost:8000/api/users/me/', () => {
+    return HttpResponse.json({
+      id: 1,
+      email: 'demo@example.com',
+      nickname: 'Demo',
+      profile_image_url: '',
+      social_provider: 'LOCAL',
+      is_active: true,
+      created_at: '2026-07-04T00:00:00Z',
+      updated_at: '2026-07-04T00:00:00Z',
+    });
+  }),
+
   // Calendars
   http.get('http://localhost:8000/api/calendars/', () => {
     return HttpResponse.json(mockDb.calendars);

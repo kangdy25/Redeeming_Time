@@ -1,6 +1,7 @@
 from django.db import transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
@@ -69,6 +70,12 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return [AnonRateThrottle(), ScopedRateThrottle()]
         return super().get_throttles()
+
+    @action(detail=False, methods=['get'], url_path='me')
+    def me(self, request):
+        """Return the authenticated account without relying on a list response."""
+
+        return Response(self.get_serializer(request.user).data)
 
     def perform_destroy(self, instance):
         sole_owned_memberships = CalendarMember.objects.filter(

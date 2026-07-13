@@ -197,7 +197,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         refreshToken: 'persisted-refresh',
         sessionValidated: false,
       });
-      server.use(http.get('http://localhost:8000/api/users/', () => HttpResponse.error()));
+      server.use(http.get('http://localhost:8000/api/users/me/', () => HttpResponse.error()));
 
       renderWithProviders(<App />);
 

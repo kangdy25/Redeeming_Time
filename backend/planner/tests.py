@@ -222,10 +222,10 @@ class PlannerAuthorizationTests(APITestCase):
         self.assertEqual(viewer_members.status_code, 200)
         self.assertNotIn(
             self.source_calendar.id,
-            [member['calendar'] for member in viewer_members.data],
+            [member['calendar'] for member in viewer_members.data['results']],
         )
         self.assertEqual(owner_members.status_code, 200)
-        self.assertGreaterEqual(len(owner_members.data), 3)
+        self.assertGreaterEqual(len(owner_members.data['results']), 3)
 
     def test_cannot_remove_or_demote_the_last_calendar_owner(self):
         membership = CalendarMember.objects.get(calendar=self.source_calendar, user=self.owner)

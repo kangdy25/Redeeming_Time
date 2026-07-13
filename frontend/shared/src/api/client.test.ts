@@ -60,6 +60,96 @@ describe('API error handling', () => {
     await expect(apiClient.logout('active-refresh')).resolves.toBeUndefined();
   });
 
+  it('follows paginated list links while accepting the new response envelope', async () => {
+    const requestedPages: string[] = [];
+    server.use(
+      http.get('http://localhost:8000/api/calendars/', ({ request }) => {
+        const url = new URL(request.url);
+        const page = url.searchParams.get('page') ?? '1';
+        requestedPages.push(page);
+        expect(url.searchParams.get('page_size')).toBe('200');
+        if (page === '1') {
+          return HttpResponse.json({
+            count: 3,
+            next: 'http://localhost:8000/api/calendars/?page=2&page_size=200',
+            previous: null,
+            results: [
+              { id: 1, title: 'First', description: '', theme_color: '#123456', created_at: '' },
+              { id: 2, title: 'Second', description: '', theme_color: '#234567', created_at: '' },
+            ],
+          });
+        }
+        return HttpResponse.json({
+          count: 3,
+          next: null,
+          previous: 'http://localhost:8000/api/calendars/?page_size=200',
+          results: [
+            { id: 3, title: 'Third', description: '', theme_color: '#345678', created_at: '' },
+          ],
+        });
+      }),
+    );
+
+    const calendars = await apiClient.calendars();
+
+    expect(calendars.map((calendar) => calendar.id)).toEqual([1, 2, 3]);
+    expect(requestedPages).toEqual(['1', '2']);
+  });
+
+  it('reads the current user from a paginated users response', async () => {
+    server.use(
+      http.get('http://localhost:8000/api/users/me/', () =>
+        HttpResponse.json({ detail: 'Not found.' }, { status: 404 }),
+      ),
+      http.get('http://localhost:8000/api/users/', () =>
+        HttpResponse.json({
+          count: 1,
+          next: null,
+          previous: null,
+          results: [
+            {
+              id: 7,
+              email: 'paged@example.com',
+              nickname: 'Paged User',
+              profile_image_url: '',
+              social_provider: 'LOCAL',
+              is_active: true,
+              created_at: '',
+              updated_at: '',
+            },
+          ],
+        }),
+      ),
+    );
+
+    await expect(apiClient.currentUser()).resolves.toMatchObject({
+      id: 7,
+      email: 'paged@example.com',
+    });
+  });
+
+  it('uses the current-user endpoint when it is available', async () => {
+    server.use(
+      http.get('http://localhost:8000/api/users/me/', () =>
+        HttpResponse.json({
+          id: 8,
+          email: 'me@example.com',
+          nickname: 'Current User',
+          profile_image_url: '',
+          social_provider: 'LOCAL',
+          is_active: true,
+          created_at: '',
+          updated_at: '',
+        }),
+      ),
+    );
+
+    await expect(apiClient.currentUser()).resolves.toMatchObject({
+      id: 8,
+      email: 'me@example.com',
+    });
+  });
+
   it('keeps compatibility with legacy field errors', async () => {
     server.use(
       http.post('http://localhost:8000/api/users/', () =>

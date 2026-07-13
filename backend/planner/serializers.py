@@ -89,7 +89,16 @@ class EventSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(serializers.DictField)
     def get_congestion_warning(self, obj):
-        return analyze_schedule_density(obj.calendar, obj.start_time, obj.end_time, excluded_event_id=obj.id)
+        warnings = self.context.get('congestion_warnings')
+        if warnings is not None and obj.id in warnings:
+            return warnings[obj.id]
+        return analyze_schedule_density(
+            obj.calendar,
+            obj.start_time,
+            obj.end_time,
+            excluded_event_id=obj.id,
+            is_all_day=obj.is_all_day,
+        )
 
 
 class EventAttendeeSerializer(serializers.ModelSerializer):

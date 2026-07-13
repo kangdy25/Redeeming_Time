@@ -112,6 +112,20 @@ class AccountApiSecurityTests(APITestCase):
         self.assertEqual(self.user.email, 'account@example.com')
         self.assertTrue(self.user.check_password('current-secure-password-123'))
 
+    def test_current_user_endpoint_returns_the_authenticated_account(self):
+        staff = get_user_model().objects.create_superuser(
+            email='staff@example.com',
+            password='staff-secure-password-123',
+            nickname='Staff',
+        )
+        self.client.force_authenticate(staff)
+
+        response = self.client.get('/api/users/me/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['id'], staff.id)
+        self.assertEqual(response.data['email'], staff.email)
+
     def test_password_change_requires_current_password_and_revokes_existing_tokens(self):
         refresh = RefreshToken.for_user(self.user)
         access = str(refresh.access_token)

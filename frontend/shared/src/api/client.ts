@@ -1,13 +1,17 @@
 import type {
   Calendar,
+  CalendarListParams,
   CalendarPayload,
   Category,
   CategoryPayload,
   Event,
+  EventListParams,
   EventPayload,
+  PaginatedResponse,
   PlannerSnapshot,
   RegisterPayload,
   Task,
+  TaskListParams,
   TaskPayload,
   User,
 } from '../types';
@@ -74,7 +78,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const authorization = useAuthStore.getState().authorizationHeader();
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    response = await fetch(/^https?:\/\//i.test(path) ? path : `${API_BASE_URL}${path}`, {
       ...init,
       headers: {
         'Content-Type': 'application/json',
@@ -119,6 +123,56 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+type ListItem = { id: number };
+type ListQueryValue = string | number | boolean | null | undefined;
+type ListQueryParams = Record<string, ListQueryValue>;
+
+function withQueryParams(path: string, params: ListQueryParams) {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== null && value !== undefined) {
+      query.set(key, String(value));
+    }
+  }
+  if (!query.size) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}${query.toString()}`;
+}
+
+function isPaginatedResponse<T>(
+  payload: PaginatedResponse<T> | T[],
+): payload is PaginatedResponse<T> {
+  return !Array.isArray(payload) && Array.isArray(payload.results);
+}
+
+/**
+ * Accept both the legacy array response and the paginated API contract. This
+ * makes the frontend safe to deploy before the backend pagination rollout.
+ */
+async function requestList<T extends ListItem>(
+  path: string,
+  params: ListQueryParams = {},
+): Promise<T[]> {
+  let next: string | null = withQueryParams(path, { ...params, page_size: 200 });
+  const requestedPages = new Set<string>();
+  const items = new Map<number, T>();
+
+  while (next) {
+    if (requestedPages.has(next)) {
+      throw new Error('The API returned a repeated pagination link.');
+    }
+    requestedPages.add(next);
+
+    const payload: PaginatedResponse<T> | T[] = await request<PaginatedResponse<T> | T[]>(next);
+    const pageItems = isPaginatedResponse(payload) ? payload.results : payload;
+    for (const item of pageItems) {
+      items.set(item.id, item);
+    }
+    next = isPaginatedResponse(payload) ? payload.next : null;
+  }
+
+  return [...items.values()];
+}
+
 export const apiClient = {
   register: (payload: RegisterPayload) =>
     request<User>('/users/', {
@@ -135,14 +189,23 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify({ refresh }),
     }),
-  currentUser: async () => (await request<User[]>('/users/'))[0],
+  currentUser: async () => {
+    try {
+      return await request<User>('/users/me/');
+    } catch (error) {
+      // Support the currently deployed backend until its P1 pagination release
+      // adds /users/me/ alongside the new collection contract.
+      if (!(error instanceof ApiError) || error.status !== 404) throw error;
+      return (await requestList<User>('/users/'))[0];
+    }
+  },
   updateUser: (userId: number, payload: Partial<Pick<User, 'nickname' | 'profile_image_url'>>) =>
     request<User>(`/users/${userId}/`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),
   deleteUser: (userId: number) => request<void>(`/users/${userId}/`, { method: 'DELETE' }),
-  calendars: () => request<Calendar[]>('/calendars/'),
+  calendars: () => requestList<Calendar>('/calendars/'),
   createCalendar: async (payload: CalendarPayload) => {
     const calendar = await request<Calendar>('/calendars/', {
       method: 'POST',
@@ -167,7 +230,7 @@ export const apiClient = {
       state.setActiveCalendarId(calendars[0]?.id ?? null);
     }
   },
-  categories: () => request<Category[]>('/categories/'),
+  categories: (params: CalendarListParams = {}) => requestList<Category>('/categories/', params),
   createCategory: async (payload: CategoryPayload) => {
     const category = await request<Category>('/categories/', {
       method: 'POST',
@@ -203,7 +266,7 @@ export const apiClient = {
         ),
     });
   },
-  events: () => request<Event[]>('/events/'),
+  events: (params: EventListParams = {}) => requestList<Event>('/events/', params),
   createEvent: async (payload: EventPayload) => {
     const event = await request<Event>('/events/', {
       method: 'POST',
@@ -234,7 +297,7 @@ export const apiClient = {
       events: usePlannerStore.getState().events.filter((event) => event.id !== eventId),
     });
   },
-  tasks: () => request<Task[]>('/tasks/'),
+  tasks: (params: TaskListParams = {}) => requestList<Task>('/tasks/', params),
   createTask: async (payload: TaskPayload) => {
     const task = await request<Task>('/tasks/', {
       method: 'POST',

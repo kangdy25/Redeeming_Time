@@ -135,7 +135,8 @@ login for users.
 
 The production API is Dockerized and has a Render Blueprint at `render.yaml`.
 It provisions PostgreSQL, a private Redis-compatible cache for authentication
-throttling, a health check, and a pre-deploy migration job. Follow
+throttling, a health check, a pre-deploy migration job, and an Asia/Seoul task
+rollover Cron Job. Follow
 [the backend deployment guide](docs/backend-deployment.md) before setting
 `VITE_API_BASE_URL` to the deployed API URL.
 

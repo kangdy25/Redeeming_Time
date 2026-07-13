@@ -136,6 +136,11 @@ class Task(models.Model):
         ordering = ['target_date', 'order', 'created_at']
         indexes = [
             models.Index(fields=['calendar', 'target_date', 'is_completed']),
+            models.Index(
+                fields=['target_date'],
+                condition=models.Q(is_completed=False),
+                name='planner_task_open_due_idx',
+            ),
         ]
 
     def __str__(self):

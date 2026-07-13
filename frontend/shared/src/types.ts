@@ -85,6 +85,35 @@ export interface PlannerSnapshot {
   tasks: Task[];
 }
 
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+export interface CalendarListParams extends Record<
+  string,
+  string | number | boolean | null | undefined
+> {
+  calendar?: number;
+}
+
+export interface EventListParams extends CalendarListParams {
+  /** Inclusive ISO 8601 datetime; must be supplied with ends_at. */
+  starts_at?: string;
+  /** Exclusive ISO 8601 datetime; must be supplied with starts_at. */
+  ends_at?: string;
+}
+
+export interface TaskListParams extends CalendarListParams {
+  /** Inclusive YYYY-MM-DD date. */
+  target_date_from?: string;
+  /** Exclusive YYYY-MM-DD date. */
+  target_date_to?: string;
+  is_completed?: boolean;
+}
+
 export interface RegisterPayload {
   email: string;
   password: string;
