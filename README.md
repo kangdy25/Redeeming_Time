@@ -116,6 +116,21 @@ npm --workspace @redeeming-time/web run dev
 
 The Vite web app starts on the URL printed by Vite, usually `http://localhost:5173/`.
 
+### Vercel Web Deployment
+
+Create a Vercel project from this repository with these settings:
+
+- Root Directory: `frontend`
+- Framework: Vite
+- Build Command: `npm run build:web`
+- Output Directory: `web/dist`
+- Environment Variable: `VITE_API_BASE_URL=https://your-api.example.com/api`
+
+`frontend/vercel.json` contains the monorepo install command, SPA fallback rewrite for direct
+access to `/login` and `/dashboard`, and baseline security headers. Deploy once without the API
+variable only to verify the static preview; set the Render API URL and redeploy before enabling
+login for users.
+
 For the Expo app:
 
 ```bash

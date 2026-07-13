@@ -18,7 +18,11 @@ const runtimeEnv =
   (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
 
 function inferApiBaseUrl() {
-  const explicitUrl = runtimeEnv.EXPO_PUBLIC_API_BASE_URL ?? runtimeEnv.VITE_API_BASE_URL;
+  const webApiBaseUrl = (
+    globalThis as typeof globalThis & { __REDEEMING_TIME_WEB_API_BASE_URL__?: string }
+  ).__REDEEMING_TIME_WEB_API_BASE_URL__;
+  const explicitUrl =
+    webApiBaseUrl || runtimeEnv.EXPO_PUBLIC_API_BASE_URL || runtimeEnv.VITE_API_BASE_URL;
   if (explicitUrl) {
     return explicitUrl.replace(/\/$/, '');
   }
