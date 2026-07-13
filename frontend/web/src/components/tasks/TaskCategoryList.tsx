@@ -3,42 +3,25 @@ import { type TaskPriority } from '@redeeming-time/shared';
 import { type TaskBoardModel } from '../../hooks/useTaskBoardModel';
 import { taskPriorities } from '../../utils/taskBoard';
 
-type TaskCategoryListProps = Pick<
-  TaskBoardModel,
-  | 'categorySections'
-  | 'editingCategory'
-  | 'setEditingCategory'
-  | 'saveCategoryEdit'
-  | 'isSavingEdit'
-  | 'removeCategory'
-  | 'prepareTaskForCategory'
-  | 'editingTask'
-  | 'setEditingTask'
-  | 'saveTaskEdit'
-  | 'taskCategories'
-  | 'removeTask'
-  | 'toggleTask'
-  | 'today'
-> & { calendarId: number };
+type TaskCategoryListProps = { model: TaskBoardModel; calendarId: number };
 
-export function TaskCategoryList(props: TaskCategoryListProps) {
+export function TaskCategoryList({ model, calendarId }: TaskCategoryListProps) {
+  const { data, editor, composer, mutations, calendar } = model;
   const {
-    categorySections,
-    editingCategory,
-    setEditingCategory,
-    saveCategoryEdit,
-    isSavingEdit,
+    category: editingCategory,
+    setCategory: setEditingCategory,
+    saveCategory: saveCategoryEdit,
+    isSaving: isSavingEdit,
     removeCategory,
-    prepareTaskForCategory,
-    editingTask,
-    setEditingTask,
-    saveTaskEdit,
-    taskCategories,
+    task: editingTask,
+    setTask: setEditingTask,
+    saveTask: saveTaskEdit,
     removeTask,
-    toggleTask,
-    today,
-    calendarId,
-  } = props;
+  } = editor;
+  const { categorySections, taskCategories } = data;
+  const prepareTaskForCategory = composer.prepareForCategory;
+  const toggleTask = mutations.toggleTask;
+  const today = calendar.today;
   return (
     <div className="task-board-list">
       {categorySections.map((section) => (

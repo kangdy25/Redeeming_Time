@@ -1,0 +1,94 @@
+import { type FormEvent, useState } from 'react';
+import { apiClient, type Category, type Task, type TaskPriority } from '@redeeming-time/shared';
+
+type Input = {
+  selectedCategory: string;
+  setSelectedCategory: (value: string) => void;
+  setMessage: (value: string) => void;
+};
+
+export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessage }: Input) {
+  const [category, setCategory] = useState<{ id: number; name: string; color: string } | null>(
+    null,
+  );
+  const [task, setTask] = useState<{
+    id: number;
+    title: string;
+    priority: TaskPriority;
+    category: string;
+  } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function saveCategory(event: FormEvent) {
+    event.preventDefault();
+    if (!category?.name.trim()) return;
+    setIsSaving(true);
+    try {
+      await apiClient.updateCategory(category.id, {
+        name: category.name.trim(),
+        color_code: category.color,
+      });
+      setCategory(null);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '카테고리 수정에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removeCategory(target: Category) {
+    if (
+      !window.confirm(
+        `"${target.name}" 카테고리를 삭제할까요? 포함된 할일은 카테고리 없음으로 이동합니다.`,
+      )
+    )
+      return;
+    try {
+      await apiClient.deleteCategory(target.id);
+      if (selectedCategory === String(target.id)) setSelectedCategory('');
+      setCategory(null);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '카테고리 삭제에 실패했습니다.');
+    }
+  }
+
+  async function saveTask(event: FormEvent) {
+    event.preventDefault();
+    if (!task?.title.trim()) return;
+    setIsSaving(true);
+    try {
+      await apiClient.editTask(task.id, {
+        title: task.title.trim(),
+        priority: task.priority,
+        category: task.category ? Number(task.category) : null,
+      });
+      setTask(null);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '할일 수정에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removeTask(target: Task) {
+    if (!window.confirm(`"${target.title}" 할일을 삭제할까요?`)) return;
+    try {
+      await apiClient.deleteTask(target.id);
+      setTask(null);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '할일 삭제에 실패했습니다.');
+    }
+  }
+
+  return {
+    category,
+    setCategory,
+    task,
+    setTask,
+    isSaving,
+    saveCategory,
+    removeCategory,
+    saveTask,
+    removeTask,
+  };
+}

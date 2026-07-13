@@ -1,12 +1,14 @@
 import { type DashboardModel } from '../hooks/useDashboardModel';
 
-type DashboardMobileNavProps = Pick<
-  DashboardModel,
-  'mobilePanel' | 'activeSection' | 'setActiveSection' | 'setMobilePanel'
->;
+type DashboardMobileNavProps = Pick<DashboardModel['shell'], 'navigation'>;
 
-export function DashboardMobileNav(props: DashboardMobileNavProps) {
-  const { mobilePanel, activeSection, setActiveSection, setMobilePanel } = props;
+export function DashboardMobileNav({ navigation }: DashboardMobileNavProps) {
+  const {
+    mobilePanel,
+    section: activeSection,
+    setSection: setActiveSection,
+    setMobilePanel,
+  } = navigation;
   return (
     <nav className="mobile-bottom-nav" aria-label="Mobile planner navigation">
       <button

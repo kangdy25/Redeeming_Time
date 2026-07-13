@@ -1,43 +1,26 @@
 import { useAuthStore } from '@redeeming-time/shared';
 import { type DashboardModel } from '../hooks/useDashboardModel';
 
-type DashboardHeaderProps = Pick<
-  DashboardModel,
-  | 'setActiveSection'
-  | 'setMobilePanel'
-  | 'workspaceSwitcherRef'
-  | 'currentCalendarId'
-  | 'setActiveCalendarId'
-  | 'calendars'
-  | 'isWorkspaceMenuOpen'
-  | 'setIsWorkspaceMenuOpen'
-  | 'selectedCalendarColor'
-  | 'activeCalendar'
-  | 'setActiveModal'
-  | 'deleteWorkspace'
-  | 'theme'
-  | 'setTheme'
-  | 'profileImageUrl'
->;
+type DashboardHeaderProps = Pick<DashboardModel, 'shell' | 'workspace'>;
 
-export function DashboardHeader(props: DashboardHeaderProps) {
+export function DashboardHeader({ shell, workspace }: DashboardHeaderProps) {
+  const { setSection: setActiveSection, setMobilePanel } = shell.navigation;
   const {
-    setActiveSection,
-    setMobilePanel,
-    workspaceSwitcherRef,
-    currentCalendarId,
-    setActiveCalendarId,
+    ref: workspaceSwitcherRef,
+    open: isWorkspaceMenuOpen,
+    setOpen: setIsWorkspaceMenuOpen,
+  } = shell.workspaceMenu;
+  const { value: theme, set: setTheme } = shell.theme;
+  const { profileImageUrl } = shell.session;
+  const {
+    activeId: currentCalendarId,
+    setActiveId: setActiveCalendarId,
     calendars,
-    isWorkspaceMenuOpen,
-    setIsWorkspaceMenuOpen,
-    selectedCalendarColor,
-    activeCalendar,
-    setActiveModal,
-    deleteWorkspace,
-    theme,
-    setTheme,
-    profileImageUrl,
-  } = props;
+    color: selectedCalendarColor,
+    active: activeCalendar,
+    remove: deleteWorkspace,
+  } = workspace;
+  const setActiveModal = shell.modal.set;
 
   return (
     <header className="top-nav">

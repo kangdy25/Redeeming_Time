@@ -11,17 +11,11 @@ import { DashboardModalLayer } from '../components/DashboardModalLayer';
 
 export function DashboardPage() {
   const model = useDashboardModel();
-  const {
-    isAuthenticated,
-    mobilePanel,
-    activeSection,
-    taskBoardDate,
-    setTaskBoardDate,
-    tasks,
-    categories,
-    activeCalendar,
-    globalCalendar,
-  } = model;
+  const { shell, workspace } = model;
+  const { mobilePanel, section: activeSection } = shell.navigation;
+  const { date: taskBoardDate, setDate: setTaskBoardDate } = shell.taskBoard;
+  const { tasks, categories, active: activeCalendar, global: globalCalendar } = workspace;
+  const { isAuthenticated } = shell.session;
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -58,7 +52,7 @@ export function DashboardPage() {
         </main>
       </div>
 
-      <DashboardMobileNav {...model} />
+      <DashboardMobileNav navigation={shell.navigation} />
 
       <DashboardModalLayer {...model} />
     </div>

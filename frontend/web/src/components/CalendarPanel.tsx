@@ -1,35 +1,24 @@
 import { type DashboardModel } from '../hooks/useDashboardModel';
 import { MonthGrid, WeekRail } from './CalendarViews';
 
-type CalendarPanelProps = Pick<
-  DashboardModel,
-  | 'activeView'
-  | 'anchor'
-  | 'handlePrev'
-  | 'handleNext'
-  | 'handleToday'
-  | 'setActiveView'
-  | 'activeCalendarEvents'
-  | 'calendarStatusNotice'
-  | 'calendarEvents'
-  | 'openEventComposerForDate'
-  | 'openEventDetail'
->;
+type CalendarPanelProps = Pick<DashboardModel, 'calendar' | 'workspace'>;
 
-export function CalendarPanel(props: CalendarPanelProps) {
+export function CalendarPanel({ calendar, workspace }: CalendarPanelProps) {
   const {
-    activeView,
+    view: activeView,
     anchor,
-    handlePrev,
-    handleNext,
-    handleToday,
-    setActiveView,
-    activeCalendarEvents,
-    calendarStatusNotice,
+    previous: handlePrev,
+    next: handleNext,
+    today: handleToday,
+    setView: setActiveView,
+    openForDate: openEventComposerForDate,
+    openEvent: openEventDetail,
+  } = calendar;
+  const {
+    activeEvents: activeCalendarEvents,
+    statusNotice: calendarStatusNotice,
     calendarEvents,
-    openEventComposerForDate,
-    openEventDetail,
-  } = props;
+  } = workspace;
 
   return (
     <section className="planner-panel calendar-area">

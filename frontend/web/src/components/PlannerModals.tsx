@@ -21,39 +21,7 @@ export function PlannerModals({
   selectedEvent,
   onClose,
 }: Props) {
-  const {
-    selectedCalendar,
-    disabled,
-    eventTitle,
-    setEventTitle,
-    eventDescription,
-    setEventDescription,
-    eventColor,
-    setEventColor,
-    eventStart,
-    setEventStart,
-    eventEnd,
-    setEventEnd,
-    isAllDayEvent,
-    eventRrule,
-    setEventRrule,
-    workspaceTitle,
-    setWorkspaceTitle,
-    workspaceDescription,
-    setWorkspaceDescription,
-    formMessage,
-    isReadOnlyEvent,
-    isEditingEvent,
-    modalCopy,
-    setDate,
-    setStartTime,
-    setEndTime,
-    setAllDay,
-    submitEvent,
-    deleteEvent,
-    addWorkspace,
-    createCalendar,
-  } = usePlannerModalModel({
+  const model = usePlannerModalModel({
     calendars,
     isLoading,
     modalKind,
@@ -61,6 +29,37 @@ export function PlannerModals({
     selectedEvent,
     onClose,
   });
+  const { workspace, event, copy: modalCopy } = model;
+  const selectedCalendar = workspace.selected;
+  const workspaceTitle = workspace.title;
+  const setWorkspaceTitle = workspace.setTitle;
+  const workspaceDescription = workspace.description;
+  const setWorkspaceDescription = workspace.setDescription;
+  const addWorkspace = workspace.submit;
+  const createCalendar = workspace.mutation;
+  const eventTitle = event.title;
+  const setEventTitle = event.setTitle;
+  const eventDescription = event.description;
+  const setEventDescription = event.setDescription;
+  const eventColor = event.color;
+  const setEventColor = event.setColor;
+  const eventStart = event.start;
+  const setEventStart = event.setStart;
+  const eventEnd = event.end;
+  const setEventEnd = event.setEnd;
+  const isAllDayEvent = event.allDay;
+  const eventRrule = event.rrule;
+  const setEventRrule = event.setRrule;
+  const isReadOnlyEvent = event.readOnly;
+  const isEditingEvent = event.editing;
+  const disabled = event.disabled;
+  const setDate = event.setDate;
+  const setStartTime = event.setStartTime;
+  const setEndTime = event.setEndTime;
+  const setAllDay = event.setAllDay;
+  const submitEvent = event.submit;
+  const deleteEvent = event.remove;
+  const formMessage = modalKind === 'settings' ? workspace.message : event.message;
   return (
     <section className="planner-panel controls-panel">
       <div className="control-header">

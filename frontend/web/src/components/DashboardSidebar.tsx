@@ -1,32 +1,21 @@
 import { type DashboardModel } from '../hooks/useDashboardModel';
 
-type DashboardSidebarProps = Pick<
-  DashboardModel,
-  | 'mobilePanel'
-  | 'isSidebarCollapsed'
-  | 'setIsSidebarCollapsed'
-  | 'selectedCalendarColor'
-  | 'activeCalendarTitle'
-  | 'activeCalendarEvents'
-  | 'tasks'
-  | 'activeSection'
-  | 'setActiveSection'
-  | 'setMobilePanel'
->;
+type DashboardSidebarProps = Pick<DashboardModel, 'shell' | 'workspace'>;
 
-export function DashboardSidebar(props: DashboardSidebarProps) {
+export function DashboardSidebar({ shell, workspace }: DashboardSidebarProps) {
   const {
     mobilePanel,
-    isSidebarCollapsed,
-    setIsSidebarCollapsed,
-    selectedCalendarColor,
-    activeCalendarTitle,
-    activeCalendarEvents,
-    tasks,
-    activeSection,
-    setActiveSection,
+    section: activeSection,
+    setSection: setActiveSection,
     setMobilePanel,
-  } = props;
+  } = shell.navigation;
+  const { collapsed: isSidebarCollapsed, setCollapsed: setIsSidebarCollapsed } = shell.sidebar;
+  const {
+    color: selectedCalendarColor,
+    title: activeCalendarTitle,
+    activeEvents: activeCalendarEvents,
+    tasks,
+  } = workspace;
 
   return (
     <aside
