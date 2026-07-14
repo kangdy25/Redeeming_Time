@@ -23,6 +23,9 @@ from accounts.views import (
     LoginView,
     LogoutView,
     PasswordChangeView,
+    SocialAuthCallbackView,
+    SocialAuthExchangeView,
+    SocialAuthStartView,
     TokenRefreshWithThrottleView,
     UserViewSet,
 )
@@ -48,6 +51,9 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshWithThrottleView.as_view(), name='token_refresh'),
     path('api/auth/token/blacklist/', LogoutView.as_view(), name='token_blacklist'),
     path('api/auth/password/change/', PasswordChangeView.as_view(), name='password_change'),
+    path('api/auth/social/<str:provider>/start/', SocialAuthStartView.as_view(), name='social_auth_start'),
+    path('api/auth/social/<str:provider>/callback/', SocialAuthCallbackView.as_view(), name='social_auth_callback'),
+    path('api/auth/social/exchange/', SocialAuthExchangeView.as_view(), name='social_auth_exchange'),
 ]
 
 handler500 = 'config.exceptions.server_error'

@@ -75,6 +75,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         db_table = 'users'
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['social_provider', 'social_id'],
+                condition=~models.Q(social_id=''),
+                name='unique_social_provider_identity',
+            ),
+        ]
 
     def __str__(self):
         return self.email

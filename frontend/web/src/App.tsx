@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { apiClient, useAuthStore } from '@redeeming-time/shared';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { SocialAuthCallbackPage } from './pages/SocialAuthCallbackPage';
 
 export default function App() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -44,6 +45,7 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
+        <Route path="/auth/callback" element={<SocialAuthCallbackPage />} />
         <Route
           path="/login"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}

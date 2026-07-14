@@ -73,3 +73,25 @@ class PasswordChangeSerializer(serializers.Serializer):
         except DjangoValidationError as exc:
             raise serializers.ValidationError({'new_password': list(exc.messages)}) from exc
         return attrs
+
+
+class SocialHandoffCodeSerializer(serializers.Serializer):
+    """Validate the opaque code returned only by a successful OAuth callback."""
+
+    code = serializers.CharField(
+        write_only=True,
+        min_length=32,
+        max_length=128,
+        trim_whitespace=False,
+    )
+    verifier = serializers.CharField(
+        write_only=True,
+        min_length=43,
+        max_length=128,
+        trim_whitespace=False,
+    )
+
+
+class SocialTokenPairSerializer(serializers.Serializer):
+    access = serializers.CharField(read_only=True)
+    refresh = serializers.CharField(read_only=True)

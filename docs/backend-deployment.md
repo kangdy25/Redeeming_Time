@@ -17,10 +17,71 @@ Production starts only when all of the following are set:
 | `ALLOWED_HOSTS` | API hostnames only, such as `.onrender.com` and any custom API domain |
 | `CORS_ALLOWED_ORIGINS` | `https://redeeming-time.vercel.app` |
 | `CSRF_TRUSTED_ORIGINS` | `https://redeeming-time.vercel.app` when cross-origin CSRF-protected flows are added |
+| `FRONTEND_ORIGIN` | `https://redeeming-time.vercel.app` |
+| `SOCIAL_AUTH_GOOGLE_CLIENT_ID` / `SOCIAL_AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth web-application credentials, if Google sign-in is enabled |
+| `SOCIAL_AUTH_KAKAO_CLIENT_ID` / `SOCIAL_AUTH_KAKAO_CLIENT_SECRET` | Kakao REST API key and client secret, if Kakao sign-in is enabled |
+| `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS API callback URI registered with each enabled provider |
 | `PLANNER_TIME_ZONE` | `Asia/Seoul` for the current shared calendar-day policy |
 
 `CORS_ALLOW_ALL_ORIGINS` must remain `False`. The browser client uses Bearer
 tokens, so CORS credentials are deliberately disabled.
+
+## Google and Kakao social sign-in
+
+Social sign-in uses a server-side authorization-code flow. The browser starts
+at `GET /api/auth/social/google/start/` or
+`GET /api/auth/social/kakao/start/`; the backend stores a random, single-use
+state value in the Django session for 10 minutes and redirects the browser to
+the provider. Register these exact backend callback URLs in the provider
+consoles:
+
+```text
+https://<api-host>/api/auth/social/google/callback/
+https://<api-host>/api/auth/social/kakao/callback/
+```
+
+Set the matching `SOCIAL_AUTH_*_REDIRECT_URI` variables to those URLs in
+production. They are required in production and must match the provider-console
+value exactly. In local `DEBUG=True` development only, a blank value derives
+the callback from the incoming API request host.
+
+Google requests `openid email profile` and validates the returned ID token on
+the server with `google-auth`, including signature, audience, issuer, and
+expiry. Kakao exchanges the authorization code with the configured client
+secret and then validates `is_email_valid`, `is_email_verified`, and the email
+from `/v2/user/me`. Both providers require a verified email address.
+
+After a successful callback, the backend redirects only to:
+
+```text
+https://redeeming-time.vercel.app/auth/callback?code=<opaque-one-time-code>
+```
+
+The opaque code expires after 60 seconds and is consumed through
+`POST /api/auth/social/exchange/` with `{ "code": "...", "verifier": "..." }`;
+that response is the only place access and refresh JWTs are returned. The web
+app creates the high-entropy verifier in its own tab session before it starts
+OAuth, and the backend stores only its hash. A copied callback URL therefore
+cannot establish a session in another browser. Never put provider secrets,
+JWTs, a verifier, or a caller-controlled return URL in the browser callback
+redirect.
+OAuth cancellation and validation failures also redirect only to this fixed
+route with a safe `error` value such as `ACCESS_DENIED`, `INVALID_STATE`,
+`ACCOUNT_CONFLICT`, or `OAUTH_FAILED`; provider error descriptions are never
+reflected to the browser.
+An email already owned by a local account or another social identity is
+rejected rather than linked automatically. Inactive accounts are also
+rejected.
+
+The state, callback, and exchange endpoints use dedicated throttles. Their
+short-lived handoff code requires the production shared Redis-compatible cache
+already listed above; do not replace it with per-process local memory.
+
+The Render Blueprint declares placeholders for the provider credentials and
+redirect URIs. During a new Blueprint setup, enter them when Render prompts
+for values. For an existing service, add the same variables in Render's
+Environment settings before redeploying; placeholder variables are intentionally
+not overwritten by Blueprint syncs.
 
 ## Deploy with Render
 

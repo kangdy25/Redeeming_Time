@@ -1,5 +1,15 @@
 import { type FormEvent, useState } from 'react';
-import { apiClient, getErrorMessage, useAuthStore } from '@redeeming-time/shared';
+import {
+  apiClient,
+  getErrorMessage,
+  type SocialLoginProvider,
+  useAuthStore,
+} from '@redeeming-time/shared';
+import {
+  clearSocialAuthVerifier,
+  createSocialAuthVerifier,
+  navigateToExternalUrl,
+} from '../../utils/browserNavigation';
 
 export function AuthPanel() {
   const setTokens = useAuthStore((state) => state.setTokens);
@@ -9,6 +19,7 @@ export function AuthPanel() {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [message, setMessage] = useState('');
+  const [socialLoginProvider, setSocialLoginProvider] = useState<SocialLoginProvider | null>(null);
   const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
 
   async function submit(event: FormEvent) {
@@ -20,6 +31,18 @@ export function AuthPanel() {
       setMessage('Authenticated. Planner data is now synced with the API.');
     } catch (error) {
       setMessage(getErrorMessage(error, '로그인에 실패했습니다.'));
+    }
+  }
+
+  function startSocialLogin(provider: SocialLoginProvider) {
+    setMessage('');
+    setSocialLoginProvider(provider);
+    try {
+      navigateToExternalUrl(apiClient.socialLoginUrl(provider, createSocialAuthVerifier()));
+    } catch {
+      clearSocialAuthVerifier();
+      setSocialLoginProvider(null);
+      setMessage('소셜 로그인 페이지로 이동하지 못했습니다. 다시 시도해 주세요.');
     }
   }
 
@@ -55,16 +78,22 @@ export function AuthPanel() {
             <button
               type="button"
               className="social-login-button google"
-              onClick={() => setMessage('Google 로그인 연동을 준비 중입니다.')}
+              onClick={() => startSocialLogin('GOOGLE')}
+              disabled={socialLoginProvider !== null}
+              aria-busy={socialLoginProvider === 'GOOGLE'}
             >
-              <span aria-hidden="true">G</span>Google로 계속
+              <span aria-hidden="true">G</span>
+              {socialLoginProvider === 'GOOGLE' ? 'Google 로그인으로 이동 중' : 'Google로 계속'}
             </button>
             <button
               type="button"
               className="social-login-button kakao"
-              onClick={() => setMessage('Kakao 로그인 연동을 준비 중입니다.')}
+              onClick={() => startSocialLogin('KAKAO')}
+              disabled={socialLoginProvider !== null}
+              aria-busy={socialLoginProvider === 'KAKAO'}
             >
-              <span aria-hidden="true">K</span>Kakao로 계속
+              <span aria-hidden="true">K</span>
+              {socialLoginProvider === 'KAKAO' ? 'Kakao 로그인으로 이동 중' : 'Kakao로 계속'}
             </button>
           </div>
           <div className="auth-divider">

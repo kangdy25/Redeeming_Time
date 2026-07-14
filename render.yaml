@@ -34,6 +34,22 @@ services:
         value: https://redeeming-time.vercel.app
       - key: CSRF_TRUSTED_ORIGINS
         value: https://redeeming-time.vercel.app
+      - key: FRONTEND_ORIGIN
+        value: https://redeeming-time.vercel.app
+      # Enter these in Render when creating a Blueprint. Existing services
+      # retain their manually configured values on later Blueprint syncs.
+      - key: SOCIAL_AUTH_GOOGLE_CLIENT_ID
+        sync: false
+      - key: SOCIAL_AUTH_GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SOCIAL_AUTH_GOOGLE_REDIRECT_URI
+        sync: false
+      - key: SOCIAL_AUTH_KAKAO_CLIENT_ID
+        sync: false
+      - key: SOCIAL_AUTH_KAKAO_CLIENT_SECRET
+        sync: false
+      - key: SOCIAL_AUTH_KAKAO_REDIRECT_URI
+        sync: false
       - key: NUM_PROXIES
         value: "1"
       - key: WEB_CONCURRENCY

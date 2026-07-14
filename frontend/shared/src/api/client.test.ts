@@ -60,6 +60,36 @@ describe('API error handling', () => {
     await expect(apiClient.logout('active-refresh')).resolves.toBeUndefined();
   });
 
+  it('builds provider-specific social login start URLs', () => {
+    expect(apiClient.socialLoginUrl('GOOGLE', 'tab-verifier')).toBe(
+      'http://localhost:8000/api/auth/social/google/start/?handoff_verifier=tab-verifier',
+    );
+    expect(apiClient.socialLoginUrl('KAKAO', 'tab-verifier')).toBe(
+      'http://localhost:8000/api/auth/social/kakao/start/?handoff_verifier=tab-verifier',
+    );
+  });
+
+  it('exchanges a short-lived social login code for planner tokens', async () => {
+    server.use(
+      http.post('http://localhost:8000/api/auth/social/exchange/', async ({ request }) => {
+        expect(request.headers.get('Authorization')).toBeNull();
+        await expect(request.json()).resolves.toEqual({
+          code: 'one-time-social-code',
+          verifier: 'tab-verifier',
+        });
+        return HttpResponse.json({
+          access: 'social-access-token',
+          refresh: 'social-refresh-token',
+        });
+      }),
+    );
+
+    await expect(apiClient.exchangeSocialCode('one-time-social-code', 'tab-verifier')).resolves.toEqual({
+      access: 'social-access-token',
+      refresh: 'social-refresh-token',
+    });
+  });
+
   it('follows paginated list links while accepting the new response envelope', async () => {
     const requestedPages: string[] = [];
     server.use(

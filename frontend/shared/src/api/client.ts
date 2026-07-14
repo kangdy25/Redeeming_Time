@@ -10,6 +10,7 @@ import type {
   PaginatedResponse,
   PlannerSnapshot,
   RegisterPayload,
+  SocialLoginProvider,
   Task,
   TaskListParams,
   TaskPayload,
@@ -74,16 +75,19 @@ export function getErrorMessage(error: unknown, fallback = '요청을 처리하�
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const authorization = useAuthStore.getState().authorizationHeader();
+type ApiRequestInit = RequestInit & { skipAuthorization?: boolean };
+
+async function request<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
+  const { skipAuthorization = false, ...requestInit } = init;
+  const authorization = skipAuthorization ? {} : useAuthStore.getState().authorizationHeader();
   let response: Response;
   try {
     response = await fetch(/^https?:\/\//i.test(path) ? path : `${API_BASE_URL}${path}`, {
-      ...init,
+      ...requestInit,
       headers: {
         'Content-Type': 'application/json',
         ...authorization,
-        ...init.headers,
+        ...requestInit.headers,
       },
     });
   } catch {
@@ -183,6 +187,16 @@ export const apiClient = {
     request<{ access: string; refresh: string }>('/auth/token/', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    }),
+  socialLoginUrl: (provider: SocialLoginProvider, verifier: string) =>
+    `${API_BASE_URL}/auth/social/${provider.toLowerCase()}/start/?${new URLSearchParams({
+      handoff_verifier: verifier,
+    }).toString()}`,
+  exchangeSocialCode: (code: string, verifier: string) =>
+    request<{ access: string; refresh: string }>('/auth/social/exchange/', {
+      method: 'POST',
+      body: JSON.stringify({ code, verifier }),
+      skipAuthorization: true,
     }),
   logout: (refresh: string) =>
     request<void>('/auth/token/blacklist/', {

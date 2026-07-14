@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import sys
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import environ
@@ -200,6 +201,54 @@ CORS_ALLOWED_ORIGINS = env.list(
 )
 CORS_ALLOW_CREDENTIALS = False
 CORS_URLS_REGEX = r'^/api/.*$'
+
+# The OAuth callback always redirects to this fixed, deployment-controlled
+# origin. It is deliberately not accepted from a query parameter or state
+# value, which prevents callback-code open redirects.
+FRONTEND_ORIGIN = env(
+    'FRONTEND_ORIGIN',
+    default='http://localhost:5173' if DEBUG else 'https://redeeming-time.vercel.app',
+).rstrip('/')
+_frontend_origin = urlparse(FRONTEND_ORIGIN)
+if (
+    _frontend_origin.scheme not in {'http', 'https'}
+    or not _frontend_origin.netloc
+    or _frontend_origin.path not in {'', '/'}
+    or _frontend_origin.params
+    or _frontend_origin.query
+    or _frontend_origin.fragment
+):
+    raise ImproperlyConfigured('FRONTEND_ORIGIN must be an origin without a path, query, or fragment.')
+if not DEBUG and _frontend_origin.scheme != 'https':
+    raise ImproperlyConfigured('FRONTEND_ORIGIN must use HTTPS when DEBUG=False.')
+
+SOCIAL_AUTH_GOOGLE_CLIENT_ID = env('SOCIAL_AUTH_GOOGLE_CLIENT_ID', default='')
+SOCIAL_AUTH_GOOGLE_CLIENT_SECRET = env('SOCIAL_AUTH_GOOGLE_CLIENT_SECRET', default='')
+SOCIAL_AUTH_GOOGLE_REDIRECT_URI = env('SOCIAL_AUTH_GOOGLE_REDIRECT_URI', default='').strip()
+SOCIAL_AUTH_KAKAO_CLIENT_ID = env('SOCIAL_AUTH_KAKAO_CLIENT_ID', default='')
+SOCIAL_AUTH_KAKAO_CLIENT_SECRET = env('SOCIAL_AUTH_KAKAO_CLIENT_SECRET', default='')
+SOCIAL_AUTH_KAKAO_REDIRECT_URI = env('SOCIAL_AUTH_KAKAO_REDIRECT_URI', default='').strip()
+SOCIAL_AUTH_STATE_TTL_SECONDS = env.int('SOCIAL_AUTH_STATE_TTL_SECONDS', default=600)
+SOCIAL_AUTH_HANDOFF_TTL_SECONDS = env.int('SOCIAL_AUTH_HANDOFF_TTL_SECONDS', default=60)
+SOCIAL_AUTH_HTTP_TIMEOUT_SECONDS = env.int('SOCIAL_AUTH_HTTP_TIMEOUT_SECONDS', default=10)
+
+for _redirect_uri_name in ('SOCIAL_AUTH_GOOGLE_REDIRECT_URI', 'SOCIAL_AUTH_KAKAO_REDIRECT_URI'):
+    _redirect_uri = globals()[_redirect_uri_name]
+    if not _redirect_uri:
+        continue
+    _parsed_redirect_uri = urlparse(_redirect_uri)
+    if _parsed_redirect_uri.scheme not in {'http', 'https'} or not _parsed_redirect_uri.netloc:
+        raise ImproperlyConfigured(f'{_redirect_uri_name} must be an absolute HTTP(S) URL.')
+    if not DEBUG and _parsed_redirect_uri.scheme != 'https':
+        raise ImproperlyConfigured(f'{_redirect_uri_name} must use HTTPS when DEBUG=False.')
+
+if SOCIAL_AUTH_STATE_TTL_SECONDS <= 0:
+    raise ImproperlyConfigured('SOCIAL_AUTH_STATE_TTL_SECONDS must be positive.')
+if SOCIAL_AUTH_HANDOFF_TTL_SECONDS <= 0:
+    raise ImproperlyConfigured('SOCIAL_AUTH_HANDOFF_TTL_SECONDS must be positive.')
+if SOCIAL_AUTH_HTTP_TIMEOUT_SECONDS <= 0:
+    raise ImproperlyConfigured('SOCIAL_AUTH_HTTP_TIMEOUT_SECONDS must be positive.')
+
 CSRF_TRUSTED_ORIGINS = env.list(
     'CSRF_TRUSTED_ORIGINS',
     default=['https://redeeming-time.vercel.app'] if not DEBUG else [],
@@ -243,6 +292,9 @@ REST_FRAMEWORK = {
         'token_refresh': '20/minute',
         'logout': '20/minute',
         'password_change': '5/hour',
+        'social_auth_start': '10/minute',
+        'social_auth_callback': '20/minute',
+        'social_auth_exchange': '20/minute',
     },
     'NUM_PROXIES': env.int('NUM_PROXIES', default=1 if not DEBUG else 0),
 }

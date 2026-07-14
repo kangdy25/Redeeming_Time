@@ -1,18 +1,42 @@
 from django.db import transaction
+from django.http import HttpResponseRedirect
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException, NotFound, Throttled, ValidationError
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenBlacklistView, TokenObtainPairView, TokenRefreshView
 
 from planner.models import CalendarMember
 
 from .models import User
-from .serializers import PasswordChangeSerializer, UserSerializer
+from .serializers import (
+    PasswordChangeSerializer,
+    SocialHandoffCodeSerializer,
+    SocialTokenPairSerializer,
+    UserSerializer,
+)
+from .social import (
+    InactiveSocialAccount,
+    InvalidOAuthState,
+    SocialAuthConfigurationError,
+    SocialAuthenticationError,
+    SocialAuthorizationDenied,
+    SocialIdentityCollision,
+    build_authorization_url,
+    consume_handoff_code,
+    consume_oauth_state,
+    create_handoff_code,
+    frontend_callback_error_url,
+    frontend_callback_url,
+    get_callback_url,
+    get_social_provider,
+    resolve_social_user,
+)
 
 
 class LoginView(TokenObtainPairView):
@@ -23,6 +47,113 @@ class LoginView(TokenObtainPairView):
 class TokenRefreshWithThrottleView(TokenRefreshView):
     throttle_scope = 'token_refresh'
     throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+
+class SocialAuthBrowserRedirectView(APIView):
+    """Keep browser-facing OAuth errors on the fixed frontend callback route."""
+
+    @staticmethod
+    def _redirect(url: str) -> HttpResponseRedirect:
+        response = HttpResponseRedirect(url)
+        # The URL contains either a CSRF state or a short-lived handoff code.
+        # Keep it out of navigation caches and downstream Referer headers.
+        response['Cache-Control'] = 'no-store'
+        response['Referrer-Policy'] = 'no-referrer'
+        return response
+
+    @staticmethod
+    def _safe_error_code(exc: APIException) -> str:
+        if isinstance(exc, Throttled):
+            return 'RATE_LIMITED'
+        if isinstance(exc, SocialAuthorizationDenied):
+            return 'ACCESS_DENIED'
+        if isinstance(exc, InvalidOAuthState):
+            return 'INVALID_STATE'
+        if isinstance(exc, (SocialAuthConfigurationError, NotFound)):
+            return 'PROVIDER_UNAVAILABLE'
+        if isinstance(exc, SocialIdentityCollision):
+            return 'ACCOUNT_CONFLICT'
+        if isinstance(exc, InactiveSocialAccount):
+            return 'ACCOUNT_DISABLED'
+        return 'OAUTH_FAILED'
+
+    def handle_exception(self, exc):
+        if isinstance(exc, APIException):
+            return self._redirect(frontend_callback_error_url(self._safe_error_code(exc)))
+        return super().handle_exception(exc)
+
+
+class SocialAuthStartView(SocialAuthBrowserRedirectView):
+    """Begin a provider redirect after binding a random state to this session."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'social_auth_start'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(responses={302: None})
+    def get(self, request, provider):
+        return self._redirect(
+            build_authorization_url(request, provider, request.query_params.get('handoff_verifier')),
+        )
+
+
+class SocialAuthCallbackView(SocialAuthBrowserRedirectView):
+    """Complete a provider callback without ever putting JWTs in the redirect URL."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'social_auth_callback'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(responses={302: None})
+    def get(self, request, provider):
+        social_provider = get_social_provider(provider)
+        handoff_verifier_digest = consume_oauth_state(
+            request,
+            social_provider.name,
+            request.query_params.get('state'),
+        )
+
+        if request.query_params.get('error'):
+            # The provider may send a descriptive error string. Do not reflect it
+            # back to the browser or logs because it is outside our trust boundary.
+            raise SocialAuthorizationDenied()
+
+        authorization_code = request.query_params.get('code')
+        if not isinstance(authorization_code, str) or not authorization_code:
+            raise SocialAuthenticationError()
+
+        profile = social_provider.fetch_profile(
+            code=authorization_code,
+            redirect_uri=get_callback_url(request, social_provider.name),
+        )
+        user = resolve_social_user(profile)
+        handoff_code = create_handoff_code(user, handoff_verifier_digest)
+        return self._redirect(frontend_callback_url(handoff_code))
+
+
+class SocialAuthExchangeView(APIView):
+    """Exchange one opaque callback code for a normal SimpleJWT token pair."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'social_auth_exchange'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(request=SocialHandoffCodeSerializer, responses={200: SocialTokenPairSerializer})
+    def post(self, request):
+        serializer = SocialHandoffCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = consume_handoff_code(
+            serializer.validated_data['code'],
+            serializer.validated_data['verifier'],
+        )
+        refresh = RefreshToken.for_user(user)
+        response = Response({'access': str(refresh.access_token), 'refresh': str(refresh)})
+        response['Cache-Control'] = 'no-store'
+        response['Pragma'] = 'no-cache'
+        return response
 
 
 class LogoutView(TokenBlacklistView):

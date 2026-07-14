@@ -1,4 +1,5 @@
 export type SocialProvider = 'LOCAL' | 'GOOGLE' | 'KAKAO';
+export type SocialLoginProvider = Exclude<SocialProvider, 'LOCAL'>;
 export type MemberRole = 'OWNER' | 'EDITOR' | 'VIEWER';
 export type AttendanceStatus = 'ACCEPTED' | 'DECLINED' | 'PENDING';
 export type TaskPriority = 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
