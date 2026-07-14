@@ -5,13 +5,13 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "scheme": "redeemingtime",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F4F7F8"
+        "backgroundColor": "#FFFFFF"
       }
     }
   }

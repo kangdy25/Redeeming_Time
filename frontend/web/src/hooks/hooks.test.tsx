@@ -4,6 +4,7 @@ import { type Category, type Task } from '@redeeming-time/shared';
 import { useCalendarNavigation } from './dashboard/useCalendarNavigation';
 import { useEventEditorForm } from './planner/useEventEditorForm';
 import { useTaskBoardData } from './useTaskBoardData';
+import { DEFAULT_EVENT_COLOR } from '../utils/colorPresets';
 
 afterEach(() => vi.useRealTimers());
 
@@ -79,6 +80,7 @@ describe('planner domain hooks', () => {
 
   test('event editor form resets from a draft date and toggles all-day state', () => {
     const { result } = renderHook(() => useEventEditorForm('2026-07-20', null));
+    expect(result.current.color).toBe(DEFAULT_EVENT_COLOR);
     expect(result.current.start).toBe('2026-07-20T09:00');
     expect(result.current.end).toBe('2026-07-20T10:00');
 

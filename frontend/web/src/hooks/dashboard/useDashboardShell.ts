@@ -27,7 +27,7 @@ export function useDashboardShell() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('light-theme', theme === 'light');
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   useEffect(() => {

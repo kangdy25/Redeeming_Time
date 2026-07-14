@@ -6,11 +6,12 @@ import {
   localInputValue,
   toLocalDateTimeInput,
 } from '../../utils/planner';
+import { DEFAULT_EVENT_COLOR } from '../../utils/colorPresets';
 
 export function useEventEditorForm(draftDate?: string, selectedEvent?: Event | null) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [color, setColor] = useState('#6366F1');
+  const [color, setColor] = useState(DEFAULT_EVENT_COLOR);
   const [start, setStart] = useState(() => localInputValue(new Date(), 9));
   const [end, setEnd] = useState(() => localInputValue(new Date(), 10));
   const [allDay, setAllDayState] = useState(false);
@@ -24,7 +25,7 @@ export function useEventEditorForm(draftDate?: string, selectedEvent?: Event | n
       if (draftDate) {
         setTitle('');
         setDescription('');
-        setColor('#6366F1');
+        setColor(DEFAULT_EVENT_COLOR);
         setStart(`${draftDate}T09:00`);
         setEnd(`${draftDate}T10:00`);
         setAllDayState(false);
@@ -35,7 +36,7 @@ export function useEventEditorForm(draftDate?: string, selectedEvent?: Event | n
     }
     setTitle(selectedEvent.title);
     setDescription(selectedEvent.description);
-    setColor(selectedEvent.color_code || '#6366F1');
+    setColor(selectedEvent.color_code || DEFAULT_EVENT_COLOR);
     setStart(toLocalDateTimeInput(selectedEvent.start_time));
     setEnd(toLocalDateTimeInput(selectedEvent.end_time));
     setAllDayState(selectedEvent.is_all_day);

@@ -6,6 +6,7 @@ import {
   type Calendar,
 } from '@redeeming-time/shared';
 import { createKoreaHolidayEvents } from '../../utils/planner';
+import { DEFAULT_WORKSPACE_COLOR } from '../../utils/colorPresets';
 
 export function useWorkspacePlanner(closeWorkspaceMenu: () => void) {
   const deleteCalendar = useDeleteCalendar();
@@ -54,7 +55,7 @@ export function useWorkspacePlanner(closeWorkspaceMenu: () => void) {
     setActiveId,
     active,
     global,
-    color: active?.theme_color ?? '#6366F1',
+    color: active?.theme_color ?? DEFAULT_WORKSPACE_COLOR,
     title: active?.title,
     activeEvents,
     calendarEvents,

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { act, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import React from 'react';
 import App from './App';
 import { renderWithProviders } from '../../test.utils';
@@ -22,6 +22,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Category')).not.toBeDisabled();
     });
+  }
+
+  function getCategoryColorPicker() {
+    const [picker] = screen.getAllByRole('group', { name: 'Category color' });
+    return within(picker);
   }
 
   // ==========================================
@@ -327,6 +332,9 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       openTaskBoard();
       const catInput = screen.getByLabelText('Category') as HTMLInputElement;
       expect(catInput).toBeDisabled();
+      expect(
+        getCategoryColorPicker().getByRole('button', { name: 'Coral Red (#F87171)' }),
+      ).toBeDisabled();
     });
 
     test('TC-T1-F3-02: Color Selection Update', async () => {
@@ -334,9 +342,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await openTaskBoardReady();
-      const colorInput = screen.getByLabelText('Category color') as HTMLInputElement;
-      fireEvent.change(colorInput, { target: { value: '#FF5733' } });
-      expect(colorInput.value).toBe('#ff5733');
+      const coralPreset = getCategoryColorPicker().getByRole('button', {
+        name: 'Coral Red (#F87171)',
+      });
+      expect(coralPreset).toHaveAttribute('aria-pressed', 'false');
+      fireEvent.click(coralPreset);
+      expect(coralPreset).toHaveAttribute('aria-pressed', 'true');
     });
 
     test('TC-T1-F3-03: Create Category Action', async () => {
@@ -345,12 +356,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       await openTaskBoardReady();
       fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'Health' } });
-      fireEvent.change(screen.getByLabelText('Category color'), { target: { value: '#00ff00' } });
+      fireEvent.click(getCategoryColorPicker().getByRole('button', { name: 'Sky Blue (#60A5FA)' }));
       fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
 
       await waitFor(() => {
         expect(
-          mockDb.categories.some((c) => c.name === 'Health' && c.color_code === '#00ff00'),
+          mockDb.categories.some((c) => c.name === 'Health' && c.color_code === '#60A5FA'),
         ).toBe(true);
       });
     });
@@ -394,15 +405,12 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F3-02: Invalid Color Code Parsing', async () => {
+    test('TC-T2-F3-02: Category Picker Offers Twelve Presets', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
       await openTaskBoardReady();
-      const colorInput = screen.getByLabelText('Category color') as HTMLInputElement;
-      // HTML5 color picker only accepts standard Hex values, invalid color value is ignored
-      fireEvent.change(colorInput, { target: { value: 'rgb(255,0,0)' } });
-      expect(colorInput.value).not.toBe('rgb(255,0,0)');
+      expect(getCategoryColorPicker().getAllByRole('button')).toHaveLength(12);
     });
 
     test('TC-T2-F3-03: Duplicate Category Names in Same calendar', async () => {
@@ -441,14 +449,14 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
     });
 
-    test('TC-T2-F3-05: Hex Color Lowercase/Uppercase Standardization', async () => {
+    test('TC-T2-F3-05: New Category Defaults to Emerald', async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
       await openTaskBoardReady();
-      const colorInput = screen.getByLabelText('Category color') as HTMLInputElement;
-      fireEvent.change(colorInput, { target: { value: '#ABCDEF' } });
-      expect(colorInput.value.toLowerCase()).toBe('#abcdef');
+      expect(
+        getCategoryColorPicker().getByRole('button', { name: 'Emerald Muted (#66A283)' }),
+      ).toHaveAttribute('aria-pressed', 'true');
     });
   });
 
@@ -925,7 +933,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       await waitFor(() => {
         const pill = screen.getByText('Orphan Event');
         expect(pill).toBeInTheDocument();
-        expect(pill.style.borderColor).toBe('rgb(31, 157, 138)'); // defaults to #1F9D8A
+        expect(pill.style.borderColor).toBe('rgb(129, 140, 248)'); // defaults to Electric Indigo
       });
     });
 
@@ -1024,7 +1032,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       await waitFor(() => {
         const satColumn = document.querySelectorAll('.week-day')[6];
         const eventLabel = satColumn.querySelector('.week-event');
-        expect(eventLabel).toHaveStyle({ color: 'rgb(31, 157, 138)' }); // timed event accent
+        expect(eventLabel).toHaveStyle({ color: 'var(--color-text-primary)' });
       });
     });
 

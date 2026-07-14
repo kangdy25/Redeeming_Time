@@ -123,16 +123,12 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     padding: 8px;
-    background: rgba(10, 14, 23, 0.92);
+    background: color-mix(in srgb, var(--color-bg-sidebar) 92%, transparent);
     border: 1px solid var(--color-border);
     border-radius: 18px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 16px 36px var(--color-shadow-strong);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-  }
-
-  :root.light-theme .mobile-bottom-nav {
-    background: rgba(255, 255, 255, 0.92);
   }
 
   .mobile-bottom-nav button {
@@ -151,9 +147,9 @@
   }
 
   .mobile-bottom-nav button.active {
-    color: #ffffff;
+    color: var(--color-on-accent);
     background: var(--gradient-accent);
-    box-shadow: 0 8px 18px rgba(99, 102, 241, 0.28);
+    box-shadow: 0 8px 18px var(--color-accent-shadow);
   }
 
   .mobile-bottom-nav span {
@@ -563,20 +559,16 @@
   }
 
   .task-category-form {
-    grid-template-columns: minmax(0, 1fr) 42px;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .task-category-form button {
-    grid-column: 1 / -1;
+  .task-category-color-picker .color-preset-picker__options {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .category-edit-form,
   .task-edit-form {
     grid-template-columns: 1fr;
-  }
-
-  .category-edit-form input[type='color'] {
-    width: 100%;
   }
 
   .task-sidebar-header {
@@ -689,7 +681,7 @@
     min-height: 92px;
     padding: 14px;
     border-color: var(--color-border);
-    background: rgba(255, 255, 255, 0.018);
+    background: var(--color-surface-faint);
   }
 
   .idea-editor-shell {

@@ -2,6 +2,7 @@ import { type CSSProperties } from 'react';
 import { type TaskPriority } from '@redeeming-time/shared';
 import { type TaskBoardModel } from '../../hooks/useTaskBoardModel';
 import { taskPriorities } from '../../utils/taskBoard';
+import { ColorPresetPicker } from '../ui/ColorPresetPicker';
 
 type TaskCategoryListProps = { model: TaskBoardModel; calendarId: number };
 
@@ -37,14 +38,14 @@ export function TaskCategoryList({ model, calendarId }: TaskCategoryListProps) {
                 }}
                 autoFocus
               />
-              <input
-                aria-label="Edit category color"
-                type="color"
+              <ColorPresetPicker
+                label="Edit category color"
                 value={editingCategory.color}
-                onChange={(event) => {
-                  const color = event.target.value;
+                onChange={(color) => {
                   setEditingCategory((current) => (current ? { ...current, color } : current));
                 }}
+                disabled={isSavingEdit}
+                className="category-edit-color-picker"
               />
               <button type="submit" disabled={isSavingEdit}>
                 저장

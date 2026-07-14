@@ -1,31 +1,19 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
 
 :root {
-  /* Premium Dark Theme: Deep Obsidian-Violet & Luminous Gradients */
-  --color-bg-root: #0b0f19;
-  --color-bg-card: rgba(17, 24, 39, 0.7);
-  --color-bg-sidebar: rgba(10, 14, 23, 0.95);
-  --color-border: rgba(255, 255, 255, 0.07);
-  --color-border-hover: rgba(99, 102, 241, 0.4);
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #e5e7eb;
-  --color-text-muted: #9ca3af;
-
-  /* Luminous Accent Gradients */
-  --color-accent: #6366f1; /* Indigo */
-  --color-accent-hover: #4f46e5;
-  --color-accent-muted: rgba(99, 102, 241, 0.12);
-  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-  --gradient-logo: linear-gradient(135deg, #10b981 0%, #6366f1 100%);
-
-  --color-bg-input: rgba(17, 24, 39, 0.9);
-
-  /* Calendar specific colors */
-  --color-sunday: #f87171;
-  --color-saturday: #60a5fa;
-  --color-today-bg: #6366f1;
-  --color-today-text: #ffffff;
-  --calendar-icon-filter: invert(1) sepia(1) saturate(5) hue-rotate(175deg);
+  /* Shared category and event palette. Keep these values in sync with colorPresets.ts. */
+  --preset-champagne-gold: #d9c9a6;
+  --preset-emerald-muted: #66a283;
+  --preset-orchid-violet: #a78bfa;
+  --preset-electric-indigo: #818cf8;
+  --preset-amber-sunset: #fbbf24;
+  --preset-slate-grey: #71717a;
+  --preset-coral-red: #f87171;
+  --preset-tangerine-orange: #fb923c;
+  --preset-sky-blue: #60a5fa;
+  --preset-lime-green: #a3e635;
+  --preset-cyan: #22d3ee;
+  --preset-rose: #f472b6;
 
   font-family:
     'Pretendard',
@@ -34,34 +22,139 @@
     system-ui,
     Roboto,
     sans-serif;
-  font-size: 16px; /* Scaled up default size */
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-root);
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
 }
 
-:root.light-theme {
-  /* Premium Light Theme: Warm Cream & Teal-Sage Accent */
-  --color-bg-root: #faf9f6;
-  --color-bg-card: rgba(255, 255, 255, 0.8);
-  --color-bg-sidebar: rgba(240, 238, 233, 0.95);
-  --color-border: rgba(0, 0, 0, 0.06);
-  --color-border-hover: rgba(13, 148, 136, 0.3);
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #4b5563;
-  --color-text-muted: #9ca3af;
+/* The dashboard starts in dark mode until the existing theme toggle sets data-theme. */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
 
-  --color-accent: #0d9488; /* Teal */
-  --color-accent-hover: #0f766e;
-  --color-accent-muted: rgba(13, 148, 136, 0.08);
-  --gradient-accent: linear-gradient(135deg, #0d9488 0%, #3b82f6 100%);
-  --gradient-logo: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+  /* Core theme contract */
+  --base-background: #09090b;
+  --border-primary: rgba(113, 113, 122, 0.3);
+  --text-primary: #fafafa;
+  --text-secondary: #71717a;
+  --text-secondary-readable: #a1a1aa;
+  --accent-core: #d9c9a6;
 
+  /* Surface, state, and accessibility aliases used by the existing UI. */
+  --color-bg-root: var(--base-background);
+  --color-bg-card: #18181b;
+  --color-bg-sidebar: #111113;
+  --color-bg-input: #18181b;
+  --color-border: var(--border-primary);
+  --color-border-hover: var(--accent-core);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary-readable);
+  --color-text-muted: var(--text-secondary-readable);
+  --color-accent: var(--accent-core);
+  --color-accent-text: var(--accent-core);
+  --color-accent-hover: var(--preset-amber-sunset);
+  --color-accent-muted: rgba(217, 201, 166, 0.16);
+  --color-on-accent: #18181b;
+  --brand-title-color: var(--accent-core);
+  --brand-title-shadow: color-mix(in srgb, var(--accent-core) 28%, transparent);
+  --brand-title-gradient: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-core) 72%, #ffffff) 0%,
+    var(--accent-core) 52%,
+    color-mix(in srgb, var(--accent-core) 72%, #a16207) 100%
+  );
+  --gradient-accent: linear-gradient(
+    135deg,
+    var(--preset-champagne-gold) 0%,
+    var(--preset-amber-sunset) 100%
+  );
+  --gradient-logo: var(--gradient-accent);
+  --color-surface-faint: rgba(255, 255, 255, 0.018);
+  --color-surface-subtle: rgba(255, 255, 255, 0.03);
+  --color-surface-hover: rgba(255, 255, 255, 0.055);
+  --color-surface-strong: rgba(255, 255, 255, 0.12);
+  --color-inset: rgba(0, 0, 0, 0.16);
+  --color-overlay: rgba(0, 0, 0, 0.68);
+  --color-shadow-subtle: rgba(0, 0, 0, 0.24);
+  --color-shadow-medium: rgba(0, 0, 0, 0.38);
+  --color-shadow-strong: rgba(0, 0, 0, 0.56);
+  --color-accent-shadow: rgba(217, 201, 166, 0.32);
+  --color-danger: #f87171;
+  --color-danger-muted: rgba(248, 113, 113, 0.16);
+  --color-danger-border: rgba(248, 113, 113, 0.42);
+  --color-priority-high: var(--preset-amber-sunset);
+  --color-priority-medium: var(--preset-tangerine-orange);
+  --color-priority-low: var(--preset-sky-blue);
+  --color-priority-none: var(--text-secondary-readable);
+  --color-holiday: var(--preset-coral-red);
+  --color-holiday-text: var(--preset-coral-red);
+  --color-sunday: var(--color-holiday-text);
+  --color-saturday: var(--preset-sky-blue);
+  --color-today-bg: var(--color-accent);
+  --color-today-text: var(--color-on-accent);
+  --calendar-icon-filter: invert(1) sepia(0.2) saturate(0.4) brightness(1.6);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Neutral light theme: black actions on white, Next.js-docs-style surfaces. */
+  --base-background: #ffffff;
+  --border-primary: #e4e4e7;
+  --text-primary: #18181b;
+  --text-secondary: #71717a;
+  --text-secondary-readable: #52525b;
+  --accent-core: #18181b;
+
+  --color-bg-root: var(--base-background);
+  --color-bg-card: #ffffff;
+  --color-bg-sidebar: #ffffff;
   --color-bg-input: #ffffff;
+  --color-border: var(--border-primary);
+  --color-border-hover: #18181b;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary-readable);
+  --color-text-muted: var(--text-secondary-readable);
+  --color-accent: #18181b;
+  --color-accent-text: #18181b;
+  --color-accent-hover: #27272a;
+  --color-accent-muted: rgba(24, 24, 27, 0.08);
+  --color-on-accent: #ffffff;
+  --brand-title-color: var(--text-primary);
+  --brand-title-shadow: transparent;
+  --brand-title-gradient: linear-gradient(135deg, #09090b 0%, var(--text-primary) 50%, #52525b 100%);
+  --gradient-accent: var(--color-accent);
+  --gradient-logo: var(--color-accent);
+  --color-surface-faint: rgba(24, 24, 27, 0.018);
+  --color-surface-subtle: rgba(24, 24, 27, 0.035);
+  --color-surface-hover: rgba(24, 24, 27, 0.065);
+  --color-surface-strong: rgba(24, 24, 27, 0.12);
+  --color-inset: rgba(24, 24, 27, 0.045);
+  --color-overlay: rgba(24, 24, 27, 0.58);
+  --color-shadow-subtle: rgba(24, 24, 27, 0.08);
+  --color-shadow-medium: rgba(24, 24, 27, 0.16);
+  --color-shadow-strong: rgba(24, 24, 27, 0.26);
+  --color-accent-shadow: rgba(24, 24, 27, 0.22);
+  --color-danger: #b42318;
+  --color-danger-muted: rgba(248, 113, 113, 0.16);
+  --color-danger-border: rgba(180, 35, 24, 0.36);
+  --color-priority-high: #a16207;
+  --color-priority-medium: #c2410c;
+  --color-priority-low: #52525b;
+  --color-priority-none: var(--text-secondary-readable);
+  --color-holiday: var(--preset-coral-red);
+  --color-holiday-text: #b42318;
+  --color-sunday: var(--color-holiday-text);
+  --color-saturday: #52525b;
+  --color-today-bg: var(--color-accent);
+  --color-today-text: var(--color-on-accent);
   --calendar-icon-filter: none;
+}
 
-  --color-sunday: #ef4444;
-  --color-saturday: #2563eb;
+:root,
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-root);
 }
 
 body {

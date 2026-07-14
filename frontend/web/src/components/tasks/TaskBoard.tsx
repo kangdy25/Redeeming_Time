@@ -4,6 +4,7 @@ import { useTaskBoardModel } from '../../hooks/useTaskBoardModel';
 import { TaskBoardHeader } from './TaskBoardHeader';
 import { TaskMiniCalendar } from './TaskMiniCalendar';
 import { TaskCategoryList } from './TaskCategoryList';
+import { ColorPresetPicker } from '../ui/ColorPresetPicker';
 
 export function TaskBoard({
   tasks,
@@ -94,12 +95,12 @@ export function TaskBoard({
               onChange={(event) => composer.setCategoryName(event.target.value)}
               disabled={!calendarId || composer.createCategory.isPending}
             />
-            <input
-              aria-label="Category color"
+            <ColorPresetPicker
+              label="Category color"
               value={composer.categoryColor}
-              onChange={(event) => composer.setCategoryColor(event.target.value)}
-              type="color"
+              onChange={composer.setCategoryColor}
               disabled={!calendarId || composer.createCategory.isPending}
+              className="task-category-color-picker"
             />
             <button
               type="submit"

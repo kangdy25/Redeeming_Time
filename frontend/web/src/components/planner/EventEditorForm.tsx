@@ -1,4 +1,5 @@
 import { type PlannerModalModel } from '../../hooks/usePlannerModalModel';
+import { ColorPresetPicker } from '../ui/ColorPresetPicker';
 
 type Props = { event: PlannerModalModel['event'] };
 
@@ -115,17 +116,15 @@ export function EventEditorForm({ event }: Props) {
           </select>
         </div>
         <div className="field-stack event-color-field">
-          <label htmlFor="event-color-input">일정 색상</label>
+          <label>일정 색상</label>
           <div className="event-color-control">
-            <input
-              id="event-color-input"
-              aria-label="Event color"
-              type="color"
+            <ColorPresetPicker
+              label="Event color"
               value={eventColor}
-              onChange={(event) => setEventColor(event.target.value)}
+              onChange={setEventColor}
               disabled={disabled}
+              className="event-color-picker"
             />
-            <span>{eventColor.toUpperCase()}</span>
           </div>
         </div>
       </div>

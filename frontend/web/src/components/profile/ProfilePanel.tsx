@@ -7,6 +7,7 @@ import {
   type Calendar,
   usePlannerStore,
 } from '@redeeming-time/shared';
+import { DEFAULT_WORKSPACE_COLOR } from '../../utils/colorPresets';
 
 export function ProfilePanel() {
   const [user, setUser] = useState<Awaited<ReturnType<typeof apiClient.currentUser>> | null>(null);
@@ -44,7 +45,7 @@ export function ProfilePanel() {
     await createCalendar.mutateAsync({
       title: workspaceTitle.trim(),
       description: '',
-      theme_color: '#2F80ED',
+      theme_color: DEFAULT_WORKSPACE_COLOR,
     });
     setWorkspaceTitle('');
   }

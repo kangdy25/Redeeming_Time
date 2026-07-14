@@ -5,6 +5,7 @@ import {
   useCreateTask,
   type TaskPriority,
 } from '@redeeming-time/shared';
+import { DEFAULT_CATEGORY_COLOR } from '../../utils/colorPresets';
 
 type Input = {
   calendarId: number;
@@ -19,7 +20,7 @@ export function useTaskComposer({ calendarId, selectedDate, selectedTaskCount }:
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [category, setCategory] = useState('');
   const [categoryName, setCategoryName] = useState('');
-  const [categoryColor, setCategoryColor] = useState('#14B8A6');
+  const [categoryColor, setCategoryColor] = useState(DEFAULT_CATEGORY_COLOR);
   const [message, setMessage] = useState('');
 
   async function addTask(event: FormEvent) {

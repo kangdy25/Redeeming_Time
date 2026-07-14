@@ -5,6 +5,7 @@ import {
   usePlannerStore,
   type Calendar,
 } from '@redeeming-time/shared';
+import { DEFAULT_WORKSPACE_COLOR } from '../../utils/colorPresets';
 
 export function useWorkspaceCreator(
   calendars: Calendar[],
@@ -35,7 +36,7 @@ export function useWorkspaceCreator(
       const calendar = await mutation.mutateAsync({
         title: trimmed,
         description: description.trim(),
-        theme_color: '#2F80ED',
+        theme_color: DEFAULT_WORKSPACE_COLOR,
       });
       setActiveId(calendar.id);
       setTitle('');

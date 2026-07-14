@@ -105,7 +105,7 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px var(--color-shadow-subtle);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -185,8 +185,8 @@
 
 .segmented button.active {
   background: var(--gradient-accent);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  color: var(--color-on-accent);
+  box-shadow: 0 2px 8px var(--color-accent-shadow);
 }
 
 .event-count {
@@ -204,11 +204,11 @@
   border-left: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px var(--color-shadow-medium);
 }
 
 .weekday {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--color-surface-subtle);
   height: 44px;
   display: grid;
   place-items: center;
@@ -243,7 +243,7 @@
 }
 
 .date-cell:hover {
-  background-color: rgba(255, 255, 255, 0.01);
+  background-color: var(--color-surface-faint);
 }
 
 .muted-cell {
@@ -271,14 +271,14 @@
 }
 
 .date-cell.holiday-cell .date-number {
-  color: #ef4444;
+  color: var(--color-holiday-text);
 }
 
 /* Highlight Today's Cell */
 .date-cell.today-cell .date-number {
   background: var(--gradient-accent);
   color: var(--color-today-text) !important;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 6px var(--color-accent-shadow);
 }
 
 .event-stack {
@@ -300,7 +300,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -313,7 +313,7 @@
 .more-count {
   font-size: 13px; /* Scaled up */
   font-weight: 900;
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   margin-top: 2px;
   padding-left: 6px;
 }
@@ -343,7 +343,7 @@
 .week-day:hover {
   transform: translateY(-2px);
   border-color: var(--color-border-hover);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px var(--color-shadow-medium);
 }
 
 .week-day span {
@@ -374,7 +374,7 @@
   border-radius: 50%;
   background: var(--gradient-accent);
   color: var(--color-today-text) !important;
-  box-shadow: 0 5px 14px rgba(99, 102, 241, 0.28);
+  box-shadow: 0 5px 14px var(--color-accent-shadow);
 }
 
 .week-day:nth-child(1) span,
@@ -396,7 +396,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 3px 6px;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--color-surface-subtle);
   border: 0;
   border-radius: 4px;
   text-align: left;

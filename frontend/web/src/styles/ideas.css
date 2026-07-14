@@ -8,7 +8,7 @@
   border: 1px solid var(--color-border);
   border-radius: 16px;
   background: var(--color-bg-card);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 36px var(--color-shadow-subtle);
 }
 
 .idea-note-rail {
@@ -17,7 +17,7 @@
   flex-direction: column;
   padding: 18px 12px;
   border-right: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.018);
+  background: var(--color-surface-faint);
 }
 
 .idea-rail-header,
@@ -46,7 +46,7 @@
   border: 0;
   border-radius: 10px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   font-size: 24px;
   cursor: pointer;
 }
@@ -123,7 +123,7 @@
 .idea-card-heading .idea-card-pin {
   flex-shrink: 0;
   font-size: 13px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+  filter: drop-shadow(0 2px 4px var(--color-shadow-medium));
 }
 
 .idea-card-excerpt {
@@ -147,7 +147,7 @@
   padding: 2px 5px;
   border-radius: 999px;
   background: var(--color-bg-input);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-style: normal;
 }
 
@@ -207,12 +207,12 @@
 .idea-view-switch button.active,
 .idea-pin-button.active {
   background: var(--color-accent-muted);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .idea-delete-button:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: var(--color-danger-muted);
+  color: var(--color-danger);
 }
 
 .idea-document-header {
@@ -316,7 +316,7 @@
   padding: 2px 5px;
   border-radius: 5px;
   background: var(--color-accent-muted);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -356,7 +356,7 @@
 }
 
 .markdown-preview a {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .idea-blank-state {
@@ -369,7 +369,7 @@
 }
 
 .idea-blank-state > span {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-size: 34px;
 }
 
@@ -387,7 +387,7 @@
   border: 0;
   border-radius: 9px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   font-weight: 900;
   cursor: pointer;
 }

@@ -1,6 +1,7 @@
 import type { Event } from '@redeeming-time/shared';
+import { CORAL_RED, DEFAULT_EVENT_COLOR } from './colorPresets';
 
-export const KOREA_HOLIDAY_COLOR = '#EF4444';
+export const KOREA_HOLIDAY_COLOR = CORAL_RED;
 
 const KOREA_LEGAL_HOLIDAYS_2026 = [
   { date: '2026-01-01', title: '신정' },
@@ -57,6 +58,42 @@ export const sameDate = (event: Event, date: Date) =>
   isoDate(new Date(event.start_time)) === isoDate(date);
 export const isKoreaHolidayEvent = (event: Event) => event.id <= -260000;
 
+function relativeLuminance(hexColor: string) {
+  const compactHex = hexColor.replace('#', '');
+  const normalizedHex =
+    compactHex.length === 3
+      ? compactHex
+          .split('')
+          .map((channel) => `${channel}${channel}`)
+          .join('')
+      : compactHex;
+
+  if (!/^[\da-f]{6}$/i.test(normalizedHex)) return null;
+
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(normalizedHex.slice(offset, offset + 2), 16) / 255);
+  const [red, green, blue] = channels.map((channel) =>
+    channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function contrastRatio(first: string, second: string) {
+  const firstLuminance = relativeLuminance(first);
+  const secondLuminance = relativeLuminance(second);
+  if (firstLuminance === null || secondLuminance === null) return 0;
+
+  return (Math.max(firstLuminance, secondLuminance) + 0.05) / (Math.min(firstLuminance, secondLuminance) + 0.05);
+}
+
+function foregroundForEventColor(backgroundColor: string) {
+  const darkForeground = '#18181B';
+  const lightForeground = '#FFFFFF';
+  return contrastRatio(backgroundColor, darkForeground) >= contrastRatio(backgroundColor, lightForeground)
+    ? darkForeground
+    : lightForeground;
+}
+
 export function createKoreaHolidayEvents(calendarId: number): Event[] {
   if (!calendarId) return [];
   return KOREA_LEGAL_HOLIDAYS_2026.map((holiday, index) => ({
@@ -76,15 +113,11 @@ export function createKoreaHolidayEvents(calendarId: number): Event[] {
 }
 
 export function eventStyle(event: Event) {
-  const color = isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : event.color_code || '#1F9D8A';
-  const rgb = color.replace('#', '');
-  const brightness =
-    Number.parseInt(rgb.slice(0, 2), 16) * 0.299 +
-    Number.parseInt(rgb.slice(2, 4), 16) * 0.587 +
-    Number.parseInt(rgb.slice(4, 6), 16) * 0.114;
+  const color = isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : event.color_code || DEFAULT_EVENT_COLOR;
   return {
     borderColor: color,
     backgroundColor: event.is_all_day ? color : `${color}22`,
-    color: event.is_all_day ? (brightness > 160 ? '#111827' : '#FFFFFF') : color,
+    // Event hues remain in the border/background; text stays readable in both themes.
+    color: event.is_all_day ? foregroundForEventColor(color) : 'var(--color-text-primary)',
   };
 }

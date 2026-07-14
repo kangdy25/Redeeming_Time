@@ -8,11 +8,7 @@ export function LoginPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light-theme');
-    } else {
-      document.documentElement.classList.remove('light-theme');
-    }
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   if (isAuthenticated) {
