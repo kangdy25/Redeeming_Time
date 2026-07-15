@@ -29,4 +29,7 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uv run --no-sync manage.py migrate --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-2} --threads ${GUNICORN_THREADS:-4} --timeout 60 --graceful-timeout 30 --access-logfile - --error-logfile -"]
+# Neon uses its pooled URL for application traffic. Run migrations through the
+# optional direct URL instead, because Django schema migrations can require
+# PostgreSQL session behavior that transaction pooling does not provide.
+CMD ["sh", "-c", "DATABASE_URL=\"${MIGRATION_DATABASE_URL:-$DATABASE_URL}\" uv run --no-sync manage.py migrate --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-2} --threads ${GUNICORN_THREADS:-4} --timeout 60 --graceful-timeout 30 --access-logfile - --error-logfile -"]

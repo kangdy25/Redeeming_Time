@@ -1,8 +1,9 @@
 # Backend Deployment
 
 The repository contains a Docker image and a Render Blueprint. The Blueprint
-provisions one Django web service, Render Postgres, and private Render Key
-Value (Redis-compatible) storage for shared throttling state.
+provisions one Django web service and private Render Key Value
+(Redis-compatible) storage for shared throttling state. PostgreSQL is hosted
+on Neon to avoid Render Free Postgres's 30-day expiration.
 
 ## Required production configuration
 
@@ -12,7 +13,8 @@ Production starts only when all of the following are set:
 | --- | --- |
 | `DEBUG` | `False` |
 | `SECRET_KEY` | A unique, randomly generated secret |
-| `DATABASE_URL` | Internal PostgreSQL connection URL |
+| `DATABASE_URL` | Neon **pooled** PostgreSQL connection URL for the running API |
+| `MIGRATION_DATABASE_URL` | Neon **direct** PostgreSQL connection URL, used only for Django migrations |
 | `CACHE_URL` | Shared Redis-compatible connection URL |
 | `ALLOWED_HOSTS` | API hostnames only, such as `.onrender.com` and any custom API domain |
 | `CORS_ALLOWED_ORIGINS` | `https://redeeming-time.vercel.app` |
@@ -25,6 +27,39 @@ Production starts only when all of the following are set:
 
 `CORS_ALLOW_ALL_ORIGINS` must remain `False`. The browser client uses Bearer
 tokens, so CORS credentials are deliberately disabled.
+
+## Neon PostgreSQL setup and migration
+
+Create a Neon project in the region nearest the API, then open its **Connect**
+dialog and copy both PostgreSQL URLs:
+
+- **Pooled connection string** (the hostname contains `-pooler`) for
+  `DATABASE_URL`.
+- **Direct connection string** for `MIGRATION_DATABASE_URL`.
+
+The API uses Neon PgBouncer pooling at runtime. Its Docker startup command uses
+the direct URL only for `manage.py migrate`, then starts Gunicorn with the
+pooled URL. Keep both values in Render's Environment settings and never commit
+either URL.
+
+To preserve data already stored in Render Postgres, migrate it before changing
+the API environment variables. From a computer with PostgreSQL client tools
+installed, copy the Render database's **External Database URL** and Neon's
+direct URL into local shell variables, then run:
+
+```bash
+export RENDER_DATABASE_URL='postgresql://…'
+export NEON_DIRECT_DATABASE_URL='postgresql://…'
+
+pg_dump --format=custom --no-owner --no-privileges "$RENDER_DATABASE_URL" > redeeming-time.dump
+pg_restore --clean --if-exists --no-owner --no-privileges \
+  --dbname="$NEON_DIRECT_DATABASE_URL" redeeming-time.dump
+```
+
+Treat both URLs and the dump file as secrets: do not commit, upload, or share
+them. The dump includes user email addresses and password hashes. Keep the
+existing Render database until the Neon-backed API passes the verification
+steps below.
 
 ## Google and Kakao social sign-in
 
@@ -92,17 +127,24 @@ not overwritten by Blueprint syncs.
 2. In Render, create or update a Blueprint from the root
    [render.yaml](../render.yaml). It deploys in Singapore, uses the Dockerfile
    in `backend/`, and applies database migrations before Gunicorn starts.
-3. Wait for the service health check at `/healthz/` to return `200`.
-4. Copy the API service URL into Vercel as
+3. In the existing `redeeming-time-api` service, set `DATABASE_URL` to the
+   Neon pooled URL and `MIGRATION_DATABASE_URL` to the Neon direct URL. These
+   `sync: false` values must be changed manually because Blueprint syncs do not
+   overwrite existing secrets.
+4. Deploy, then wait for the Render liveness health check at `/healthz/` to
+   return `200`. It deliberately does not query PostgreSQL, allowing Neon Free
+   to scale down while idle. Use `/readyz/` for an explicit database and cache
+   readiness check.
+5. Copy the API service URL into Vercel as
    `VITE_API_BASE_URL=https://<your-api-host>/api`, then redeploy the web app.
-5. Add any custom API domain to `ALLOWED_HOSTS`. Do not add the Vercel frontend
+6. Add any custom API domain to `ALLOWED_HOSTS`. Do not add the Vercel frontend
    hostname there; it belongs only in `CORS_ALLOWED_ORIGINS`.
 
-The Blueprint generates `SECRET_KEY`, keeps Redis private, and connects to the
-database through Render's internal network. It uses only Free instance types,
-so migrations run as part of the single web-service startup instead of a paid
-pre-deploy job. Do not scale this configuration beyond one instance. If you
-upgrade to a paid web service, move migrations to a single pre-deploy job.
+The Blueprint generates `SECRET_KEY`, keeps Redis private, and uses only Free
+instance types, so migrations run as part of the single web-service startup
+instead of a paid pre-deploy job. Do not scale this configuration beyond one
+instance. If you upgrade to a paid web service, move migrations to a single
+pre-deploy job.
 
 ## Verify a release
 
@@ -122,9 +164,12 @@ uv run manage.py test
 docker build -f Dockerfile .
 ```
 
-Then check `GET https://<your-api-host>/healthz/`, register a test account,
-log in, and confirm that an `OPTIONS` request from
-`https://redeeming-time.vercel.app` receives the matching CORS origin header.
+Then check `GET https://<your-api-host>/healthz/` and
+`GET https://<your-api-host>/readyz/`, register a test account, log in, and
+confirm that an `OPTIONS` request from `https://redeeming-time.vercel.app`
+receives the matching CORS origin header. Confirm existing migrated users,
+calendars, events, and tasks are still present before deleting the old Render
+database manually.
 
 ## API list contract and filters
 

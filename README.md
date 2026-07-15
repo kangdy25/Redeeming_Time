@@ -134,9 +134,11 @@ login for users.
 ### Backend Deployment
 
 The API is Dockerized and has a free-tier Render Blueprint at `render.yaml`.
-It provisions PostgreSQL, a private Redis-compatible cache for authentication
-throttling, a health check, and single-instance startup migrations. Follow
-[the backend deployment guide](docs/backend-deployment.md) before setting
+It provisions the API and a private Redis-compatible cache for authentication
+throttling. PostgreSQL is hosted separately on Neon so application data is not
+subject to Render Free Postgres's 30-day expiration. The Blueprint uses a
+lightweight health check and single-instance startup migrations. Follow [the
+backend deployment guide](docs/backend-deployment.md) before setting
 `VITE_API_BASE_URL` to the deployed API URL.
 
 For the Expo app:

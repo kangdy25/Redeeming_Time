@@ -15,10 +15,14 @@ services:
         value: "False"
       - key: SECRET_KEY
         generateValue: true
+      # Set this manually in Render to Neon's pooled connection URL. It stays
+      # out of source control and is intentionally preserved across syncs.
       - key: DATABASE_URL
-        fromDatabase:
-          name: redeeming-time-db
-          property: connectionString
+        sync: false
+      # Set this manually to Neon's direct connection URL. The container uses
+      # it only for Django migrations, then runs Gunicorn with DATABASE_URL.
+      - key: MIGRATION_DATABASE_URL
+        sync: false
       - key: CACHE_URL
         fromService:
           type: keyvalue
@@ -63,10 +67,3 @@ services:
     plan: free
     ipAllowList: []
     maxmemoryPolicy: allkeys-lru
-
-databases:
-  - name: redeeming-time-db
-    region: singapore
-    plan: free
-    databaseName: redeeming_time
-    user: redeeming_time

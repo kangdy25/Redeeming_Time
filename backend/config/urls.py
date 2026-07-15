@@ -29,7 +29,7 @@ from accounts.views import (
     TokenRefreshWithThrottleView,
     UserViewSet,
 )
-from config.views import healthz
+from config.views import healthz, readyz
 from planner.views import CalendarMemberViewSet, CalendarViewSet, CategoryViewSet, EventAttendeeViewSet, EventViewSet, TaskViewSet
 
 router = DefaultRouter()
@@ -43,6 +43,7 @@ router.register('tasks', TaskViewSet, basename='task')
 
 urlpatterns = [
     path('healthz/', healthz, name='healthz'),
+    path('readyz/', readyz, name='readyz'),
     path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

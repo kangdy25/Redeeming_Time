@@ -7,7 +7,14 @@ from redis.exceptions import RedisError
 
 @require_GET
 def healthz(request):
-    """Readiness endpoint used by the hosting platform before routing traffic."""
+    """Liveness endpoint used by Render without waking a serverless database."""
+
+    return JsonResponse({'status': 'ok'})
+
+
+@require_GET
+def readyz(request):
+    """Readiness endpoint for explicit database and cache verification."""
 
     try:
         with connection.cursor() as cursor:

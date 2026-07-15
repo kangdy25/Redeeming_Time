@@ -35,8 +35,14 @@ class ApiErrorContractTests(TestCase):
 
 
 class ProductionReadinessTests(TestCase):
-    def test_healthcheck_reports_database_readiness(self):
+    def test_healthcheck_reports_liveness_without_dependencies(self):
         response = self.client.get('/healthz/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'status': 'ok'})
+
+    def test_readiness_check_reports_database_and_cache_readiness(self):
+        response = self.client.get('/readyz/')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'ok'})
