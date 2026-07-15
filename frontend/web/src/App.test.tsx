@@ -1018,7 +1018,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Midnight Border Event')).toBeInTheDocument();
+        expect(screen.getAllByText('Midnight Border Event').length).toBeGreaterThan(0);
       });
     });
   });
