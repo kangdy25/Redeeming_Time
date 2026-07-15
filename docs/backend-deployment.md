@@ -1,8 +1,8 @@
 # Backend Deployment
 
-The repository contains a production Docker image and a Render Blueprint. The
-Blueprint provisions one Django web service, Render Postgres, and private Render
-Key Value (Redis-compatible) storage for shared throttling state.
+The repository contains a Docker image and a Render Blueprint. The Blueprint
+provisions one Django web service, Render Postgres, and private Render Key
+Value (Redis-compatible) storage for shared throttling state.
 
 ## Required production configuration
 
@@ -90,9 +90,8 @@ not overwritten by Blueprint syncs.
    response, so it is safe against the current API while this deployment is in
    progress.
 2. In Render, create or update a Blueprint from the root
-   [render.yaml](../render.yaml).
-   It deploys in Singapore, uses the Dockerfile in `backend/`, and runs database
-   migrations before each deploy.
+   [render.yaml](../render.yaml). It deploys in Singapore, uses the Dockerfile
+   in `backend/`, and applies database migrations before Gunicorn starts.
 3. Wait for the service health check at `/healthz/` to return `200`.
 4. Copy the API service URL into Vercel as
    `VITE_API_BASE_URL=https://<your-api-host>/api`, then redeploy the web app.
@@ -100,10 +99,10 @@ not overwritten by Blueprint syncs.
    hostname there; it belongs only in `CORS_ALLOWED_ORIGINS`.
 
 The Blueprint generates `SECRET_KEY`, keeps Redis private, and connects to the
-database through Render's internal network. Its `starter` service plan is
-intentional: Render's pre-deploy migration command is available on paid web
-services. If you use another host, run `python manage.py migrate --noinput` as a
-single pre-deploy job, not concurrently in every web worker.
+database through Render's internal network. It uses only Free instance types,
+so migrations run as part of the single web-service startup instead of a paid
+pre-deploy job. Do not scale this configuration beyond one instance. If you
+upgrade to a paid web service, move migrations to a single pre-deploy job.
 
 ## Verify a release
 
@@ -161,11 +160,13 @@ revealing whether it exists. Invalid filter formats return `400`.
 
 ## Rollover operations
 
-The Blueprint includes `redeeming-time-rollover`, a Docker Cron Job that runs
-once daily at `15:05 UTC` (`00:05 Asia/Seoul`). Render Cron schedules are UTC;
-the Singapore region does not change that. The job uses the same
-`PLANNER_TIME_ZONE` as the planner's daily schedule calculation and performs a
-single idempotent database update for incomplete tasks due before today.
+The Free Render Blueprint does not include a Cron Job because Render Cron Jobs
+have a minimum monthly charge. Overdue tasks will remain visible until users
+update them manually. If automatic rollover is needed, upgrade and add a Docker
+Cron Job that runs once daily at `15:05 UTC` (`00:05 Asia/Seoul`). Render Cron
+schedules are UTC; the Singapore region does not change that. The job should
+use the same `PLANNER_TIME_ZONE` and perform one idempotent database update for
+incomplete tasks due before today.
 
 Run it manually when recovering from an outage or checking a release:
 
@@ -176,10 +177,9 @@ uv run manage.py rollover_overdue_tasks --date 2026-07-13
 uv run manage.py rollover_overdue_tasks --date 2026-07-13 --calendar-id 42
 ```
 
-Only the web service runs migrations before deployment; the cron job must not
-run migrations. After the first Render deployment, manually trigger the cron
-once and check its log for the target date and updated count. Render Cron Jobs
-require a paid plan, which is why the Blueprint uses `starter`.
+Only the web service runs migrations before deployment. If a paid Cron Job is
+later added, it must not run migrations. After enabling it, manually trigger it
+once and check its log for the target date and updated count.
 
 ## Operational decisions
 
