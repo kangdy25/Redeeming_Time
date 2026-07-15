@@ -10,7 +10,6 @@ services:
     healthCheckPath: /healthz/
     autoDeployTrigger: checksPass
     numInstances: 1
-    maxShutdownDelaySeconds: 30
     envVars:
       - key: DEBUG
         value: "False"
