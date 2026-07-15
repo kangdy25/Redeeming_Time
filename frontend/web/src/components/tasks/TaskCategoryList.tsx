@@ -46,6 +46,7 @@ export function TaskCategoryList({ model, calendarId }: TaskCategoryListProps) {
                 }}
                 disabled={isSavingEdit}
                 className="category-edit-color-picker"
+                variant="select"
               />
               <button type="submit" disabled={isSavingEdit}>
                 저장
@@ -126,6 +127,17 @@ export function TaskCategoryList({ model, calendarId }: TaskCategoryListProps) {
                       }
                       autoFocus
                     />
+                    <input
+                      aria-label="Edit task date"
+                      type="date"
+                      value={editingTask.targetDate}
+                      onChange={(event) =>
+                        setEditingTask({
+                          ...editingTask,
+                          targetDate: event.target.value,
+                        })
+                      }
+                    />
                     <select
                       aria-label="Edit task priority"
                       value={editingTask.priority}
@@ -202,6 +214,7 @@ export function TaskCategoryList({ model, calendarId }: TaskCategoryListProps) {
                         setEditingTask({
                           id: task.id,
                           title: task.title,
+                          targetDate: task.target_date,
                           priority: task.priority,
                           category: task.category ? String(task.category) : '',
                         })

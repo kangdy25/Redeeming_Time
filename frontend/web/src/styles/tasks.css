@@ -308,51 +308,65 @@
 
 .task-category-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(216px, 1.35fr) 116px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(164px, 0.8fr) 116px;
+  align-items: center;
   gap: 8px;
   margin-top: 8px;
 }
 
 .task-category-color-picker {
-  min-width: 0;
-}
-
-.task-category-color-picker .color-preset-picker__options {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
-.task-category-color-picker .color-preset-picker__option,
-.category-edit-color-picker .color-preset-picker__option {
-  grid-template-columns: 1fr;
-  height: 30px;
-  min-height: 30px;
-  padding: 3px;
-}
-
-.task-category-color-picker .color-preset-picker__swatch,
-.category-edit-color-picker .color-preset-picker__swatch {
   width: 100%;
   min-width: 0;
-  height: 100%;
-  min-height: 18px;
 }
 
-.task-category-color-picker .color-preset-picker__name,
-.category-edit-color-picker .color-preset-picker__name {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
+.task-category-color-picker .color-preset-picker__select-trigger {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
 }
 
-.task-category-color-picker .color-preset-picker__current,
-.category-edit-color-picker .color-preset-picker__current {
-  margin-top: 4px;
-  font-size: 10px;
+.task-category-color-picker .color-preset-picker__select-trigger:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-input);
+  box-shadow: none;
+  filter: none;
+}
+
+.task-category-color-picker .color-preset-picker__select-trigger:focus-visible {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.task-category-color-picker .color-preset-picker__select-trigger:disabled {
+  opacity: 0.45;
+}
+
+.task-category-color-picker .color-preset-picker__dropdown-option {
+  height: auto;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-primary);
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.task-category-color-picker .color-preset-picker__dropdown-option:hover:not(:disabled),
+.task-category-color-picker .color-preset-picker__dropdown-option.is-selected {
+  border-color: color-mix(in srgb, var(--preset-color) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--preset-color) 14%, var(--color-bg-input));
+  box-shadow: none;
+  filter: none;
 }
 
 .calendar-status-notice {
@@ -467,12 +481,25 @@
 
 .category-edit-form {
   width: min(480px, 100%);
-  grid-template-columns: minmax(120px, 1fr) minmax(180px, 1.2fr) auto auto;
+  grid-template-columns: minmax(110px, 1fr) minmax(150px, 0.9fr) auto auto;
+  align-items: center;
   box-sizing: border-box;
 }
 
+.category-edit-color-picker {
+  min-width: 0;
+}
+
+.category-edit-color-picker .color-preset-picker__select-trigger {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
 .task-edit-form {
-  grid-template-columns: minmax(160px, 1fr) 110px 140px auto auto;
+  grid-template-columns: minmax(160px, 1fr) 136px 110px 140px auto auto;
 }
 
 .category-edit-form input,

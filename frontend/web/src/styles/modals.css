@@ -205,16 +205,10 @@
   grid-column: 1 / -1;
 }
 
-.event-color-control {
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  box-sizing: border-box;
-  border: 1px solid var(--color-border);
+.event-color-picker .color-preset-picker__select-trigger {
+  height: 40px;
+  min-height: 40px;
   border-radius: 8px;
-  background: var(--color-bg-input);
 }
 
 .time-pair {
@@ -379,6 +373,49 @@
   box-shadow: none;
 }
 
+/* The event color picker is a form field, not a primary action button. */
+.control-grid .color-preset-picker__select-trigger {
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.control-grid .color-preset-picker__select-trigger:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-input);
+  box-shadow: none;
+  filter: none;
+}
+
+.control-grid .color-preset-picker__select-trigger:focus-visible {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.control-grid .color-preset-picker__dropdown-option {
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-primary);
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.control-grid .color-preset-picker__dropdown-option:hover:not(:disabled),
+.control-grid .color-preset-picker__dropdown-option.is-selected {
+  border-color: color-mix(in srgb, var(--preset-color) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--preset-color) 14%, var(--color-bg-input));
+  box-shadow: none;
+  filter: none;
+}
+
 .empty-copy {
   font-size: 15px; /* Scaled up */
   color: var(--color-text-muted);
@@ -386,81 +423,295 @@
   padding: 30px 0;
 }
 
-/* Accessible 12-color event and category preset picker. */
-.color-preset-picker {
+/* Date click opens an overview before the existing event composer. */
+.daily-events-panel {
+  width: min(500px, 92vw);
+  max-height: min(680px, calc(100vh - 32px));
+}
+
+.daily-events-list {
+  min-height: 124px;
+  max-height: min(420px, calc(100vh - 236px));
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.daily-events-list ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-event-row {
   width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.color-preset-picker__options {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.color-preset-picker .color-preset-picker__option {
-  min-width: 0;
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  align-items: center;
-  gap: 5px;
-  padding: 4px 6px;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
   border: 1px solid var(--color-border);
-  border-radius: 7px;
-  background: var(--color-bg-root);
-  color: var(--color-text-secondary);
-  box-shadow: none;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 1.15;
+  border-left: 3px solid var(--event-color);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-sizing: border-box;
   text-align: left;
-  text-transform: none;
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
+    transform 0.18s ease,
     box-shadow 0.18s ease,
-    background-color 0.18s ease,
-    transform 0.18s ease;
+    border-color 0.18s ease,
+    background-color 0.18s ease;
 }
 
-.color-preset-picker .color-preset-picker__option:hover:not(:disabled) {
-  border-color: var(--preset-color);
-  background: color-mix(in srgb, var(--preset-color) 12%, var(--color-bg-input));
-  color: var(--color-text-primary);
-  box-shadow: none;
-  filter: none;
+.daily-event-row:hover,
+.daily-event-row:focus-visible {
   transform: translateY(-1px);
+  border-color: var(--event-color);
+  background: color-mix(in srgb, var(--event-color) 9%, var(--color-bg-input));
+  box-shadow: 0 5px 14px var(--color-shadow-subtle);
 }
 
-.color-preset-picker .color-preset-picker__option.is-selected {
-  border-color: var(--preset-color);
-  background: color-mix(in srgb, var(--preset-color) 16%, var(--color-bg-input));
-  color: var(--color-text-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--preset-color) 48%, transparent);
-}
-
-.color-preset-picker .color-preset-picker__option:focus-visible {
-  outline: 2px solid var(--text-primary);
+.daily-event-row:focus-visible {
+  outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
 }
 
-.color-preset-picker .color-preset-picker__option:disabled {
+.daily-event-row__swatch {
+  width: 10px;
+  height: 10px;
+  align-self: center;
+  border: 1px solid color-mix(in srgb, var(--event-color) 72%, var(--text-primary));
+  border-radius: 3px;
+  background: var(--event-color);
+  box-shadow: inset 0 0 0 1px var(--color-surface-strong);
+}
+
+.daily-event-row__content {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.daily-event-row__time {
+  order: 2;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.daily-event-row strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+.daily-event-row__description {
+  order: 3;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-events-empty {
+  display: grid;
+  min-height: 118px;
+  margin: 0;
+  place-items: center;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.daily-events-add {
+  width: 100%;
+}
+
+/* Accessible 12-color event and category preset picker. */
+.color-preset-picker {
+  position: relative;
+  width: 100%;
+}
+
+.color-preset-picker.is-circle {
+  width: auto;
+  display: inline-block;
+}
+
+.color-preset-picker__select-trigger {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.color-preset-picker__select-trigger:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-strong);
+}
+
+.color-preset-picker__select-trigger:focus-visible,
+.color-preset-picker__circle-trigger:focus-visible,
+.color-preset-picker__dropdown-option:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.color-preset-picker__select-trigger:disabled,
+.color-preset-picker__circle-trigger:disabled {
   cursor: not-allowed;
-  opacity: 0.45;
+  opacity: 0.5;
+}
+
+.color-preset-picker__select-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.color-preset-picker__select-trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.color-preset-picker__arrow {
+  font-size: 10px;
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+}
+
+/* Rotate arrow when open */
+.color-preset-picker.is-open .color-preset-picker__arrow {
+  transform: rotate(180deg);
+}
+
+/* 2. Trigger for Circle Variant */
+.color-preset-picker__circle-trigger {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--preset-color);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+  padding: 0;
+  display: block;
+}
+
+/* 3. Dropdown Menu */
+.color-preset-picker__dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-shadow: 0 14px 30px var(--color-shadow-strong);
+  /* backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px); */
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px;
+  box-sizing: border-box;
+  display: none;
+}
+
+/* Show when open */
+.color-preset-picker__dropdown.is-open {
+  display: block;
+}
+
+.color-preset-picker.opens-upward .color-preset-picker__dropdown {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+/* Variant specific dropdown widths/positioning */
+.color-preset-picker.is-select .color-preset-picker__dropdown {
+  width: 100%;
+}
+
+.color-preset-picker.is-circle .color-preset-picker__dropdown {
+  width: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 4. Dropdown Options */
+.color-preset-picker__dropdown-option {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.color-preset-picker__dropdown-option:hover:not(:disabled),
+.color-preset-picker__dropdown-option.is-selected {
+  border-color: color-mix(in srgb, var(--preset-color) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--preset-color) 14%, var(--color-bg-input));
+}
+
+.color-preset-picker__dropdown-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .color-preset-picker__swatch {
-  width: 18px;
-  height: 18px;
-  border: 1px solid color-mix(in srgb, var(--preset-color) 72%, var(--text-primary));
+  width: 16px;
+  height: 16px;
+  border: 1px solid color-mix(in srgb, var(--preset-color) 70%, var(--color-text-primary));
   border-radius: 50%;
   background: var(--preset-color);
   box-sizing: border-box;
-  box-shadow: inset 0 0 0 1px var(--color-surface-strong);
+  flex-shrink: 0;
 }
 
 .color-preset-picker__name {
@@ -469,19 +720,25 @@
   white-space: nowrap;
 }
 
-.color-preset-picker__current {
-  min-height: 14px;
-  overflow: hidden;
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.color-preset-picker__bullet {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.event-color-picker .color-preset-picker__options {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.color-preset-picker__current {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 /* Category + Add button inline style */

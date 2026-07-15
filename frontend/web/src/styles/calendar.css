@@ -246,6 +246,25 @@
   background-color: var(--color-surface-faint);
 }
 
+.date-select-button,
+.week-date-select-button {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.date-select-button:focus-visible,
+.week-date-select-button:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: -3px;
+}
+
 .muted-cell {
   opacity: 0.35;
 }
@@ -261,6 +280,9 @@
   height: 28px;
   border-radius: 50%;
   transition: all 0.2s ease;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
 .date-cell:nth-child(7n + 1) .date-number {
@@ -287,6 +309,9 @@
   flex-direction: column;
   gap: 4px;
   overflow: hidden;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
 .event-pill {
@@ -303,6 +328,7 @@
   box-shadow: 0 1px 3px var(--color-shadow-subtle);
   transition: all 0.2s ease;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .event-pill:hover {
@@ -338,6 +364,7 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   overflow: hidden;
+  position: relative;
 }
 
 .week-day:hover {
@@ -351,6 +378,9 @@
   font-weight: 900;
   text-transform: uppercase;
   color: var(--color-text-secondary);
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
 .week-day strong {
@@ -358,6 +388,9 @@
   font-weight: 900;
   margin: 4px 0 10px;
   display: block;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
 .week-day.today-week-day {
@@ -401,4 +434,6 @@
   border-radius: 4px;
   text-align: left;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 }

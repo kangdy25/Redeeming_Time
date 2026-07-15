@@ -5,13 +5,14 @@ import { isoDate } from '../../utils/planner';
 
 export type DashboardSection = 'calendar' | 'tasks' | 'inbox' | 'profile';
 export type MobilePanel = 'calendar' | 'menu' | 'tasks';
+type DashboardModalKind = PlannerModalKind | 'daily-events';
 
 export function useDashboardShell() {
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   const [profileImageUrl, setProfileImageUrl] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [modal, setModal] = useState<PlannerModalKind | null>(null);
+  const [modal, setModal] = useState<DashboardModalKind | null>(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const workspaceSwitcherRef = useRef<HTMLDivElement>(null);
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('calendar');

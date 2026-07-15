@@ -1,18 +1,24 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { type Event } from '@redeeming-time/shared';
 import { isoDate } from '../../utils/planner';
 import { type MobilePanel } from './useDashboardShell';
 
 type Input = {
   openEventModal: () => void;
+  openDailyEventsModal: () => void;
   setMobilePanel: (panel: MobilePanel) => void;
 };
 
-export function useCalendarNavigation({ openEventModal, setMobilePanel }: Input) {
+export function useCalendarNavigation({
+  openEventModal,
+  openDailyEventsModal,
+  setMobilePanel,
+}: Input) {
   const [anchor, setAnchor] = useState(() => new Date());
   const [view, setView] = useState<'week' | 'month'>('month');
   const [draftDate, setDraftDate] = useState(isoDate(new Date()));
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const dateTrigger = useRef<HTMLButtonElement | null>(null);
 
   function move(offset: number) {
     const next = new Date(anchor);
@@ -21,14 +27,23 @@ export function useCalendarNavigation({ openEventModal, setMobilePanel }: Input)
     setAnchor(next);
   }
 
-  function openForDate(date: string) {
+  function openForDate(date: string, trigger?: HTMLButtonElement) {
+    dateTrigger.current = trigger ?? null;
     setSelectedEvent(null);
     setDraftDate(date);
+    openDailyEventsModal();
+    setMobilePanel('calendar');
+  }
+
+  function openEventComposer() {
+    dateTrigger.current = null;
+    setSelectedEvent(null);
     openEventModal();
     setMobilePanel('calendar');
   }
 
   function openEvent(event: Event) {
+    dateTrigger.current = null;
     setSelectedEvent(event);
     setDraftDate(event.start_time.substring(0, 10));
     openEventModal();
@@ -45,6 +60,8 @@ export function useCalendarNavigation({ openEventModal, setMobilePanel }: Input)
     draftDate,
     selectedEvent,
     openForDate,
+    openEventComposer,
     openEvent,
+    restoreDateFocus: () => dateTrigger.current?.focus(),
   };
 }

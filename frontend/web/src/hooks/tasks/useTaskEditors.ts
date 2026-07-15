@@ -27,6 +27,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
   const [task, setTask] = useState<{
     id: number;
     title: string;
+    targetDate: string;
     priority: TaskPriority;
     category: string;
   } | null>(null);
@@ -74,6 +75,7 @@ export function useTaskEditors({ selectedCategory, setSelectedCategory, setMessa
         id: task.id,
         payload: {
           title: task.title.trim(),
+          target_date: task.targetDate,
           priority: task.priority,
           category: task.category ? Number(task.category) : null,
         },

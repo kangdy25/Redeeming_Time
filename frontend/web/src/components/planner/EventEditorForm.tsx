@@ -117,15 +117,14 @@ export function EventEditorForm({ event }: Props) {
         </div>
         <div className="field-stack event-color-field">
           <label>일정 색상</label>
-          <div className="event-color-control">
-            <ColorPresetPicker
-              label="Event color"
-              value={eventColor}
-              onChange={setEventColor}
-              disabled={disabled}
-              className="event-color-picker"
-            />
-          </div>
+          <ColorPresetPicker
+            label="Event color"
+            value={eventColor}
+            onChange={setEventColor}
+            disabled={disabled}
+            className="event-color-picker"
+            variant="select"
+          />
         </div>
       </div>
       <div className="sr-only">

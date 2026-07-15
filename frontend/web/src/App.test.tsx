@@ -458,6 +458,26 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         getCategoryColorPicker().getByRole('button', { name: 'Emerald Muted (#66A283)' }),
       ).toHaveAttribute('aria-pressed', 'true');
     });
+
+    test('TC-T1-F3-06: Task Target Date Can Be Edited', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-07-03T12:00:00Z'));
+      useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
+      renderWithProviders(<App />);
+
+      await openTaskBoardReady();
+      fireEvent.click(screen.getByRole('button', { name: 'Review overdue item 수정' }));
+
+      const dateInput = screen.getByLabelText('Edit task date') as HTMLInputElement;
+      expect(dateInput.value).toBe('2026-07-03');
+      fireEvent.change(dateInput, { target: { value: '2026-07-10' } });
+      fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+      await waitFor(() => {
+        expect(mockDb.tasks.find((task) => task.id === 200)?.target_date).toBe('2026-07-10');
+      });
+      vi.useRealTimers();
+    });
   });
 
   // ==========================================
@@ -612,7 +632,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       await waitForEventFormReady();
 
       await waitFor(() => {
-        expect(screen.getByText('3-Day Hackathon')).toBeInTheDocument();
+        expect(screen.getAllByText('3-Day Hackathon').length).toBeGreaterThan(1);
       });
     });
 
@@ -723,11 +743,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       renderWithProviders(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText('Overloaded Focus block')).toBeInTheDocument();
+        expect(screen.getAllByText('Overloaded Focus block').length).toBeGreaterThan(0);
       });
     });
 
-    test('TC-T1-F5-03b: Date Click Opens Event Composer', async () => {
+    test("TC-T1-F5-03b: Date Click Opens That Day's Event List Before Composer", async () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
@@ -743,13 +763,42 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       });
 
       expect(julyFourthCell).toBeDefined();
-      fireEvent.click(julyFourthCell as Element);
+      const dateSelectButton = within(julyFourthCell as Element).getByRole('button', {
+        name: '2026-07-04 일정 보기',
+      });
+      dateSelectButton.focus();
+      fireEvent.click(dateSelectButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('dialog', { name: '2026년 7월 4일 토요일 일정' }),
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+      expect(dateSelectButton).toHaveFocus();
+
+      fireEvent.click(dateSelectButton);
+
+      const dailyList = screen.getByRole('dialog', { name: '2026년 7월 4일 토요일 일정' });
+      fireEvent.click(
+        within(dailyList).getByRole('button', { name: 'Overloaded Focus block 일정 상세 보기' }),
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: '일정 상세' })).toBeInTheDocument();
+        expect((screen.getByLabelText('Event') as HTMLInputElement).value).toBe(
+          'Overloaded Focus block',
+        );
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close event composer' }));
+      fireEvent.click(dateSelectButton);
+      fireEvent.click(screen.getByRole('button', { name: '일정 추가' }));
 
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: '일정 추가' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Add Event' })).toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Add Task' })).not.toBeInTheDocument();
-        expect(screen.queryByText('할일 연속성')).not.toBeInTheDocument();
         expect((screen.getByLabelText('일정 날짜') as HTMLInputElement).value).toBe('2026-07-04');
       });
     });
@@ -758,7 +807,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       useAuthStore.getState().setTokens({ access: 'valid-acc', refresh: 'valid-ref' });
       renderWithProviders(<App />);
 
-      await screen.findByText('Overloaded Focus block');
+      await screen.findAllByText('Overloaded Focus block');
       fireEvent.click(screen.getByRole('button', { name: /할일 보드/i }));
 
       await waitFor(() => {
@@ -828,6 +877,19 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
         expect(screen.getByText('Event 3')).toBeInTheDocument();
         expect(screen.queryByText('Event 4')).toBeNull();
       });
+
+      const julyFourthCell = Array.from(document.querySelectorAll('.date-cell')).find((cell) => {
+        return (
+          !cell.classList.contains('muted-cell') &&
+          cell.querySelector('.date-number')?.textContent === '4'
+        );
+      });
+      fireEvent.click(
+        within(julyFourthCell as Element).getByRole('button', { name: '2026-07-04 일정 보기' }),
+      );
+
+      const dailyList = await screen.findByRole('dialog');
+      expect(within(dailyList).getAllByRole('button', { name: /일정 상세 보기$/ })).toHaveLength(5);
     });
 
     test('TC-T1-F5-05: Density Overflow Indicator', async () => {

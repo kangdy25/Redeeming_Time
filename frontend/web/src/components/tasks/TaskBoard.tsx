@@ -101,6 +101,7 @@ export function TaskBoard({
               onChange={composer.setCategoryColor}
               disabled={!calendarId || composer.createCategory.isPending}
               className="task-category-color-picker"
+              variant="select"
             />
             <button
               type="submit"

@@ -15,7 +15,7 @@ const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 interface CalendarViewProps {
   events: Event[];
   anchor: Date;
-  onDateSelect?: (date: string) => void;
+  onDateSelect?: (date: string, trigger: HTMLButtonElement) => void;
   onEventSelect?: (event: Event) => void;
 }
 
@@ -46,8 +46,13 @@ export function MonthGrid({ events, anchor, onDateSelect, onEventSelect }: Calen
           <div
             className={`date-cell ${date.getMonth() === currentMonth ? '' : 'muted-cell'} ${isToday ? 'today-cell' : ''} ${hasKoreaHoliday ? 'holiday-cell' : ''}`}
             key={date.toISOString()}
-            onClick={() => onDateSelect?.(cellDateStr)}
           >
+            <button
+              type="button"
+              className="date-select-button"
+              aria-label={`${cellDateStr} 일정 보기`}
+              onClick={(event) => onDateSelect?.(cellDateStr, event.currentTarget)}
+            />
             <div className="date-number">{date.getDate()}</div>
             <div className="event-stack">
               {dayEvents.slice(0, 3).map((event) => (
@@ -89,8 +94,13 @@ export function WeekRail({ events, anchor, onDateSelect, onEventSelect }: Calend
         <div
           className={`week-day ${isoDate(date) === todayValue ? 'today-week-day' : ''}`}
           key={date.toISOString()}
-          onClick={() => onDateSelect?.(isoDate(date))}
         >
+          <button
+            type="button"
+            className="week-date-select-button"
+            aria-label={`${isoDate(date)} 일정 보기`}
+            onClick={(event) => onDateSelect?.(isoDate(date), event.currentTarget)}
+          />
           <span>{weekdayLabels[date.getDay()]}</span>
           <strong>{date.getDate()}</strong>
           {events

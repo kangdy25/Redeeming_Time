@@ -562,10 +562,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .task-category-color-picker .color-preset-picker__options {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
   .category-edit-form,
   .task-edit-form {
     grid-template-columns: 1fr;

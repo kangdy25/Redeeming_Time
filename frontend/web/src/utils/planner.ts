@@ -54,8 +54,22 @@ export function monthCells(anchor: Date) {
   );
 }
 
-export const sameDate = (event: Event, date: Date) =>
-  isoDate(new Date(event.start_time)) === isoDate(date);
+export function sameDate(event: Event, date: Date) {
+  const eventStart = new Date(event.start_time);
+  if (Number.isNaN(eventStart.getTime())) return false;
+
+  // All-day values in the current event model represent a single calendar day.
+  // Timed events use an exclusive end boundary, so an event crossing midnight
+  // appears in each local calendar day it overlaps.
+  if (event.is_all_day) return isoDate(eventStart) === isoDate(date);
+
+  const eventEnd = new Date(event.end_time);
+  if (Number.isNaN(eventEnd.getTime())) return false;
+
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+  return eventStart < dayEnd && eventEnd > dayStart;
+}
 export const isKoreaHolidayEvent = (event: Event) => event.id <= -260000;
 
 function relativeLuminance(hexColor: string) {
@@ -112,8 +126,12 @@ export function createKoreaHolidayEvents(calendarId: number): Event[] {
   }));
 }
 
+export function eventColor(event: Event) {
+  return isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : event.color_code || DEFAULT_EVENT_COLOR;
+}
+
 export function eventStyle(event: Event) {
-  const color = isKoreaHolidayEvent(event) ? KOREA_HOLIDAY_COLOR : event.color_code || DEFAULT_EVENT_COLOR;
+  const color = eventColor(event);
   return {
     borderColor: color,
     backgroundColor: event.is_all_day ? color : `${color}22`,

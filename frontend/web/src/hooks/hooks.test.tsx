@@ -9,20 +9,26 @@ import { DEFAULT_EVENT_COLOR } from '../utils/colorPresets';
 afterEach(() => vi.useRealTimers());
 
 describe('planner domain hooks', () => {
-  test('calendar navigation moves by month and opens a selected date', () => {
+  test('calendar navigation moves by month and opens a selected date list', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-07-13T12:00:00Z'));
     const openEventModal = vi.fn();
+    const openDailyEventsModal = vi.fn();
     const setMobilePanel = vi.fn();
-    const { result } = renderHook(() => useCalendarNavigation({ openEventModal, setMobilePanel }));
+    const { result } = renderHook(() =>
+      useCalendarNavigation({ openEventModal, openDailyEventsModal, setMobilePanel }),
+    );
 
     act(() => result.current.next());
     expect(result.current.anchor.getMonth()).toBe(7);
 
     act(() => result.current.openForDate('2026-08-20'));
     expect(result.current.draftDate).toBe('2026-08-20');
-    expect(openEventModal).toHaveBeenCalledOnce();
+    expect(openDailyEventsModal).toHaveBeenCalledOnce();
     expect(setMobilePanel).toHaveBeenCalledWith('calendar');
+
+    act(() => result.current.openEventComposer());
+    expect(openEventModal).toHaveBeenCalledOnce();
   });
 
   test('task board data groups selected tasks and calculates completion', () => {

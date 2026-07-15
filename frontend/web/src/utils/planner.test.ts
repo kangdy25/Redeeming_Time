@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
+import { type Event } from '@redeeming-time/shared';
 import { CORAL_RED } from './colorPresets';
-import { KOREA_HOLIDAY_COLOR, createKoreaHolidayEvents, eventStyle } from './planner';
+import { KOREA_HOLIDAY_COLOR, createKoreaHolidayEvents, eventStyle, sameDate } from './planner';
 
 describe('planner color styles', () => {
   test('creates Korea holiday events with the Coral Red preset', () => {
@@ -22,5 +23,36 @@ describe('planner color styles', () => {
       borderColor: '#A3E635',
       color: 'var(--color-text-primary)',
     });
+  });
+});
+
+function timedEvent(start: Date, end: Date): Event {
+  return {
+    id: 1,
+    calendar: 1,
+    creator: 1,
+    title: '자정 넘김 일정',
+    description: '',
+    start_time: start.toISOString(),
+    end_time: end.toISOString(),
+    is_all_day: false,
+    rrule: '',
+    created_at: '',
+    updated_at: '',
+  };
+}
+
+describe('sameDate', () => {
+  test('includes a timed event in every local day it overlaps', () => {
+    const event = timedEvent(new Date(2026, 6, 4, 23, 30), new Date(2026, 6, 5, 0, 30));
+
+    expect(sameDate(event, new Date(2026, 6, 4))).toBe(true);
+    expect(sameDate(event, new Date(2026, 6, 5))).toBe(true);
+  });
+
+  test('treats the end boundary as exclusive', () => {
+    const event = timedEvent(new Date(2026, 6, 4, 23, 0), new Date(2026, 6, 5));
+
+    expect(sameDate(event, new Date(2026, 6, 5))).toBe(false);
   });
 });
