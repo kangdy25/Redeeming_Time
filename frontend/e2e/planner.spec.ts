@@ -19,7 +19,11 @@ test('회원가입부터 워크스페이스, 일정, 할일 생성까지 동작�
   await page.getByRole('button', { name: 'Create Workspace' }).click();
   await expect(page.getByRole('button', { name: /2개 워크스페이스/ })).toBeVisible();
 
-  await page.locator('.date-cell:not(.muted-cell)').first().click();
+  const firstCalendarDate = page.locator('.date-cell:not(.muted-cell)').first();
+  await firstCalendarDate.getByRole('button', { name: /일정 보기$/ }).click();
+  const dailyScheduleDialog = page.getByRole('dialog', { name: /일정$/ });
+  await expect(dailyScheduleDialog).toBeVisible();
+  await dailyScheduleDialog.getByRole('button', { name: '일정 추가' }).click();
   await page.getByRole('textbox', { name: 'Event', exact: true }).fill('E2E 집중 일정');
   await page.getByRole('button', { name: 'Add Event' }).click();
   await expect(page.getByText('E2E 집중 일정')).toBeVisible();
