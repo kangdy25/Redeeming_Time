@@ -121,7 +121,12 @@
   --color-on-accent: #ffffff;
   --brand-title-color: var(--text-primary);
   --brand-title-shadow: transparent;
-  --brand-title-gradient: linear-gradient(135deg, #09090b 0%, var(--text-primary) 50%, #52525b 100%);
+  --brand-title-gradient: linear-gradient(
+    135deg,
+    #09090b 0%,
+    var(--text-primary) 50%,
+    #52525b 100%
+  );
   --gradient-accent: var(--color-accent);
   --gradient-logo: var(--color-accent);
   --color-surface-faint: rgba(24, 24, 27, 0.018);

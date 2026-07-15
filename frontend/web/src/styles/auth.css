@@ -26,7 +26,7 @@
       var(--color-bg-root) 0%,
       color-mix(in srgb, var(--color-bg-root) 88%, var(--color-accent)) 52%,
       var(--color-bg-root) 100%
-  );
+    );
 }
 
 :root[data-theme='light'] .auth-page-main {

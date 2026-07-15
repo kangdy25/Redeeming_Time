@@ -116,10 +116,7 @@ export function DashboardHeader({ shell, workspace }: DashboardHeaderProps) {
             </div>
           )}
         </div>
-        <button
-          className="primary-button subtle"
-          onClick={logout}
-        >
+        <button className="primary-button subtle" onClick={logout}>
           로그아웃
           <span className="sr-only">Sign out</span>
         </button>

@@ -4,11 +4,13 @@ import { useAuthStore } from '@redeeming-time/shared';
 import { renderWithProviders } from '../../../../test.utils';
 import { AuthPanel } from './AuthPanel';
 
-const { navigateToExternalUrl, createSocialAuthVerifier, clearSocialAuthVerifier } = vi.hoisted(() => ({
-  navigateToExternalUrl: vi.fn(),
-  createSocialAuthVerifier: vi.fn(),
-  clearSocialAuthVerifier: vi.fn(),
-}));
+const { navigateToExternalUrl, createSocialAuthVerifier, clearSocialAuthVerifier } = vi.hoisted(
+  () => ({
+    navigateToExternalUrl: vi.fn(),
+    createSocialAuthVerifier: vi.fn(),
+    clearSocialAuthVerifier: vi.fn(),
+  }),
+);
 
 vi.mock('../../utils/browserNavigation', () => ({
   navigateToExternalUrl,

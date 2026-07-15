@@ -21,16 +21,10 @@ function dateLabel(value: string) {
 
 function EventCard({ event }: { event: Event }) {
   return (
-    <View
-      className="mb-3 rounded-lg border border-outline border-l-[5px] border-l-preset-emerald bg-surface p-4 dark:border-outline/30"
-    >
-      <Text className="text-xs font-bold uppercase text-muted">
-        {dateLabel(event.start_time)}
-      </Text>
+    <View className="mb-3 rounded-lg border border-outline border-l-[5px] border-l-preset-emerald bg-surface p-4 dark:border-outline/30">
+      <Text className="text-xs font-bold uppercase text-muted">{dateLabel(event.start_time)}</Text>
       <Text className="mt-1 text-lg font-extrabold text-ink">{event.title}</Text>
-      <Text className="mt-1 text-sm text-muted">
-        {event.is_all_day ? 'All day' : 'Scheduled'}
-      </Text>
+      <Text className="mt-1 text-sm text-muted">{event.is_all_day ? 'All day' : 'Scheduled'}</Text>
       {event.congestion_warning?.is_congested && (
         <Text className="mt-2 rounded-md bg-preset-amber/20 px-2 py-1 text-xs font-bold text-ink">
           Schedule congestion detected
@@ -100,7 +94,9 @@ function MobileAuthPanel() {
           className={`flex-1 rounded-md border p-3 ${mode === 'login' ? 'border-action bg-action' : 'border-outline bg-surface dark:border-outline/30'}`}
           onPress={() => setMode('login')}
         >
-          <Text className={`text-center font-bold ${mode === 'login' ? 'text-on-action' : 'text-ink'}`}>
+          <Text
+            className={`text-center font-bold ${mode === 'login' ? 'text-on-action' : 'text-ink'}`}
+          >
             Login
           </Text>
         </TouchableOpacity>
@@ -143,9 +139,7 @@ function MobileAuthPanel() {
           {mode === 'login' ? 'Connect' : 'Create and connect'}
         </Text>
       </TouchableOpacity>
-      {message ? (
-        <Text className="mt-3 text-sm font-semibold text-muted">{message}</Text>
-      ) : null}
+      {message ? <Text className="mt-3 text-sm font-semibold text-muted">{message}</Text> : null}
     </View>
   );
 }

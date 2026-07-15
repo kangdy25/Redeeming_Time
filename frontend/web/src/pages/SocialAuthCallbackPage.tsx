@@ -16,7 +16,8 @@ const socialAuthErrorMessages: Record<string, string> = {
   CODE_EXPIRED: '로그인 코드가 만료되었습니다. 다시 로그인해 주세요.',
   SOCIAL_AUTH_CODE_INVALID: '로그인 코드가 유효하지 않습니다. 다시 시도해 주세요.',
   SOCIAL_AUTH_CODE_EXPIRED: '로그인 코드가 만료되었습니다. 다시 로그인해 주세요.',
-  INVALID_SOCIAL_HANDOFF_CODE: '로그인 코드가 유효하지 않거나 만료되었습니다. 다시 로그인해 주세요.',
+  INVALID_SOCIAL_HANDOFF_CODE:
+    '로그인 코드가 유효하지 않거나 만료되었습니다. 다시 로그인해 주세요.',
   PROVIDER_UNAVAILABLE: '소셜 로그인 서비스를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.',
   EMAIL_NOT_VERIFIED: '인증된 이메일 계정으로 다시 로그인해 주세요.',
   ACCOUNT_CONFLICT: '이 이메일은 다른 로그인 방식으로 이미 사용 중입니다.',

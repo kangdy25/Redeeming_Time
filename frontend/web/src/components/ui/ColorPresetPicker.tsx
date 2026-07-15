@@ -75,21 +75,29 @@ export function ColorPresetPicker({
   }, [isOpen]);
 
   // Auto-detect variant based on className or label if not explicitly provided
-  const resolvedVariant = variant || (
-    (className?.includes('category') || label.toLowerCase().includes('category'))
+  const resolvedVariant =
+    variant ||
+    (className?.includes('category') || label.toLowerCase().includes('category')
       ? 'circle'
-      : 'select'
-  );
+      : 'select');
 
-  const displayName = lastSelectedName || (selectedPreset ? selectedPreset.label : (value ? `현재 색상 (${value.toUpperCase()})` : '색상 선택'));
+  const displayName =
+    lastSelectedName ||
+    (selectedPreset
+      ? selectedPreset.label
+      : value
+        ? `현재 색상 (${value.toUpperCase()})`
+        : '색상 선택');
 
   const classes = [
     'color-preset-picker',
     `is-${resolvedVariant}`,
     isOpen ? 'is-open' : 'is-closed',
     opensUpward ? 'opens-upward' : '',
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={classes} ref={containerRef}>
@@ -109,11 +117,11 @@ export function ColorPresetPicker({
               style={{ '--preset-color': swatchColor } as CSSProperties}
               aria-hidden="true"
             />
-            <span className="color-preset-picker__select-trigger-text">
-              {displayName}
-            </span>
+            <span className="color-preset-picker__select-trigger-text">{displayName}</span>
           </span>
-          <span className="color-preset-picker__arrow" aria-hidden="true">▼</span>
+          <span className="color-preset-picker__arrow" aria-hidden="true">
+            ▼
+          </span>
         </button>
       ) : (
         <button

@@ -29,7 +29,7 @@ describe('ColorPresetPicker', () => {
         value="#818CF8"
         onChange={onChange}
         variant="select"
-      />
+      />,
     );
 
     // There should be a trigger button
@@ -43,10 +43,9 @@ describe('ColorPresetPicker', () => {
     const optionButtons = within(group).getAllByRole('button');
     expect(optionButtons).toHaveLength(12);
 
-    expect(within(group).getByRole('button', { name: 'Electric Indigo (#818CF8)' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(
+      within(group).getByRole('button', { name: 'Electric Indigo (#818CF8)' }),
+    ).toHaveAttribute('aria-pressed', 'true');
 
     // Click Coral Red option
     fireEvent.click(within(group).getByRole('button', { name: 'Coral Red (#F87171)' }));
@@ -61,7 +60,7 @@ describe('ColorPresetPicker', () => {
         value="#66A283"
         onChange={onChange}
         variant="circle"
-      />
+      />,
     );
 
     // There should be a trigger button
@@ -94,7 +93,9 @@ describe('ColorPresetPicker', () => {
       x: 0,
       y: 480,
     } as DOMRect;
-    const boundsSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(bounds);
+    const boundsSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue(bounds);
 
     render(<ColorPresetPicker label="Event color" value="#818CF8" onChange={vi.fn()} />);
     const trigger = screen.getByRole('button', { name: /Event color/i });

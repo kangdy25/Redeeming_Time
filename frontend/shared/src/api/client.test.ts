@@ -84,7 +84,9 @@ describe('API error handling', () => {
       }),
     );
 
-    await expect(apiClient.exchangeSocialCode('one-time-social-code', 'tab-verifier')).resolves.toEqual({
+    await expect(
+      apiClient.exchangeSocialCode('one-time-social-code', 'tab-verifier'),
+    ).resolves.toEqual({
       access: 'social-access-token',
       refresh: 'social-refresh-token',
     });

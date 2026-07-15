@@ -84,7 +84,9 @@ function relativeLuminance(hexColor: string) {
 
   if (!/^[\da-f]{6}$/i.test(normalizedHex)) return null;
 
-  const channels = [0, 2, 4].map((offset) => Number.parseInt(normalizedHex.slice(offset, offset + 2), 16) / 255);
+  const channels = [0, 2, 4].map(
+    (offset) => Number.parseInt(normalizedHex.slice(offset, offset + 2), 16) / 255,
+  );
   const [red, green, blue] = channels.map((channel) =>
     channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
   );
@@ -97,13 +99,17 @@ function contrastRatio(first: string, second: string) {
   const secondLuminance = relativeLuminance(second);
   if (firstLuminance === null || secondLuminance === null) return 0;
 
-  return (Math.max(firstLuminance, secondLuminance) + 0.05) / (Math.min(firstLuminance, secondLuminance) + 0.05);
+  return (
+    (Math.max(firstLuminance, secondLuminance) + 0.05) /
+    (Math.min(firstLuminance, secondLuminance) + 0.05)
+  );
 }
 
 function foregroundForEventColor(backgroundColor: string) {
   const darkForeground = '#18181B';
   const lightForeground = '#FFFFFF';
-  return contrastRatio(backgroundColor, darkForeground) >= contrastRatio(backgroundColor, lightForeground)
+  return contrastRatio(backgroundColor, darkForeground) >=
+    contrastRatio(backgroundColor, lightForeground)
     ? darkForeground
     : lightForeground;
 }
