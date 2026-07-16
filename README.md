@@ -124,12 +124,12 @@ Create a Vercel project from this repository with these settings:
 - Framework: Vite
 - Build Command: `npm run build:web`
 - Output Directory: `web/dist`
-- Environment Variable: `VITE_API_BASE_URL=https://your-api.example.com/api`
+- Environment Variable: `VITE_API_BASE_URL=/api`
 
-`frontend/vercel.json` contains the monorepo install command, SPA fallback rewrite for direct
-access to `/login` and `/dashboard`, and baseline security headers. Deploy once without the API
-variable only to verify the static preview; set the Render API URL and redeploy before enabling
-login for users.
+`frontend/vercel.json` contains the monorepo install command, a same-origin `/api/*` reverse
+proxy to the Render API, an SPA fallback rewrite for direct access to `/login` and `/dashboard`,
+and baseline security headers. Set the API variable to `/api` and redeploy before enabling login
+for users.
 
 ### Backend Deployment
 
@@ -139,7 +139,7 @@ throttling. PostgreSQL is hosted separately on Neon so application data is not
 subject to Render Free Postgres's 30-day expiration. The Blueprint uses a
 lightweight health check and single-instance startup migrations. Follow [the
 backend deployment guide](docs/backend-deployment.md) before setting
-`VITE_API_BASE_URL` to the deployed API URL.
+`VITE_API_BASE_URL` to `/api`.
 
 For the Expo app:
 

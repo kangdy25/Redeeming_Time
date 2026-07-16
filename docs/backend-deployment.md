@@ -16,13 +16,13 @@ Production starts only when all of the following are set:
 | `DATABASE_URL` | Neon **pooled** PostgreSQL connection URL for the running API |
 | `MIGRATION_DATABASE_URL` | Neon **direct** PostgreSQL connection URL, used only for Django migrations |
 | `CACHE_URL` | Shared Redis-compatible connection URL |
-| `ALLOWED_HOSTS` | API hostnames only, such as `.onrender.com` and any custom API domain |
+| `ALLOWED_HOSTS` | `.onrender.com,redeeming-time.vercel.app` when using the included Vercel API proxy |
 | `CORS_ALLOWED_ORIGINS` | `https://redeeming-time.vercel.app` |
 | `CSRF_TRUSTED_ORIGINS` | `https://redeeming-time.vercel.app` when cross-origin CSRF-protected flows are added |
 | `FRONTEND_ORIGIN` | `https://redeeming-time.vercel.app` |
 | `SOCIAL_AUTH_GOOGLE_CLIENT_ID` / `SOCIAL_AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth web-application credentials, if Google sign-in is enabled |
 | `SOCIAL_AUTH_KAKAO_CLIENT_ID` / `SOCIAL_AUTH_KAKAO_CLIENT_SECRET` | Kakao REST API key and client secret, if Kakao sign-in is enabled |
-| `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS API callback URI registered with each enabled provider |
+| `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS callback URI registered with each enabled provider; use the Vercel `/api/.../callback/` URL with the production proxy |
 | `PLANNER_TIME_ZONE` | `Asia/Seoul` for the current shared calendar-day policy |
 
 `CORS_ALLOW_ALL_ORIGINS` must remain `False`. The browser client uses Bearer
@@ -80,6 +80,23 @@ production. They are required in production and must match the provider-console
 value exactly. In local `DEBUG=True` development only, a blank value derives
 the callback from the incoming API request host.
 
+### Vercel same-origin proxy (recommended)
+
+The production `vercel.json` proxies `https://redeeming-time.vercel.app/api/*`
+to the Render service. It keeps browser API and OAuth traffic on the Vercel
+hostname, which avoids relying on the reputation of a shared Render subdomain.
+Set Vercel's production `VITE_API_BASE_URL` to `/api`, then register and
+configure these exact callback URLs instead:
+
+```text
+https://redeeming-time.vercel.app/api/auth/social/google/callback/
+https://redeeming-time.vercel.app/api/auth/social/kakao/callback/
+```
+
+`ALLOWED_HOSTS` must include `redeeming-time.vercel.app` because Vercel forwards
+that public host to Django. Do not enable CDN caching for `/api/*`; OAuth and
+authenticated API responses must remain uncached.
+
 Google requests `openid email profile` and validates the returned ID token on
 the server with `google-auth`, including signature, audience, issuer, and
 expiry. Kakao exchanges the authorization code with the configured client
@@ -135,10 +152,12 @@ not overwritten by Blueprint syncs.
    return `200`. It deliberately does not query PostgreSQL, allowing Neon Free
    to scale down while idle. Use `/readyz/` for an explicit database and cache
    readiness check.
-5. Copy the API service URL into Vercel as
-   `VITE_API_BASE_URL=https://<your-api-host>/api`, then redeploy the web app.
-6. Add any custom API domain to `ALLOWED_HOSTS`. Do not add the Vercel frontend
-   hostname there; it belongs only in `CORS_ALLOWED_ORIGINS`.
+5. Set Vercel's `VITE_API_BASE_URL` to `/api`, then redeploy the web app. The
+   included rewrite proxies that route to Render without exposing its hostname
+   to the browser.
+6. Keep both the Render hostname and the Vercel hostname in `ALLOWED_HOSTS`.
+   The Vercel hostname also remains in `CORS_ALLOWED_ORIGINS` for any clients
+   that still access the API cross-origin.
 
 The Blueprint generates `SECRET_KEY`, keeps Redis private, and uses only Free
 instance types, so migrations run as part of the single web-service startup
