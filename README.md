@@ -1,164 +1,122 @@
 # Redeeming Time
 
-> **"Making the best use of the time, because the days are evil." (Ephesians 5:16, ESV)**
->
-> A value-driven, production-ready cross-platform calendar and planner service designed to help users actively rescue and reclaim meaning from thoughtlessly drifting time.
+> 흩어진 일정과 할일을 하나의 흐름으로 정리하는 크로스플랫폼 플래너
 
----
+[![CI](https://github.com/kangdy25/Redeeming_Time/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kangdy25/Redeeming_Time/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-000000?logo=vercel)](https://redeeming-time.vercel.app)
 
-## 🚀 Project Overview
+**[웹 앱 바로가기](https://redeeming-time.vercel.app)** · **[API 문서](https://redeeming-time.vercel.app/api/docs/)**
 
-Redeeming Time is a robust, visually intuitive **'Daily Schedule Planner'** built to be the first thing a user opens in the morning and the companion they rely on all day.
+Redeeming Time은 일정, 할일, 아이디어를 한 곳에서 관리하도록 만든 DRF 학습 프로젝트입니다.
+일정과 할일을 분리하지 않고 달력 흐름 안에서 다루며, 놓친 할일은 다음 날로 이어서 관리할 수 있습니다.
 
-While focusing on the foundational values of schedule management and to-do execution, it preserves life's momentum by automatically rolling over uncompleted tasks to the next day. It also delivers data visualizations to audit whether time was spent meaningfully.
+## 화면 미리보기
 
-### 🎯 Core Planner Values
+| 달력 대시보드                                             | 할일 보드                                           |
+| --------------------------------------------------------- | --------------------------------------------------- |
+| ![일정이 표시된 달력 대시보드](docs/images/dashboard.png) | ![카테고리별 할일 보드](docs/images/task-board.png) |
 
-1. **Visual Intuitiveness:** A layout optimized for absolute glanceability, allowing users to immediately map out tasks and the nature of their commitments through fully tailored custom category colors.
-2. **Day-to-Day Continuity:** A seamless integration where schedules and to-dos live organically within a unified calendar view, making the rollover experience of overdue tasks feel natural and non-punitive.
-3. **Exceptional Tactile Feedback:** Delivering rapid and snappy interactions across cross-platform environments—supporting smooth drag-and-drop actions and comfortable single-handed mobile navigation.
+> 스크린샷은 로컬 익명 데모 데이터로 생성했으며 실제 사용자 정보나 일정은 포함하지 않습니다.
 
----
+## 주요 기능
 
-## 🛠 Tech Stack
+- **워크스페이스와 통합 달력**: 개인 목적에 맞는 워크스페이스를 만들고 전환할 수 있습니다.
+- **일정 관리**: 일정 생성·수정·삭제, 날짜별 일정 목록 및 상세 확인, 반복 일정과 종일 일정 설정을 지원합니다.
+- **할일 보드**: 카테고리별 할일, 우선순위, 목표 날짜, 완료 처리와 미완료 할일 이월 기능을 제공합니다.
+- **아이디어 보관함**: 떠오른 생각을 빠르게 기록하고 정리할 수 있습니다.
+- **테마와 색상 시스템**: 라이트/다크 테마 및 12가지 일정·카테고리 프리셋 색상을 제공합니다.
+- **인증**: 이메일·비밀번호 JWT 로그인과 Google, Kakao OAuth 2.0 로그인을 지원합니다.
+- **API와 품질 관리**: OpenAPI/Swagger 문서, 단위 테스트, 브라우저 E2E 테스트, GitHub Actions CI를 구성했습니다.
 
-### Front-end (Cross-Platform Two-Track Workspace)
+## 기술 스택
 
-- **Web:** React 19 (Vite) + Tailwind CSS (A lightweight, blazing-fast desktop planning dashboard)
-- **App:** React Native (Expo) + NativeWind (100% sharing styling source patterns with web)
-- **State & Fetch:** Zustand + TanStack Query v5 (Shared global caching engine and unified custom Hooks)
+### Frontend
 
-### Back-end & Database
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo-React%20Native-000020?logo=expo&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-Shared%20State-443E38)
+![TanStack Query](https://img.shields.io/badge/TanStack%20Query-v5-FF4154?logo=reactquery&logoColor=white)
 
-- **Framework:** Python / Django REST Framework (DRF)
-- **Database:** SQLite for local quickstart, PostgreSQL for production-style development and deployment
-- **Authentication:** JWT (JSON Web Token), Social Identity Providers (Google, Kakao OAuth 2.0)
+### Backend & Infrastructure
 
-### Infrastructure
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-6-092E20?logo=django&logoColor=white)
+![Django REST Framework](https://img.shields.io/badge/Django%20REST%20Framework-API-A30000)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00E599?logo=neon&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Web-000000?logo=vercel)
+![Render](https://img.shields.io/badge/Render-API-46E3B7?logo=render&logoColor=white)
 
-- **Web Hosting:** Vercel (React Web)
-- **API Server & Storage:** AWS (EC2 / RDS PostgreSQL / S3 for asset management)
+### Quality
 
----
+![Vitest](https://img.shields.io/badge/Vitest-Unit%20Test-6E9F18?logo=vitest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?logo=githubactions&logoColor=white)
 
-## ✨ Feature Roadmap
-
-### Stage 1: Core Planner MVP (Minimum Viable Product)
-
-- [ ] **Authentication (Auth):** Custom registration/login with JWT alongside OAuth 2.0 (Google, Kakao).
-- [ ] **Multi-Calendar:** Creating and switching between isolated planner spaces tailored for distinct scopes (Personal, Team, Routine).
-- [ ] **Event & Task CRUD:** Complete create, read, update, delete workflows for calendar events and to-dos, including deep note nesting.
-- [ ] **Custom Category (`CATEGORY`):** A flexible, separated category entity mapping custom titles and hex color codes.
-
-### Stage 2: Collaboration & Access Control
-
-- [ ] **Calendar Sharing:** Generation of private invite links and shared workspace enrollment.
-- [ ] **Fine-Grained Permissions:** Hard separation of `OWNER`, `EDITOR`, and `VIEWER` access matrix backed by rigid DRF Permission classes.
-- [ ] **Event Feeds:** Real-time conversational comments and activity logs bound to specific calendar events.
-
-### Stage 3: Productivity & Automation
-
-- [ ] **Recurrence Engine:** Server-side handling of complex recurring rules mapped to the RFC 5545 (RRule) specification.
-- [ ] **Automated Task Rollover:** A batch workflow that automatically forwards uncompleted tasks past midnight.
-- [ ] **Unified Deep Search:** High-speed tokenized searching across titles, tags, and attendees.
-
-### Stage 4: Proactive Time Analytics (Dashboard)
-
-- [ ] **Time Consumption Analysis:** Ultra-fast calculation of total durations and category percentages using DRF `annotate` and `aggregate` pipelines.
-- [ ] **Milestone Reports:** Aggregating weekly/monthly achievement trends into planner reports.
-
----
-
-## 📁 Directory Structure
+## 프로젝트 구조
 
 ```text
-├── backend/                   # Django DRF API Service
-└── frontend/                  # Frontend Monorepo Workspace
-    ├── web/                  # React + Vite + Tailwind CSS (Desktop Web Planner)
-    ├── app/                  # React Native + NativeWind (Mobile App Planner)
-    └── shared/               # Shared Zustand Stores & TanStack Query Custom Hooks
+├── backend/              # Django REST Framework API
+├── frontend/
+│   ├── web/              # React + Vite 웹 앱
+│   ├── app/              # Expo 기반 모바일 앱
+│   ├── shared/           # 공용 API 클라이언트·상태·타입
+│   └── e2e/              # Playwright 브라우저 테스트
+├── docs/                 # 배포·ERD 등 프로젝트 문서
+└── render.yaml           # Render Blueprint
 ```
 
-## Local Development
+## 로컬 실행
 
-### Backend API
+### 사전 요구 사항
+
+- Python 3.13 이상과 [uv](https://docs.astral.sh/uv/)
+- Node.js 22 이상과 npm
+
+### 백엔드
 
 ```bash
 cd backend
+uv sync --dev
 uv run manage.py migrate
 uv run manage.py runserver
 ```
 
-The backend defaults to local SQLite via `backend/.env`, so the API can boot without Docker. Once running, open:
+API는 기본적으로 `http://127.0.0.1:8000`에서 실행됩니다.
 
-- API root: `http://127.0.0.1:8000/api/`
 - Swagger UI: `http://127.0.0.1:8000/api/docs/`
-- OpenAPI schema: `http://127.0.0.1:8000/api/schema/`
+- OpenAPI Schema: `http://127.0.0.1:8000/api/schema/`
 
-If port `8000` is already in use, run the server on another port:
-
-```bash
-uv run manage.py runserver 127.0.0.1:8001
-```
-
-For PostgreSQL-backed development, start the container and set `DATABASE_URL` in `backend/.env` to the Postgres URL from `backend/.env.example` or `compose.yaml`.
-
-```bash
-docker compose up -d postgres
-```
-
-### Frontend Workspaces
+### 웹 앱
 
 ```bash
 cd frontend
+npm ci
 npm --workspace @redeeming-time/web run dev
 ```
 
-The Vite web app starts on the URL printed by Vite, usually `http://localhost:5173/`.
+웹 앱은 기본적으로 `http://localhost:5173`에서 실행됩니다. 로컬 API의 기본 주소는
+`http://localhost:8000/api`이며, 다른 API를 사용하려면 `VITE_API_BASE_URL`을 설정합니다.
 
-### Vercel Web Deployment
-
-Create a Vercel project from this repository with these settings:
-
-- Root Directory: `frontend`
-- Framework: Vite
-- Build Command: `npm run build:web`
-- Output Directory: `web/dist`
-- Environment Variable: `VITE_API_BASE_URL=/api`
-
-`frontend/vercel.json` contains the monorepo install command, a same-origin `/api/*` reverse
-proxy to the Render API, an SPA fallback rewrite for direct access to `/login` and `/dashboard`,
-and baseline security headers. Set the API variable to `/api` and redeploy before enabling login
-for users.
-
-### Backend Deployment
-
-The API is Dockerized and has a free-tier Render Blueprint at `render.yaml`.
-It provisions the API and a private Redis-compatible cache for authentication
-throttling. PostgreSQL is hosted separately on Neon so application data is not
-subject to Render Free Postgres's 30-day expiration. The Blueprint uses a
-lightweight health check and single-instance startup migrations. Follow [the
-backend deployment guide](docs/backend-deployment.md) before setting
-`VITE_API_BASE_URL` to `/api`.
-
-For the Expo app:
+### 모바일 앱
 
 ```bash
 cd frontend
 npm --workspace @redeeming-time/app run start
 ```
 
-### Verification
+## 테스트와 검증
 
 ```bash
+# Backend
 cd backend
-uv run coverage run manage.py test
-uv run coverage report
-```
+uv run manage.py test
 
-```bash
+# Frontend
 cd frontend
-npm run test:coverage
+npm run test
 npm run test:e2e
 npm run lint
 npm run format:check
@@ -167,6 +125,37 @@ npm run typecheck:app
 npm run typecheck:shared
 ```
 
-GitHub Actions runs backend, frontend, and browser E2E jobs for every pull request and every
-push to `main`. Coverage is enforced at the current baselines (backend 70%; web/shared 50% for
-statements, functions, and lines, and 45% for branches) so coverage cannot silently regress.
+GitHub Actions는 `main` 브랜치 푸시와 Pull Request에서 백엔드·프론트엔드·Playwright E2E 검증을 실행합니다.
+
+## 배포 구조
+
+```text
+Browser
+  ↓
+Vercel (React Web) ── /api/* rewrite ──→ Render (Django REST Framework)
+                                              ↓
+                                     Neon PostgreSQL + Render Key Value
+```
+
+- 웹 앱은 **Vercel**에 배포되며 `/api/*` 요청은 같은 도메인 경로를 통해 Render API로 전달됩니다.
+- API는 **Render**에, 운영 PostgreSQL은 **Neon**에 배포됩니다.
+- 인증 요청 제한과 OAuth 일회성 상태는 Render Key Value를 사용합니다.
+- 상세 환경변수와 배포 절차는 [백엔드 배포 가이드](docs/backend-deployment.md)에서 확인할 수 있습니다.
+
+## 개발·배포 참고
+
+- 무료 Render Web Service는 유휴 상태에서 첫 요청이 느릴 수 있습니다.
+- 무료 Render는 SMTP 포트를 차단하므로 현재 운영 환경에서는 이메일 인증·비밀번호 재설정 메일의 실제 발송이 제한됩니다. 소셜 로그인은 정상적으로 사용할 수 있습니다.
+- OAuth 클라이언트 비밀값, JWT 서명 키, Neon 연결 문자열 등 모든 비밀값은 저장소에 커밋하지 않습니다.
+
+## 학습 포인트
+
+- DRF ViewSet, Serializer, Permission, Pagination을 이용한 REST API 설계
+- JWT와 OAuth 2.0 Authorization Code Flow의 안전한 연동
+- React 웹·Expo 앱 간 공용 상태, API 클라이언트, 타입 공유
+- Vercel·Render·Neon 분리 배포와 CORS, 프록시, 환경변수 구성
+- Vitest·Playwright·GitHub Actions를 활용한 자동 검증
+
+---
+
+> “세월을 아끼라 때가 악하니라” — 에베소서 5:16
