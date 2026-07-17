@@ -157,6 +157,7 @@ EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=10)
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='Redeeming Time <no-reply@redeeming-time.local>')
 PASSWORD_RESET_EMAIL_ENABLED = env.bool('PASSWORD_RESET_EMAIL_ENABLED', default=DEBUG)
 PASSWORD_RESET_TIMEOUT = env.int('PASSWORD_RESET_TIMEOUT', default=3600)
@@ -166,6 +167,8 @@ EMAIL_VERIFICATION_ENABLED = env.bool('EMAIL_VERIFICATION_ENABLED', default=DEBU
 EMAIL_VERIFICATION_TIMEOUT = env.int('EMAIL_VERIFICATION_TIMEOUT', default=86_400)
 if EMAIL_VERIFICATION_TIMEOUT <= 0:
     raise ImproperlyConfigured('EMAIL_VERIFICATION_TIMEOUT must be positive.')
+if EMAIL_TIMEOUT <= 0:
+    raise ImproperlyConfigured('EMAIL_TIMEOUT must be positive.')
 
 
 # Internationalization

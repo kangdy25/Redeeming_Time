@@ -68,6 +68,8 @@ services:
         sync: false
       - key: EMAIL_HOST_PASSWORD
         sync: false
+      - key: EMAIL_TIMEOUT
+        value: "10"
       - key: DEFAULT_FROM_EMAIL
         sync: false
       - key: NUM_PROXIES

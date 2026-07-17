@@ -146,6 +146,7 @@ manually and then deploy:
 | `EMAIL_USE_TLS`                | Usually `True`                              |
 | `EMAIL_HOST_USER`              | SMTP username                               |
 | `EMAIL_HOST_PASSWORD`          | SMTP password or API key                    |
+| `EMAIL_TIMEOUT`                | `10` seconds; prevents SMTP hangs           |
 | `DEFAULT_FROM_EMAIL`           | `Redeeming Time <no-reply@your-domain.com>` |
 
 Optionally set `PASSWORD_RESET_TIMEOUT` in seconds; the default is `3600`.
