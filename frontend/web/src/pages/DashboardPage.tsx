@@ -8,7 +8,6 @@ import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
 import { CalendarPanel } from '../components/calendar/CalendarPanel';
 import { DashboardMobileNav } from '../components/dashboard/DashboardMobileNav';
 import { DashboardModalLayer } from '../components/dashboard/DashboardModalLayer';
-import { ServerWakeUpNotice } from '../components/ui/ServerWakeUpNotice';
 
 export function DashboardPage() {
   const model = useDashboardModel();
@@ -24,7 +23,6 @@ export function DashboardPage() {
   return (
     <div className="app-container">
       <DashboardHeader {...model} />
-      {workspace.snapshot.isLoading && <ServerWakeUpNotice fullScreen />}
 
       <div className="workspace-layout">
         {/* Sidebar */}

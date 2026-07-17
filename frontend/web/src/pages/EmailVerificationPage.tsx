@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiClient, getErrorMessage } from '@redeeming-time/shared';
-import { ServerWakeUpNotice } from '../components/ui/ServerWakeUpNotice';
 
 export function EmailVerificationPage() {
   const [params] = useSearchParams();
@@ -46,7 +45,6 @@ export function EmailVerificationPage() {
             <p className="eyebrow">Email verification</p>
             <h1 id="email-verification-title">이메일 인증</h1>
           </div>
-          {isLoading && <ServerWakeUpNotice fullScreen />}
           <p className="form-message" role={hasError ? 'alert' : 'status'}>
             {message}
           </p>

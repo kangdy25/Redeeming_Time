@@ -11,7 +11,6 @@ import {
   createSocialAuthVerifier,
   navigateToExternalUrl,
 } from '../../utils/browserNavigation';
-import { ServerWakeUpNotice } from '../ui/ServerWakeUpNotice';
 
 export function AuthPanel() {
   const setTokens = useAuthStore((state) => state.setTokens);
@@ -188,11 +187,10 @@ export function AuthPanel() {
             aria-busy={isSubmitting}
             aria-label={mode === 'login' ? 'Connect' : 'Create & Connect'}
           >
-            {isSubmitting ? '서버 연결 중...' : mode === 'login' ? '로그인' : '무료로 시작하기'}
+            {isSubmitting ? '처리 중...' : mode === 'login' ? '로그인' : '무료로 시작하기'}
           </button>
         </form>
       )}
-      {isConnecting && <ServerWakeUpNotice fullScreen />}
       {message && <p className="form-message">{message}</p>}
       {verificationEmail && (
         <button

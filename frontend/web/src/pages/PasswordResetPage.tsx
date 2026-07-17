@@ -1,7 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { apiClient, getErrorMessage } from '@redeeming-time/shared';
-import { ServerWakeUpNotice } from '../components/ui/ServerWakeUpNotice';
 
 export function PasswordResetPage() {
   const [params] = useSearchParams();
@@ -141,14 +140,13 @@ export function PasswordResetPage() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting
-                    ? '서버 연결 중...'
+                    ? '처리 중...'
                     : isConfirmation
                       ? '새 비밀번호 저장'
                       : '재설정 링크 보내기'}
                 </button>
               </form>
             )}
-            {isSubmitting && <ServerWakeUpNotice fullScreen />}
             {message && (
               <p className="form-message" role={isComplete ? 'status' : 'alert'}>
                 {message}
