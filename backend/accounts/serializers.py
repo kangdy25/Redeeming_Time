@@ -1,8 +1,19 @@
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from .email_verification import consume_email_verification_token
 from .models import User
+
+
+class EmailNotVerified(AuthenticationFailed):
+    default_detail = 'Verify your email address before signing in.'
+    default_code = 'email_not_verified'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,11 +28,19 @@ class UserSerializer(serializers.ModelSerializer):
             'nickname',
             'profile_image_url',
             'social_provider',
+            'email_verified',
             'is_active',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'social_provider', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id',
+            'social_provider',
+            'email_verified',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ]
 
     def validate_email(self, value):
         if self.instance and value != self.instance.email:
@@ -73,6 +92,63 @@ class PasswordChangeSerializer(serializers.Serializer):
         except DjangoValidationError as exc:
             raise serializers.ValidationError({'new_password': list(exc.messages)}) from exc
         return attrs
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField(write_only=True, max_length=128, trim_whitespace=False)
+    token = serializers.CharField(write_only=True, max_length=256, trim_whitespace=False)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, attrs):
+        try:
+            user_id = force_str(urlsafe_base64_decode(attrs['uid']))
+            user = User.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist) as exc:
+            raise serializers.ValidationError('This password reset link is invalid or has expired.') from exc
+
+        if (
+            not user.is_active
+            or not user.has_usable_password()
+            or not default_token_generator.check_token(user, attrs['token'])
+        ):
+            raise serializers.ValidationError('This password reset link is invalid or has expired.')
+
+        try:
+            validate_password(attrs['new_password'], user)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError({'new_password': list(exc.messages)}) from exc
+
+        attrs['user'] = user
+        return attrs
+
+
+class EmailVerificationRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class EmailVerificationConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField(write_only=True, max_length=512, trim_whitespace=False)
+
+    def validate(self, attrs):
+        user = consume_email_verification_token(attrs['token'])
+        if user is None:
+            raise serializers.ValidationError('This email verification link is invalid or has expired.')
+        attrs['user'] = user
+        return attrs
+
+
+class EmailVerifiedTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Do not issue local-account JWTs until the mailbox is verified."""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        if self.user.social_provider == User.SocialProvider.LOCAL and not self.user.email_verified:
+            raise EmailNotVerified()
+        return data
 
 
 class SocialHandoffCodeSerializer(serializers.Serializer):

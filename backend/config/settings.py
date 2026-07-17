@@ -146,6 +146,27 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Password reset emails use Django's built-in SMTP backend in production. Keep
+# the feature disabled until a transactional email provider has been configured.
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = env('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='Redeeming Time <no-reply@redeeming-time.local>')
+PASSWORD_RESET_EMAIL_ENABLED = env.bool('PASSWORD_RESET_EMAIL_ENABLED', default=DEBUG)
+PASSWORD_RESET_TIMEOUT = env.int('PASSWORD_RESET_TIMEOUT', default=3600)
+if PASSWORD_RESET_TIMEOUT <= 0:
+    raise ImproperlyConfigured('PASSWORD_RESET_TIMEOUT must be positive.')
+EMAIL_VERIFICATION_ENABLED = env.bool('EMAIL_VERIFICATION_ENABLED', default=DEBUG)
+EMAIL_VERIFICATION_TIMEOUT = env.int('EMAIL_VERIFICATION_TIMEOUT', default=86_400)
+if EMAIL_VERIFICATION_TIMEOUT <= 0:
+    raise ImproperlyConfigured('EMAIL_VERIFICATION_TIMEOUT must be positive.')
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -292,6 +313,10 @@ REST_FRAMEWORK = {
         'token_refresh': '20/minute',
         'logout': '20/minute',
         'password_change': '5/hour',
+        'password_reset_request': '5/hour',
+        'password_reset_confirm': '10/hour',
+        'email_verification_request': '5/hour',
+        'email_verification_confirm': '10/hour',
         'social_auth_start': '10/minute',
         'social_auth_callback': '20/minute',
         'social_auth_exchange': '20/minute',

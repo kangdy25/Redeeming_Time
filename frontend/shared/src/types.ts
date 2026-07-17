@@ -10,6 +10,7 @@ export interface User {
   nickname: string;
   profile_image_url: string;
   social_provider: SocialProvider;
+  email_verified: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;

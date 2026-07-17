@@ -1,5 +1,13 @@
+import logging
+from urllib.parse import urlencode
+
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db import transaction
 from django.http import HttpResponseRedirect
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -15,11 +23,78 @@ from planner.models import CalendarMember
 
 from .models import User
 from .serializers import (
+    EmailVerificationConfirmSerializer,
+    EmailVerificationRequestSerializer,
+    EmailVerifiedTokenObtainPairSerializer,
     PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     SocialHandoffCodeSerializer,
     SocialTokenPairSerializer,
     UserSerializer,
 )
+from .email_verification import make_email_verification_token
+
+
+logger = logging.getLogger(__name__)
+
+
+class PasswordResetDeliveryUnavailable(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = 'Password reset email is not configured.'
+    default_code = 'password_reset_unavailable'
+
+
+class EmailVerificationUnavailable(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = 'Email verification is not configured.'
+    default_code = 'email_verification_unavailable'
+
+
+def _password_reset_url(user: User) -> str:
+    query = urlencode(
+        {
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': default_token_generator.make_token(user),
+        },
+    )
+    return f'{settings.FRONTEND_ORIGIN}/password-reset?{query}'
+
+
+def _send_password_reset_email(user: User) -> None:
+    reset_url = _password_reset_url(user)
+    send_mail(
+        subject='Redeeming Time 비밀번호 재설정',
+        message=(
+            '비밀번호 재설정을 요청하셨습니다. 아래 링크에서 새 비밀번호를 설정해 주세요.\n\n'
+            f'{reset_url}\n\n'
+            f'이 링크는 {settings.PASSWORD_RESET_TIMEOUT // 60}분 동안만 유효합니다. '
+            '요청하지 않으셨다면 이 메일을 무시해 주세요.'
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
+def _email_verification_url(user: User) -> str:
+    return f'{settings.FRONTEND_ORIGIN}/verify-email?{urlencode({"token": make_email_verification_token(user)})}'
+
+
+def _send_email_verification_email(user: User) -> None:
+    verification_url = _email_verification_url(user)
+    send_mail(
+        subject='Redeeming Time 이메일 인증',
+        message=(
+            'Redeeming Time 가입을 완료하려면 아래 링크에서 이메일을 인증해 주세요.\n\n'
+            f'{verification_url}\n\n'
+            f'이 링크는 {settings.EMAIL_VERIFICATION_TIMEOUT // 3600}시간 동안만 유효합니다. '
+            '직접 가입하지 않으셨다면 이 메일을 무시해 주세요.'
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 from .social import (
     InactiveSocialAccount,
     InvalidOAuthState,
@@ -40,6 +115,7 @@ from .social import (
 
 
 class LoginView(TokenObtainPairView):
+    serializer_class = EmailVerifiedTokenObtainPairSerializer
     throttle_scope = 'login'
     throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
 
@@ -181,6 +257,105 @@ class PasswordChangeView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class PasswordResetRequestView(APIView):
+    """Email an opaque, one-time reset link without revealing account existence."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'password_reset_request'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(request=PasswordResetRequestSerializer, responses={204: None})
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not settings.PASSWORD_RESET_EMAIL_ENABLED:
+            raise PasswordResetDeliveryUnavailable()
+
+        user = (
+            User.objects.filter(email__iexact=serializer.validated_data['email'])
+            .filter(is_active=True)
+            .first()
+        )
+        if user is not None and user.has_usable_password():
+            try:
+                _send_password_reset_email(user)
+            except Exception:
+                # Keep the response identical for existing and unknown emails.
+                # Operators can use the server log to diagnose email delivery.
+                logger.exception('Unable to send password reset email.')
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordResetConfirmView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'password_reset_confirm'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(request=PasswordResetConfirmSerializer, responses={204: None})
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+
+        with transaction.atomic():
+            user.set_password(serializer.validated_data['new_password'])
+            user.save(update_fields=['password', 'updated_at'])
+            for token in OutstandingToken.objects.filter(user=user):
+                BlacklistedToken.objects.get_or_create(token=token)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EmailVerificationRequestView(APIView):
+    """Resend verification mail without revealing whether the address exists."""
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'email_verification_request'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(request=EmailVerificationRequestSerializer, responses={204: None})
+    def post(self, request):
+        serializer = EmailVerificationRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not settings.EMAIL_VERIFICATION_ENABLED:
+            raise EmailVerificationUnavailable()
+
+        user = (
+            User.objects.filter(email__iexact=serializer.validated_data['email'])
+            .filter(is_active=True, social_provider=User.SocialProvider.LOCAL, email_verified=False)
+            .first()
+        )
+        if user is not None:
+            try:
+                _send_email_verification_email(user)
+            except Exception:
+                logger.exception('Unable to send email verification message.')
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EmailVerificationConfirmView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'email_verification_confirm'
+    throttle_classes = [AnonRateThrottle, ScopedRateThrottle]
+
+    @extend_schema(request=EmailVerificationConfirmSerializer, responses={204: None})
+    def post(self, request):
+        serializer = EmailVerificationConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        user.email_verified = True
+        user.save(update_fields=['email_verified', 'updated_at'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -201,6 +376,16 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return [AnonRateThrottle(), ScopedRateThrottle()]
         return super().get_throttles()
+
+    def perform_create(self, serializer):
+        if not settings.EMAIL_VERIFICATION_ENABLED:
+            raise EmailVerificationUnavailable()
+
+        user = serializer.save()
+        try:
+            _send_email_verification_email(user)
+        except Exception:
+            logger.exception('Unable to send initial email verification message.')
 
     @action(detail=False, methods=['get'], url_path='me')
     def me(self, request):

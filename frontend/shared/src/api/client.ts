@@ -188,6 +188,30 @@ export const apiClient = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  requestPasswordReset: (email: string) =>
+    request<void>('/auth/password/reset/', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      skipAuthorization: true,
+    }),
+  confirmPasswordReset: (uid: string, token: string, newPassword: string) =>
+    request<void>('/auth/password/reset/confirm/', {
+      method: 'POST',
+      body: JSON.stringify({ uid, token, new_password: newPassword }),
+      skipAuthorization: true,
+    }),
+  requestEmailVerification: (email: string) =>
+    request<void>('/auth/email-verification/', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      skipAuthorization: true,
+    }),
+  confirmEmailVerification: (token: string) =>
+    request<void>('/auth/email-verification/confirm/', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+      skipAuthorization: true,
+    }),
   socialLoginUrl: (provider: SocialLoginProvider, verifier: string) =>
     `${API_BASE_URL}/auth/social/${provider.toLowerCase()}/start/?${new URLSearchParams({
       handoff_verifier: verifier,

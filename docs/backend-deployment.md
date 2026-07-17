@@ -9,21 +9,21 @@ on Neon to avoid Render Free Postgres's 30-day expiration.
 
 Production starts only when all of the following are set:
 
-| Variable | Production value |
-| --- | --- |
-| `DEBUG` | `False` |
-| `SECRET_KEY` | A unique, randomly generated secret |
-| `DATABASE_URL` | Neon **pooled** PostgreSQL connection URL for the running API |
-| `MIGRATION_DATABASE_URL` | Neon **direct** PostgreSQL connection URL, used only for Django migrations |
-| `CACHE_URL` | Shared Redis-compatible connection URL |
-| `ALLOWED_HOSTS` | `.onrender.com,redeeming-time.vercel.app` when using the included Vercel API proxy |
-| `CORS_ALLOWED_ORIGINS` | `https://redeeming-time.vercel.app` |
-| `CSRF_TRUSTED_ORIGINS` | `https://redeeming-time.vercel.app` when cross-origin CSRF-protected flows are added |
-| `FRONTEND_ORIGIN` | `https://redeeming-time.vercel.app` |
-| `SOCIAL_AUTH_GOOGLE_CLIENT_ID` / `SOCIAL_AUTH_GOOGLE_CLIENT_SECRET` | Google OAuth web-application credentials, if Google sign-in is enabled |
-| `SOCIAL_AUTH_KAKAO_CLIENT_ID` / `SOCIAL_AUTH_KAKAO_CLIENT_SECRET` | Kakao REST API key and client secret, if Kakao sign-in is enabled |
+| Variable                                                             | Production value                                                                                                                  |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `DEBUG`                                                              | `False`                                                                                                                           |
+| `SECRET_KEY`                                                         | A unique, randomly generated secret                                                                                               |
+| `DATABASE_URL`                                                       | Neon **pooled** PostgreSQL connection URL for the running API                                                                     |
+| `MIGRATION_DATABASE_URL`                                             | Neon **direct** PostgreSQL connection URL, used only for Django migrations                                                        |
+| `CACHE_URL`                                                          | Shared Redis-compatible connection URL                                                                                            |
+| `ALLOWED_HOSTS`                                                      | `.onrender.com,redeeming-time.vercel.app` when using the included Vercel API proxy                                                |
+| `CORS_ALLOWED_ORIGINS`                                               | `https://redeeming-time.vercel.app`                                                                                               |
+| `CSRF_TRUSTED_ORIGINS`                                               | `https://redeeming-time.vercel.app` when cross-origin CSRF-protected flows are added                                              |
+| `FRONTEND_ORIGIN`                                                    | `https://redeeming-time.vercel.app`                                                                                               |
+| `SOCIAL_AUTH_GOOGLE_CLIENT_ID` / `SOCIAL_AUTH_GOOGLE_CLIENT_SECRET`  | Google OAuth web-application credentials, if Google sign-in is enabled                                                            |
+| `SOCIAL_AUTH_KAKAO_CLIENT_ID` / `SOCIAL_AUTH_KAKAO_CLIENT_SECRET`    | Kakao REST API key and client secret, if Kakao sign-in is enabled                                                                 |
 | `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS callback URI registered with each enabled provider; use the Vercel `/api/.../callback/` URL with the production proxy |
-| `PLANNER_TIME_ZONE` | `Asia/Seoul` for the current shared calendar-day policy |
+| `PLANNER_TIME_ZONE`                                                  | `Asia/Seoul` for the current shared calendar-day policy                                                                           |
 
 `CORS_ALLOW_ALL_ORIGINS` must remain `False`. The browser client uses Bearer
 tokens, so CORS credentials are deliberately disabled.
@@ -125,6 +125,47 @@ An email already owned by a local account or another social identity is
 rejected rather than linked automatically. Inactive accounts are also
 rejected.
 
+## Password reset email
+
+The public password-reset endpoints are `POST /api/auth/password/reset/` and
+`POST /api/auth/password/reset/confirm/`. Reset links point only to the fixed
+`FRONTEND_ORIGIN`, expire after one hour by default, can be used once, and
+blacklist the account's existing JWT refresh tokens when the password changes.
+The request endpoint always returns the same successful response for an
+unknown email, a social-only account, or a local account.
+
+Password reset email is deliberately disabled in production until a
+transactional SMTP provider is configured. In Render, enter these values
+manually and then deploy:
+
+| Variable                       | Example / purpose                           |
+| ------------------------------ | ------------------------------------------- |
+| `PASSWORD_RESET_EMAIL_ENABLED` | `True`                                      |
+| `EMAIL_HOST`                   | SMTP host supplied by the email provider    |
+| `EMAIL_PORT`                   | Usually `587`                               |
+| `EMAIL_USE_TLS`                | Usually `True`                              |
+| `EMAIL_HOST_USER`              | SMTP username                               |
+| `EMAIL_HOST_PASSWORD`          | SMTP password or API key                    |
+| `DEFAULT_FROM_EMAIL`           | `Redeeming Time <no-reply@your-domain.com>` |
+
+Optionally set `PASSWORD_RESET_TIMEOUT` in seconds; the default is `3600`.
+Never use a personal mailbox password. Use an SMTP credential from a
+transactional email provider, and keep all of these values out of Git.
+
+## Email verification
+
+New email-and-password accounts receive a verification link at registration
+and cannot obtain JWTs until the link is opened. Google and Kakao identities
+remain eligible because their providers already return a verified email. The
+existing user migration marks accounts created before this feature as verified,
+so deploying it does not lock out current users.
+
+Set `EMAIL_VERIFICATION_ENABLED=True` alongside the SMTP configuration above.
+The user can request a new link at `POST /api/auth/email-verification/`; links
+open `/verify-email?token=...`, expire after 24 hours by default, and become
+invalid as soon as they are used. Set `EMAIL_VERIFICATION_TIMEOUT` in seconds
+only when a different expiry period is required.
+
 The state, callback, and exchange endpoints use dedicated throttles. Their
 short-lived handoff code requires the production shared Redis-compatible cache
 already listed above; do not replace it with per-process local memory.
@@ -211,13 +252,13 @@ history. Authenticated profile code should use `GET /api/users/me/`; the shared
 client temporarily falls back to the legacy `/api/users/` list while the P1
 frontend-first rollout is in progress.
 
-| Endpoint | Filters | Boundary rule |
-| --- | --- | --- |
-| `/api/categories/` | `calendar` | Accessible calendar only |
-| `/api/events/` | `calendar`, `starts_at`, `ends_at` | Datetimes are paired, timezone-aware, and overlap `[starts_at, ends_at)`; max span 93 days |
-| `/api/tasks/` | `calendar`, `target_date_from`, `target_date_to`, `is_completed` | Dates use `[target_date_from, target_date_to)` and booleans are `true` or `false` |
-| `/api/calendar-members/` | `calendar` | Owner-visible memberships only |
-| `/api/event-attendees/` | `event` | Accessible event only |
+| Endpoint                 | Filters                                                          | Boundary rule                                                                              |
+| ------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `/api/categories/`       | `calendar`                                                       | Accessible calendar only                                                                   |
+| `/api/events/`           | `calendar`, `starts_at`, `ends_at`                               | Datetimes are paired, timezone-aware, and overlap `[starts_at, ends_at)`; max span 93 days |
+| `/api/tasks/`            | `calendar`, `target_date_from`, `target_date_to`, `is_completed` | Dates use `[target_date_from, target_date_to)` and booleans are `true` or `false`          |
+| `/api/calendar-members/` | `calendar`                                                       | Owner-visible memberships only                                                             |
+| `/api/event-attendees/`  | `event`                                                          | Accessible event only                                                                      |
 
 An inaccessible calendar or event ID returns an empty result rather than
 revealing whether it exists. Invalid filter formats return `400`.

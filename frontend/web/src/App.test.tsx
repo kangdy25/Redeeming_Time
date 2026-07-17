@@ -58,7 +58,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       expect(passwordInput.value).toBe('my-pass');
     });
 
-    test('TC-T1-F1-03: Local Registration Workflow', async () => {
+    test('TC-T1-F1-03: Local Registration Requires Email Verification', async () => {
       renderWithProviders(<App />);
       fireEvent.click(screen.getByText('Register'));
 
@@ -71,8 +71,11 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Create & Connect' }));
 
       await waitFor(() => {
-        expect(useAuthStore.getState().accessToken).toBe('mock-access-token');
+        expect(
+          screen.getByText('인증 메일을 보냈습니다. 이메일 인증 후 로그인해 주세요.'),
+        ).toBeInTheDocument();
       });
+      expect(useAuthStore.getState().accessToken).toBeNull();
     });
 
     test('TC-T1-F1-04: Local Login Token Storage', async () => {

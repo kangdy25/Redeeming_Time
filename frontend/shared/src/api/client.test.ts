@@ -60,6 +60,55 @@ describe('API error handling', () => {
     await expect(apiClient.logout('active-refresh')).resolves.toBeUndefined();
   });
 
+  it('requests and confirms a password reset without an authenticated session', async () => {
+    server.use(
+      http.post('http://localhost:8000/api/auth/password/reset/', async ({ request }) => {
+        expect(request.headers.get('Authorization')).toBeNull();
+        await expect(request.json()).resolves.toEqual({ email: 'reset@example.com' });
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.post('http://localhost:8000/api/auth/password/reset/confirm/', async ({ request }) => {
+        expect(request.headers.get('Authorization')).toBeNull();
+        await expect(request.json()).resolves.toEqual({
+          uid: 'user-id',
+          token: 'one-time-token',
+          new_password: 'replacement-secure-password-123',
+        });
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    await expect(apiClient.requestPasswordReset('reset@example.com')).resolves.toBeUndefined();
+    await expect(
+      apiClient.confirmPasswordReset(
+        'user-id',
+        'one-time-token',
+        'replacement-secure-password-123',
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  it('requests and confirms email verification without an authenticated session', async () => {
+    server.use(
+      http.post('http://localhost:8000/api/auth/email-verification/', async ({ request }) => {
+        expect(request.headers.get('Authorization')).toBeNull();
+        await expect(request.json()).resolves.toEqual({ email: 'verify@example.com' });
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.post(
+        'http://localhost:8000/api/auth/email-verification/confirm/',
+        async ({ request }) => {
+          expect(request.headers.get('Authorization')).toBeNull();
+          await expect(request.json()).resolves.toEqual({ token: 'verification-token' });
+          return new HttpResponse(null, { status: 204 });
+        },
+      ),
+    );
+
+    await expect(apiClient.requestEmailVerification('verify@example.com')).resolves.toBeUndefined();
+    await expect(apiClient.confirmEmailVerification('verification-token')).resolves.toBeUndefined();
+  });
+
   it('builds provider-specific social login start URLs', () => {
     expect(apiClient.socialLoginUrl('GOOGLE', 'tab-verifier')).toBe(
       'http://localhost:8000/api/auth/social/google/start/?handoff_verifier=tab-verifier',
@@ -145,6 +194,7 @@ describe('API error handling', () => {
               nickname: 'Paged User',
               profile_image_url: '',
               social_provider: 'LOCAL',
+              email_verified: true,
               is_active: true,
               created_at: '',
               updated_at: '',
@@ -169,6 +219,7 @@ describe('API error handling', () => {
           nickname: 'Current User',
           profile_image_url: '',
           social_provider: 'LOCAL',
+          email_verified: true,
           is_active: true,
           created_at: '',
           updated_at: '',

@@ -4,6 +4,8 @@ import { apiClient, useAuthStore } from '@redeeming-time/shared';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SocialAuthCallbackPage } from './pages/SocialAuthCallbackPage';
+import { PasswordResetPage } from './pages/PasswordResetPage';
+import { EmailVerificationPage } from './pages/EmailVerificationPage';
 
 export default function App() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -46,6 +48,8 @@ export default function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/auth/callback" element={<SocialAuthCallbackPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route
           path="/login"
           element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}

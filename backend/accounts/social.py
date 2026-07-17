@@ -427,6 +427,9 @@ def resolve_social_user(profile: SocialProfile) -> User:
             if identity_user is not None:
                 if not identity_user.is_active:
                     raise InactiveSocialAccount()
+                if not identity_user.email_verified:
+                    identity_user.email_verified = True
+                    identity_user.save(update_fields=['email_verified', 'updated_at'])
                 return identity_user
 
             email_user = User.objects.select_for_update().filter(email__iexact=profile.email).first()
@@ -442,6 +445,7 @@ def resolve_social_user(profile: SocialProfile) -> User:
                 profile_image_url=profile.profile_image_url,
                 social_provider=provider_value,
                 social_id=profile.subject,
+                email_verified=True,
             )
     except IntegrityError as exc:
         # Covers concurrent sign-ins racing on the unique identity or email constraint.

@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import {
+  ApiError,
   apiClient,
   getErrorMessage,
   type SocialLoginProvider,
@@ -10,6 +11,7 @@ import {
   createSocialAuthVerifier,
   navigateToExternalUrl,
 } from '../../utils/browserNavigation';
+import { ServerWakeUpNotice } from '../ui/ServerWakeUpNotice';
 
 export function AuthPanel() {
   const setTokens = useAuthStore((state) => state.setTokens);
@@ -19,20 +21,57 @@ export function AuthPanel() {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const [socialLoginProvider, setSocialLoginProvider] = useState<SocialLoginProvider | null>(null);
   const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (isSubmitting) return;
     setMessage('');
+    setVerificationEmail('');
+    setIsSubmitting(true);
     try {
-      if (mode === 'register') await apiClient.register({ email, password, nickname });
+      if (mode === 'register') {
+        await apiClient.register({ email, password, nickname });
+        setVerificationEmail(email);
+        setPassword('');
+        setMode('login');
+        setMessage('인증 메일을 보냈습니다. 이메일 인증 후 로그인해 주세요.');
+        return;
+      }
       setTokens(await apiClient.token(email, password));
       setMessage('Authenticated. Planner data is now synced with the API.');
     } catch (error) {
+      if (error instanceof ApiError && error.code === 'EMAIL_NOT_VERIFIED') {
+        setVerificationEmail(email);
+        setMessage('이메일 인증이 필요합니다. 받은 편지함에서 인증 링크를 열어 주세요.');
+        return;
+      }
       setMessage(getErrorMessage(error, '로그인에 실패했습니다.'));
+    } finally {
+      setIsSubmitting(false);
     }
   }
+
+  async function resendVerificationEmail() {
+    if (!verificationEmail || isConnecting) return;
+    setMessage('');
+    setIsSubmitting(true);
+    try {
+      await apiClient.requestEmailVerification(verificationEmail);
+      setMessage('계정이 있다면 인증 메일을 다시 보냈습니다. 메일함을 확인해 주세요.');
+    } catch (error) {
+      setMessage(
+        getErrorMessage(error, '인증 메일을 보낼 수 없습니다. 잠시 후 다시 시도해 주세요.'),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const isConnecting = isSubmitting || socialLoginProvider !== null;
 
   function startSocialLogin(provider: SocialLoginProvider) {
     setMessage('');
@@ -63,6 +102,7 @@ export function AuthPanel() {
               type="button"
               className={mode === 'login' ? 'active' : ''}
               onClick={() => setMode('login')}
+              disabled={isConnecting}
             >
               로그인<span className="sr-only">Login</span>
             </button>
@@ -70,6 +110,7 @@ export function AuthPanel() {
               type="button"
               className={mode === 'register' ? 'active' : ''}
               onClick={() => setMode('register')}
+              disabled={isConnecting}
             >
               회원가입<span className="sr-only">Register</span>
             </button>
@@ -79,7 +120,7 @@ export function AuthPanel() {
               type="button"
               className="social-login-button google"
               onClick={() => startSocialLogin('GOOGLE')}
-              disabled={socialLoginProvider !== null}
+              disabled={isConnecting}
               aria-busy={socialLoginProvider === 'GOOGLE'}
             >
               <span aria-hidden="true">G</span>
@@ -89,7 +130,7 @@ export function AuthPanel() {
               type="button"
               className="social-login-button kakao"
               onClick={() => startSocialLogin('KAKAO')}
-              disabled={socialLoginProvider !== null}
+              disabled={isConnecting}
               aria-busy={socialLoginProvider === 'KAKAO'}
             >
               <span aria-hidden="true">K</span>
@@ -109,6 +150,11 @@ export function AuthPanel() {
               required
             />
           </label>
+          {mode === 'login' && (
+            <a className="auth-forgot-password" href="/password-reset">
+              비밀번호를 잊으셨나요?
+            </a>
+          )}
           {mode === 'register' && (
             <label className="auth-field">
               <span>닉네임</span>
@@ -138,13 +184,26 @@ export function AuthPanel() {
           <button
             className="primary-button auth-submit-button"
             type="submit"
+            disabled={isConnecting}
+            aria-busy={isSubmitting}
             aria-label={mode === 'login' ? 'Connect' : 'Create & Connect'}
           >
-            {mode === 'login' ? '로그인' : '무료로 시작하기'}
+            {isSubmitting ? '서버 연결 중...' : mode === 'login' ? '로그인' : '무료로 시작하기'}
           </button>
         </form>
       )}
+      {isConnecting && <ServerWakeUpNotice />}
       {message && <p className="form-message">{message}</p>}
+      {verificationEmail && (
+        <button
+          className="auth-resend-verification"
+          type="button"
+          onClick={resendVerificationEmail}
+          disabled={isConnecting}
+        >
+          인증 메일 다시 보내기
+        </button>
+      )}
     </section>
   );
 }

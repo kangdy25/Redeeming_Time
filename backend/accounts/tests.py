@@ -3,10 +3,13 @@ from urllib.parse import parse_qs, urlparse
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework.test import APITestCase
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
@@ -119,6 +122,70 @@ class AccountApiSecurityTests(APITestCase):
         self.assertEqual(registered.social_id, '')
         self.assertNotIn('social_id', response.data)
 
+    @override_settings(EMAIL_VERIFICATION_ENABLED=True)
+    @patch('accounts.views.send_mail')
+    def test_local_registration_requires_email_verification_before_login(self, send_mail_mock):
+        registration = self.client.post(
+            '/api/users/',
+            {
+                'email': 'verify-me@example.com',
+                'nickname': 'Verify Me',
+                'password': 'verify-me-secure-password-123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(registration.status_code, 201)
+        user = get_user_model().objects.get(email='verify-me@example.com')
+        self.assertFalse(user.email_verified)
+        send_mail_mock.assert_called_once()
+        message = send_mail_mock.call_args.kwargs['message']
+        verification_url = next(line for line in message.splitlines() if line.startswith('http'))
+        token = parse_qs(urlparse(verification_url).query)['token'][0]
+
+        blocked_login = self.client.post(
+            '/api/auth/token/',
+            {'email': user.email, 'password': 'verify-me-secure-password-123'},
+            format='json',
+        )
+        self.assertEqual(blocked_login.status_code, 401)
+        self.assertEqual(blocked_login.data['error']['code'], 'EMAIL_NOT_VERIFIED')
+
+        verified = self.client.post(
+            '/api/auth/email-verification/confirm/',
+            {'token': token},
+            format='json',
+        )
+        self.assertEqual(verified.status_code, 204)
+        user.refresh_from_db()
+        self.assertTrue(user.email_verified)
+        self.assertEqual(
+            self.client.post(
+                '/api/auth/token/',
+                {'email': user.email, 'password': 'verify-me-secure-password-123'},
+                format='json',
+            ).status_code,
+            200,
+        )
+
+    @override_settings(EMAIL_VERIFICATION_ENABLED=True)
+    @patch('accounts.views.send_mail')
+    def test_email_verification_resend_hides_unknown_addresses(self, send_mail_mock):
+        response = self.client.post(
+            '/api/auth/email-verification/',
+            {'email': self.user.email},
+            format='json',
+        )
+        unknown = self.client.post(
+            '/api/auth/email-verification/',
+            {'email': 'unknown@example.com'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(unknown.status_code, 204)
+        self.assertEqual(send_mail_mock.call_count, 1)
+
     def test_profile_endpoint_cannot_change_email_or_password(self):
         self.client.force_authenticate(self.user)
 
@@ -183,6 +250,76 @@ class AccountApiSecurityTests(APITestCase):
 
         self.assertEqual(old_refresh.status_code, 401)
         self.assertEqual(old_access.status_code, 401)
+
+    @override_settings(PASSWORD_RESET_EMAIL_ENABLED=True)
+    @patch('accounts.views.send_mail')
+    def test_password_reset_request_emails_a_one_time_link_without_revealing_unknown_accounts(
+        self,
+        send_mail_mock,
+    ):
+        response = self.client.post(
+            '/api/auth/password/reset/',
+            {'email': self.user.email},
+            format='json',
+        )
+        unknown = self.client.post(
+            '/api/auth/password/reset/',
+            {'email': 'unknown@example.com'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(unknown.status_code, 204)
+        send_mail_mock.assert_called_once()
+        message = send_mail_mock.call_args.kwargs['message']
+        reset_url = next(line for line in message.splitlines() if line.startswith('http'))
+        query = parse_qs(urlparse(reset_url).query)
+        self.assertEqual(query['uid'], [urlsafe_base64_encode(force_bytes(self.user.pk))])
+        self.assertTrue(default_token_generator.check_token(self.user, query['token'][0]))
+
+    @override_settings(PASSWORD_RESET_EMAIL_ENABLED=False)
+    def test_password_reset_request_requires_an_enabled_email_service(self):
+        response = self.client.post(
+            '/api/auth/password/reset/',
+            {'email': self.user.email},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.data['error']['code'], 'PASSWORD_RESET_UNAVAILABLE')
+
+    def test_password_reset_confirm_changes_password_and_revokes_existing_tokens(self):
+        refresh = RefreshToken.for_user(self.user)
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+
+        response = self.client.post(
+            '/api/auth/password/reset/confirm/',
+            {
+                'uid': uid,
+                'token': token,
+                'new_password': 'replacement-secure-password-123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 204)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('replacement-secure-password-123'))
+        self.assertEqual(
+            self.client.post('/api/auth/token/refresh/', {'refresh': str(refresh)}, format='json').status_code,
+            401,
+        )
+        reused = self.client.post(
+            '/api/auth/password/reset/confirm/',
+            {
+                'uid': uid,
+                'token': token,
+                'new_password': 'another-secure-password-123',
+            },
+            format='json',
+        )
+        self.assertEqual(reused.status_code, 400)
 
     def test_login_and_registration_are_rate_limited(self):
         for _ in range(5):

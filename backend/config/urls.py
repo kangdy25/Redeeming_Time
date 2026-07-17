@@ -20,9 +20,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
 
 from accounts.views import (
+    EmailVerificationConfirmView,
+    EmailVerificationRequestView,
     LoginView,
     LogoutView,
     PasswordChangeView,
+    PasswordResetConfirmView,
+    PasswordResetRequestView,
     SocialAuthCallbackView,
     SocialAuthExchangeView,
     SocialAuthStartView,
@@ -52,6 +56,14 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshWithThrottleView.as_view(), name='token_refresh'),
     path('api/auth/token/blacklist/', LogoutView.as_view(), name='token_blacklist'),
     path('api/auth/password/change/', PasswordChangeView.as_view(), name='password_change'),
+    path('api/auth/password/reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('api/auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('api/auth/email-verification/', EmailVerificationRequestView.as_view(), name='email_verification_request'),
+    path(
+        'api/auth/email-verification/confirm/',
+        EmailVerificationConfirmView.as_view(),
+        name='email_verification_confirm',
+    ),
     path('api/auth/social/<str:provider>/start/', SocialAuthStartView.as_view(), name='social_auth_start'),
     path('api/auth/social/<str:provider>/callback/', SocialAuthCallbackView.as_view(), name='social_auth_callback'),
     path('api/auth/social/exchange/', SocialAuthExchangeView.as_view(), name='social_auth_exchange'),

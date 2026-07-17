@@ -62,6 +62,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=SocialProvider.LOCAL,
     )
     social_id = models.CharField(max_length=255, blank=True)
+    email_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

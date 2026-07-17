@@ -53,6 +53,23 @@ services:
         sync: false
       - key: SOCIAL_AUTH_KAKAO_REDIRECT_URI
         sync: false
+      # Enable only after configuring a transactional SMTP provider in Render.
+      - key: PASSWORD_RESET_EMAIL_ENABLED
+        sync: false
+      - key: EMAIL_VERIFICATION_ENABLED
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_USE_TLS
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
       - key: NUM_PROXIES
         value: "1"
       - key: WEB_CONCURRENCY
