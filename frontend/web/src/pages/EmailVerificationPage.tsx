@@ -46,7 +46,7 @@ export function EmailVerificationPage() {
             <p className="eyebrow">Email verification</p>
             <h1 id="email-verification-title">이메일 인증</h1>
           </div>
-          {isLoading && <ServerWakeUpNotice />}
+          {isLoading && <ServerWakeUpNotice fullScreen />}
           <p className="form-message" role={hasError ? 'alert' : 'status'}>
             {message}
           </p>

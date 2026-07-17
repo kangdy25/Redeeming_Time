@@ -192,7 +192,7 @@ export function AuthPanel() {
           </button>
         </form>
       )}
-      {isConnecting && <ServerWakeUpNotice />}
+      {isConnecting && <ServerWakeUpNotice fullScreen />}
       {message && <p className="form-message">{message}</p>}
       {verificationEmail && (
         <button

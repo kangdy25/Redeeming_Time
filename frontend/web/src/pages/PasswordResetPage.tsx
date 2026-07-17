@@ -148,7 +148,7 @@ export function PasswordResetPage() {
                 </button>
               </form>
             )}
-            {isSubmitting && <ServerWakeUpNotice />}
+            {isSubmitting && <ServerWakeUpNotice fullScreen />}
             {message && (
               <p className="form-message" role={isComplete ? 'status' : 'alert'}>
                 {message}

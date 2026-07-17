@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { SocialAuthCallbackPage } from './pages/SocialAuthCallbackPage';
 import { PasswordResetPage } from './pages/PasswordResetPage';
 import { EmailVerificationPage } from './pages/EmailVerificationPage';
+import { ServerWakeUpNotice } from './components/ui/ServerWakeUpNotice';
 
 export default function App() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -37,9 +38,7 @@ export default function App() {
   if (accessToken && !sessionValidated) {
     return (
       <div className="app-container auth-page-main">
-        <p className="form-message" role="status">
-          세션 확인 중...
-        </p>
+        <ServerWakeUpNotice fullScreen />
       </div>
     );
   }

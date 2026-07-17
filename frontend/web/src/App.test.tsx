@@ -194,7 +194,7 @@ describe('Web App Core Features and Boundaries (F1-F6)', () => {
 
       renderWithProviders(<App />);
 
-      expect(screen.getByRole('status')).toHaveTextContent('세션 확인 중...');
+      expect(screen.getByRole('status')).toHaveTextContent('서버를 연결하고 있어요');
       await waitFor(() => expect(screen.getByText('Sign out')).toBeInTheDocument());
       expect(useAuthStore.getState().sessionValidated).toBe(true);
     });
