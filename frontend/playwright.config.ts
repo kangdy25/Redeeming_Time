@@ -25,6 +25,9 @@ export default defineConfig({
         ...process.env,
         DEBUG: 'True',
         DATABASE_URL: 'sqlite:////tmp/redeeming-time-e2e.sqlite3',
+        EMAIL_BACKEND: 'django.core.mail.backends.filebased.EmailBackend',
+        EMAIL_FILE_PATH: '/tmp/redeeming-time-e2e-mail',
+        FRONTEND_ORIGIN: 'http://127.0.0.1:5173',
       },
     },
     {
