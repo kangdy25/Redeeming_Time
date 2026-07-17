@@ -144,6 +144,7 @@ manually and then deploy:
 | `EMAIL_HOST`                   | SMTP host supplied by the email provider    |
 | `EMAIL_PORT`                   | Usually `587`                               |
 | `EMAIL_USE_TLS`                | Usually `True`                              |
+| `EMAIL_USE_SSL`                | `True` for implicit SSL SMTP on port `465`  |
 | `EMAIL_HOST_USER`              | SMTP username                               |
 | `EMAIL_HOST_PASSWORD`          | SMTP password or API key                    |
 | `EMAIL_TIMEOUT`                | `10` seconds; prevents SMTP hangs           |

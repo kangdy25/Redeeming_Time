@@ -155,6 +155,7 @@ EMAIL_BACKEND = env(
 EMAIL_HOST = env('EMAIL_HOST', default='')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=10)
@@ -170,6 +171,8 @@ if EMAIL_VERIFICATION_TIMEOUT <= 0:
     raise ImproperlyConfigured('EMAIL_VERIFICATION_TIMEOUT must be positive.')
 if EMAIL_TIMEOUT <= 0:
     raise ImproperlyConfigured('EMAIL_TIMEOUT must be positive.')
+if EMAIL_USE_TLS and EMAIL_USE_SSL:
+    raise ImproperlyConfigured('EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be True.')
 
 
 # Internationalization
