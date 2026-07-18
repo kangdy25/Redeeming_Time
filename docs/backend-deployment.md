@@ -247,12 +247,12 @@ All collection endpoints now use the standard page envelope:
 ```
 
 The default page size is 100 and `page_size` may be increased to at most 200.
-The deployed shared client follows the page links and keeps its existing array
-contract, so the current web and Expo screens do not lose data during the
-rollout. New range-aware screens should use the filters instead of loading full
-history. Authenticated profile code should use `GET /api/users/me/`; the shared
-client temporarily falls back to the legacy `/api/users/` list while the P1
-frontend-first rollout is in progress.
+The deployed Vue web client follows the page links and keeps its existing array
+contract, so screens do not lose data during the rollout. New range-aware
+screens should use the filters instead of loading full history. Authenticated
+profile code should use `GET /api/users/me/`; the client temporarily falls back
+to the legacy `/api/users/` list while the P1 frontend-first rollout is in
+progress.
 
 | Endpoint                 | Filters                                                          | Boundary rule                                                                              |
 | ------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |

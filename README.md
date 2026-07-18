@@ -1,6 +1,6 @@
 # Redeeming Time
 
-> 흩어진 일정과 할일을 하나의 흐름으로 정리하는 크로스플랫폼 플래너
+> 흩어진 일정과 할일을 하나의 흐름으로 정리하는 웹 플래너
 
 [![CI](https://github.com/kangdy25/Redeeming_Time/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kangdy25/Redeeming_Time/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-000000?logo=vercel)](https://redeeming-time.vercel.app)
@@ -32,12 +32,12 @@ Redeeming Time은 일정, 할일, 아이디어를 한 곳에서 관리하도록 
 
 ### Frontend
 
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
-![Expo](https://img.shields.io/badge/Expo-React%20Native-000020?logo=expo&logoColor=white)
-![Zustand](https://img.shields.io/badge/Zustand-Shared%20State-443E38)
-![TanStack Query](https://img.shields.io/badge/TanStack%20Query-v5-FF4154?logo=reactquery&logoColor=white)
+![Pinia](https://img.shields.io/badge/Pinia-State-FFD859?logo=pinia&logoColor=black)
+![TanStack Query](https://img.shields.io/badge/TanStack%20Vue%20Query-v5-FF4154?logo=reactquery&logoColor=white)
+![Sass](https://img.shields.io/badge/Sass-SCSS-CC6699?logo=sass&logoColor=white)
 
 ### Backend & Infrastructure
 
@@ -59,10 +59,8 @@ Redeeming Time은 일정, 할일, 아이디어를 한 곳에서 관리하도록 
 
 ```text
 ├── backend/              # Django REST Framework API
-├── frontend/
-│   ├── web/              # React + Vite 웹 앱
-│   ├── app/              # Expo 기반 모바일 앱
-│   ├── shared/           # 공용 API 클라이언트·상태·타입
+├── frontend/             # Vue + Vite 웹 앱
+│   ├── src/              # 화면·API 클라이언트·상태·타입
 │   └── e2e/              # Playwright 브라우저 테스트
 ├── docs/                 # 배포·ERD 등 프로젝트 문서
 └── render.yaml           # Render Blueprint
@@ -94,18 +92,11 @@ API는 기본적으로 `http://127.0.0.1:8000`에서 실행됩니다.
 ```bash
 cd frontend
 npm ci
-npm --workspace @redeeming-time/web run dev
+npm run dev
 ```
 
 웹 앱은 기본적으로 `http://localhost:5173`에서 실행됩니다. 로컬 API의 기본 주소는
 `http://localhost:8000/api`이며, 다른 API를 사용하려면 `VITE_API_BASE_URL`을 설정합니다.
-
-### 모바일 앱
-
-```bash
-cd frontend
-npm --workspace @redeeming-time/app run start
-```
 
 ## 테스트와 검증
 
@@ -121,8 +112,7 @@ npm run test:e2e
 npm run lint
 npm run format:check
 npm run build:web
-npm run typecheck:app
-npm run typecheck:shared
+npm run typecheck
 ```
 
 GitHub Actions는 `main` 브랜치 푸시와 Pull Request에서 백엔드·프론트엔드·Playwright E2E 검증을 실행합니다.
@@ -132,7 +122,7 @@ GitHub Actions는 `main` 브랜치 푸시와 Pull Request에서 백엔드·프�
 ```text
 Browser
   ↓
-Vercel (React Web) ── /api/* rewrite ──→ Render (Django REST Framework)
+Vercel (Vue Web) ── /api/* rewrite ──→ Render (Django REST Framework)
                                               ↓
                                      Neon PostgreSQL + Render Key Value
 ```
@@ -152,7 +142,7 @@ Vercel (React Web) ── /api/* rewrite ──→ Render (Django REST Framework
 
 - DRF ViewSet, Serializer, Permission, Pagination을 이용한 REST API 설계
 - JWT와 OAuth 2.0 Authorization Code Flow의 안전한 연동
-- React 웹·Expo 앱 간 공용 상태, API 클라이언트, 타입 공유
+- Vue Composition API·Pinia·TanStack Vue Query를 이용한 웹 상태와 API 관리
 - Vercel·Render·Neon 분리 배포와 CORS, 프록시, 환경변수 구성
 - Vitest·Playwright·GitHub Actions를 활용한 자동 검증
 
