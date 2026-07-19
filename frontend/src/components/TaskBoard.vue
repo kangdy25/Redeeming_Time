@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 
 import { apiClient } from '../api/client';
+import ColorPresetPicker from './ColorPresetPicker.vue';
 import { useToggleTask } from '../queries/plannerHooks';
 import { usePlannerStore } from '../stores/plannerStore';
 import type { Category, TaskPriority } from '../types';
@@ -17,12 +18,12 @@ const quickTaskInput = ref<HTMLInputElement | null>(null);
 const taskPriority = ref<TaskPriority>('NONE');
 const taskCategory = ref('');
 const categoryName = ref('');
-const categoryColor = ref('#1F9D8A');
+const categoryColor = ref('#66A283');
 const message = ref('');
 const editingTaskId = ref<number | null>(null);
 const editingCategoryId = ref<number | null>(null);
 const editCategoryName = ref('');
-const editCategoryColor = ref('#1F9D8A');
+const editCategoryColor = ref('#66A283');
 const editTitle = ref('');
 const editDate = ref('');
 const editPriority = ref<TaskPriority>('NONE');
@@ -71,7 +72,8 @@ const sections = computed(() => {
 });
 const dateTitle = computed(() => {
   const date = new Date(`${selectedDate.value}T00:00:00`);
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 TODO`;
+  const weekday = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일(${weekday}) TODO`;
 });
 
 function moveMonth(offset: number) {
@@ -257,11 +259,12 @@ async function rollover() {
             aria-label="Category"
             placeholder="새 할일 카테고리"
             :disabled="!calendarId"
-          /><input v-model="categoryColor" aria-label="Category color" type="color" /><button
-            :disabled="!calendarId"
-          >
-            카테고리 추가
-          </button>
+          /><ColorPresetPicker
+            v-model="categoryColor"
+            class="task-category-color-picker"
+            label="Category color"
+            variant="select"
+          /><button :disabled="!calendarId">카테고리 추가</button>
         </form>
         <div class="task-board-list">
           <section
@@ -275,10 +278,11 @@ async function rollover() {
               class="category-edit-form"
               @submit.prevent="saveCategory(section.category)"
             >
-              <input v-model="editCategoryName" aria-label="Edit category name" /><input
+              <input v-model="editCategoryName" aria-label="Edit category name" /><ColorPresetPicker
                 v-model="editCategoryColor"
-                aria-label="Edit category color"
-                type="color"
+                class="category-edit-color-picker"
+                label="Edit category color"
+                variant="select"
               /><button>저장</button
               ><button type="button" @click="editingCategoryId = null">취소</button>
             </form>

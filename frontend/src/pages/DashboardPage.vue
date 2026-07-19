@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { apiClient, getErrorMessage } from '../api/client';
+import ColorPresetPicker from '../components/ColorPresetPicker.vue';
 import IdeaInbox from '../components/IdeaInbox.vue';
 import ProfilePanel from '../components/ProfilePanel.vue';
 import TaskBoard from '../components/TaskBoard.vue';
@@ -387,7 +388,7 @@ function eventTime(event: Event) {
         </nav>
       </aside>
       <main class="main-content">
-        <div class="center-panel">
+        <div class="center-panel" :class="{ 'profile-main-panel': section === 'profile' }">
           <p v-if="notice" class="form-message" role="status">{{ notice }}</p>
           <section v-if="section === 'calendar'" class="planner-panel calendar-area">
             <div class="calendar-heading">
@@ -399,19 +400,22 @@ function eventTime(event: Event) {
                   ><button class="nav-btn" @click="anchor = new Date()">오늘</button>
                 </div>
               </div>
-              <span class="event-count">{{ storedCalendarEvents.length }} scheduled events</span>
-            </div>
-            <div class="calendar-controls-bar">
-              <div class="segmented calendar-view-tabs">
-                <button :class="{ active: calendarView === 'week' }" @click="calendarView = 'week'">
-                  Week
-                </button>
-                <button
-                  :class="{ active: calendarView === 'month' }"
-                  @click="calendarView = 'month'"
-                >
-                  Month
-                </button>
+              <div class="calendar-controls-bar">
+                <div class="segmented calendar-view-tabs">
+                  <button
+                    :class="{ active: calendarView === 'week' }"
+                    @click="calendarView = 'week'"
+                  >
+                    Week
+                  </button>
+                  <button
+                    :class="{ active: calendarView === 'month' }"
+                    @click="calendarView = 'month'"
+                  >
+                    Month
+                  </button>
+                </div>
+                <span class="event-count">{{ storedCalendarEvents.length }} scheduled events</span>
               </div>
             </div>
             <div v-if="calendarView === 'month'" class="month-grid">
@@ -542,7 +546,9 @@ function eventTime(event: Event) {
             </div>
           </div>
           <div class="modal-action-row">
-            <button class="primary-button" type="submit">워크스페이스 만들기</button>
+            <button class="primary-button" type="submit" aria-label="Create Workspace">
+              워크스페이스 만들기
+            </button>
           </div>
         </form>
       </section>
@@ -694,13 +700,13 @@ function eventTime(event: Event) {
               </select>
             </div>
             <div class="field-stack event-color-field">
-              <label for="event-color-input">일정 색상</label
-              ><input
-                id="event-color-input"
+              <label>일정 색상</label
+              ><ColorPresetPicker
                 v-model="eventColor"
-                aria-label="Event color"
+                class="event-color-picker"
+                label="Event color"
                 :disabled="eventReadOnly"
-                type="color"
+                variant="select"
               />
             </div>
           </div>
@@ -712,7 +718,12 @@ function eventTime(event: Event) {
               @click="deleteSelectedEvent"
             >
               일정 삭제</button
-            ><button class="primary-button" type="submit" :disabled="eventReadOnly">
+            ><button
+              class="primary-button"
+              type="submit"
+              aria-label="Add Event"
+              :disabled="eventReadOnly"
+            >
               {{ eventReadOnly ? '공휴일 보기' : selectedEvent ? '일정 저장' : '일정 추가' }}
             </button>
           </div>

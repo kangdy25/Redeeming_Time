@@ -135,16 +135,23 @@ function beginSocial(provider: 'GOOGLE' | 'KAKAO') {
             </div>
             <div class="auth-divider"><span>또는 이메일로 계속</span></div>
             <label class="auth-field"
-              ><span>이메일</span><input v-model="email" type="email" required
+              ><span>이메일</span
+              ><input v-model="email" type="email" placeholder="name@example.com" required
             /></label>
             <RouterLink v-if="!registerMode" class="auth-forgot-password" to="/password-reset"
               >비밀번호를 잊으셨나요?</RouterLink
             >
             <label v-if="registerMode" class="auth-field"
-              ><span>닉네임</span><input v-model="nickname" required
+              ><span>닉네임</span
+              ><input v-model="nickname" placeholder="어떻게 불러드릴까요?" required
             /></label>
             <label class="auth-field"
-              ><span>비밀번호</span><input v-model="password" type="password" required
+              ><span>비밀번호</span
+              ><input
+                v-model="password"
+                type="password"
+                placeholder="비밀번호를 입력하세요"
+                required
             /></label>
             <p v-if="registerMode" class="auth-terms">
               계정을 만들면 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.
