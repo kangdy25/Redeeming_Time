@@ -155,7 +155,7 @@ function eventLabel(event: Event) {
 
 <template>
   <div class="app-container">
-    <header class="dashboard-header">
+    <header class="dashboard-header top-nav">
       <div>
         <strong>Redeeming Time</strong
         ><span v-if="activeCalendar"> · {{ activeCalendar.title }}</span>
@@ -163,10 +163,16 @@ function eventLabel(event: Event) {
       <button type="button" @click="logout">로그아웃</button>
     </header>
     <div class="workspace-layout">
-      <aside class="dashboard-sidebar">
-        <button type="button" class="workspace-trigger" @click="workspaceOpen = !workspaceOpen">
-          {{ calendars.length }}개 워크스페이스
-        </button>
+      <aside class="dashboard-sidebar sidebar">
+        <div class="sidebar-workspace-card">
+          <button
+            type="button"
+            class="workspace-trigger workspace-toggle-btn"
+            @click="workspaceOpen = !workspaceOpen"
+          >
+            {{ calendars.length }}개 워크스페이스
+          </button>
+        </div>
         <div v-if="workspaceOpen" class="workspace-menu">
           <button
             v-for="calendar in calendars"
@@ -178,22 +184,34 @@ function eventLabel(event: Event) {
           </button>
           <button type="button" @click="createWorkspaceOpen = true">워크스페이스 만들기</button>
         </div>
-        <nav aria-label="주요 메뉴">
+        <nav class="sidebar-menu" aria-label="주요 메뉴">
           <button
             type="button"
+            class="menu-item"
             :class="{ active: section === 'calendar' }"
             @click="section = 'calendar'"
           >
             캘린더
           </button>
-          <button type="button" :class="{ active: section === 'tasks' }" @click="section = 'tasks'">
+          <button
+            type="button"
+            class="menu-item"
+            :class="{ active: section === 'tasks' }"
+            @click="section = 'tasks'"
+          >
             할일 보드
           </button>
-          <button type="button" :class="{ active: section === 'inbox' }" @click="section = 'inbox'">
+          <button
+            type="button"
+            class="menu-item"
+            :class="{ active: section === 'inbox' }"
+            @click="section = 'inbox'"
+          >
             아이디어 보관함
           </button>
           <button
             type="button"
+            class="menu-item"
             :class="{ active: section === 'profile' }"
             @click="section = 'profile'"
           >
@@ -202,81 +220,85 @@ function eventLabel(event: Event) {
         </nav>
       </aside>
       <main class="main-content">
-        <p v-if="notice" class="form-message" role="status">{{ notice }}</p>
-        <section v-if="section === 'calendar'" class="planner-panel calendar-area">
-          <div class="calendar-heading">
-            <div class="calendar-title-group">
-              <h2>{{ formattedMonth }}</h2>
-              <div class="nav-buttons">
-                <button @click="previousMonth">◀</button><button @click="nextMonth">▶</button
-                ><button @click="anchor = new Date()">오늘</button>
+        <div class="center-panel">
+          <p v-if="notice" class="form-message" role="status">{{ notice }}</p>
+          <section v-if="section === 'calendar'" class="planner-panel calendar-area">
+            <div class="calendar-heading">
+              <div class="calendar-title-group">
+                <h2>{{ formattedMonth }}</h2>
+                <div class="nav-buttons">
+                  <button class="nav-btn" @click="previousMonth">◀</button
+                  ><button class="nav-btn" @click="nextMonth">▶</button
+                  ><button class="nav-btn" @click="anchor = new Date()">오늘</button>
+                </div>
               </div>
+              <span class="event-count">{{ calendarEvents.length }} scheduled events</span>
             </div>
-            <span class="event-count">{{ calendarEvents.length }} scheduled events</span>
-          </div>
-          <div class="month-grid">
-            <div
-              v-for="weekday in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
-              :key="weekday"
-              class="weekday"
-            >
-              {{ weekday }}
-            </div>
-            <div
-              v-for="date in cells"
-              :key="date.toISOString()"
-              class="date-cell"
-              :class="{
-                'muted-cell': date.getMonth() !== currentMonth,
-                'today-cell': isoDate(date) === isoDate(new Date()),
-              }"
-            >
-              <button
-                type="button"
-                class="date-select-button"
-                :aria-label="`${isoDate(date)} 일정 보기`"
-                @click="openDate(date)"
-              />
-              <div class="date-number">{{ date.getDate() }}</div>
-              <div class="event-stack">
-                <button
-                  v-for="event in eventsForDate(date).slice(0, 3)"
-                  :key="event.id"
-                  type="button"
-                  class="event-pill"
-                  @click="openDate(date)"
-                >
-                  {{ eventLabel(event) }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section v-else-if="section === 'tasks'" class="task-board">
-          <h2>할일 보드</h2>
-          <form class="quick-task-form" @submit.prevent="createTask">
-            <label>Quick Task<input v-model="taskTitle" /></label
-            ><button type="submit">추가</button>
-          </form>
-          <ul>
-            <li v-for="task in activeTasks" :key="task.id">
-              <label
-                ><input type="checkbox" :checked="task.is_completed" @change="toggle(task)" /><span
-                  :class="{ completed: task.is_completed }"
-                  >{{ task.title }}</span
-                ></label
+            <div class="month-grid">
+              <div
+                v-for="weekday in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
+                :key="weekday"
+                class="weekday"
               >
-            </li>
-          </ul>
-        </section>
-        <section v-else-if="section === 'inbox'" class="idea-inbox">
-          <h2>아이디어 보관함</h2>
-          <p>아이디어를 기록하고 정리할 수 있습니다.</p>
-        </section>
-        <section v-else class="profile-panel">
-          <h2>프로필</h2>
-          <p>계정 설정은 API와 연결된 프로필 화면에서 관리합니다.</p>
-        </section>
+                {{ weekday }}
+              </div>
+              <div
+                v-for="date in cells"
+                :key="date.toISOString()"
+                class="date-cell"
+                :class="{
+                  'muted-cell': date.getMonth() !== currentMonth,
+                  'today-cell': isoDate(date) === isoDate(new Date()),
+                }"
+              >
+                <button
+                  type="button"
+                  class="date-select-button"
+                  :aria-label="`${isoDate(date)} 일정 보기`"
+                  @click="openDate(date)"
+                />
+                <div class="date-number">{{ date.getDate() }}</div>
+                <div class="event-stack">
+                  <button
+                    v-for="event in eventsForDate(date).slice(0, 3)"
+                    :key="event.id"
+                    type="button"
+                    class="event-pill"
+                    @click="openDate(date)"
+                  >
+                    {{ eventLabel(event) }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section v-else-if="section === 'tasks'" class="task-board">
+            <div class="task-board-hero"><h2>할일 보드</h2></div>
+            <form class="quick-task-form" @submit.prevent="createTask">
+              <label>Quick Task<input v-model="taskTitle" /></label
+              ><button type="submit">추가</button>
+            </form>
+            <ul>
+              <li v-for="task in activeTasks" :key="task.id">
+                <label
+                  ><input
+                    type="checkbox"
+                    :checked="task.is_completed"
+                    @change="toggle(task)"
+                  /><span :class="{ completed: task.is_completed }">{{ task.title }}</span></label
+                >
+              </li>
+            </ul>
+          </section>
+          <section v-else-if="section === 'inbox'" class="idea-inbox">
+            <h2>아이디어 보관함</h2>
+            <p>아이디어를 기록하고 정리할 수 있습니다.</p>
+          </section>
+          <section v-else class="profile-panel">
+            <h2>프로필</h2>
+            <p>계정 설정은 API와 연결된 프로필 화면에서 관리합니다.</p>
+          </section>
+        </div>
       </main>
     </div>
 
