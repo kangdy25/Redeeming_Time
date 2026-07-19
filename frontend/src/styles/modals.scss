@@ -191,6 +191,24 @@
   gap: 12px;
 }
 
+/* Vue modals render the form directly in the panel. Preserve the original
+ * PlannerModals control-grid typography and flex spacing contract. */
+.controls-panel > .event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controls-panel > .event-form label {
+  display: block;
+  margin-bottom: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .event-form-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
