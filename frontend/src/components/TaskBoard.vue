@@ -20,6 +20,9 @@ const categoryName = ref('');
 const categoryColor = ref('#1F9D8A');
 const message = ref('');
 const editingTaskId = ref<number | null>(null);
+const editingCategoryId = ref<number | null>(null);
+const editCategoryName = ref('');
+const editCategoryColor = ref('#1F9D8A');
 const editTitle = ref('');
 const editDate = ref('');
 const editPriority = ref<TaskPriority>('NONE');
@@ -113,8 +116,25 @@ async function addCategory() {
   }
 }
 async function removeCategory(category: Category) {
-  if (window.confirm(`"${category.name}" 카테고리를 삭제할까요?`))
+  if (
+    window.confirm(
+      `"${category.name}" 카테고리를 삭제할까요? 포함된 할일은 카테고리 없음으로 이동합니다.`,
+    )
+  )
     await apiClient.deleteCategory(category.id);
+}
+function startCategoryEdit(category: Category) {
+  editingCategoryId.value = category.id;
+  editCategoryName.value = category.name;
+  editCategoryColor.value = category.color_code;
+}
+async function saveCategory(category: Category) {
+  if (!editCategoryName.value.trim()) return;
+  await apiClient.updateCategory(category.id, {
+    name: editCategoryName.value.trim(),
+    color_code: editCategoryColor.value,
+  });
+  editingCategoryId.value = null;
 }
 function startEdit(task: (typeof selectedTasks.value)[number]) {
   editingTaskId.value = task.id;
@@ -132,6 +152,11 @@ async function saveTask(taskId: number) {
     category: editCategory.value ? Number(editCategory.value) : null,
   });
   editingTaskId.value = null;
+}
+async function removeTask(task: (typeof selectedTasks.value)[number]) {
+  if (!window.confirm(`"${task.title}" 할일을 삭제할까요?`)) return;
+  await apiClient.deleteTask(task.id);
+  if (editingTaskId.value === task.id) editingTaskId.value = null;
 }
 async function rollover() {
   if (!overdueTasks.value.length) return;
@@ -245,13 +270,32 @@ async function rollover() {
             class="task-category-section"
             :style="section.category ? { '--category-color': section.category.color_code } : {}"
           >
-            <header class="task-category-pill">
+            <form
+              v-if="section.category && editingCategoryId === section.category.id"
+              class="category-edit-form"
+              @submit.prevent="saveCategory(section.category)"
+            >
+              <input v-model="editCategoryName" aria-label="Edit category name" /><input
+                v-model="editCategoryColor"
+                aria-label="Edit category color"
+                type="color"
+              /><button>저장</button
+              ><button type="button" @click="editingCategoryId = null">취소</button>
+            </form>
+            <header v-else class="task-category-pill">
               <span class="task-category-mark">{{ section.category ? '●' : '○' }}</span
               ><strong>{{ section.category?.name ?? '카테고리 없음' }}</strong
               ><span class="task-category-progress"
                 >{{ section.tasks.filter((task) => task.is_completed).length }}/{{
                   section.tasks.length
                 }}</span
+              ><button
+                v-if="section.category"
+                class="category-manage-button"
+                :aria-label="`${section.category.name} 수정`"
+                @click="startCategoryEdit(section.category)"
+              >
+                ✎</button
               ><button
                 v-if="section.category"
                 class="category-manage-button category-delete-button"
@@ -317,12 +361,7 @@ async function rollover() {
                   </button>
                   <div class="todo-manage-actions">
                     <button :aria-label="`${task.title} 수정`" @click="startEdit(task)">✎</button
-                    ><button
-                      :aria-label="`${task.title} 삭제`"
-                      @click="apiClient.deleteTask(task.id)"
-                    >
-                      ×
-                    </button>
+                    ><button :aria-label="`${task.title} 삭제`" @click="removeTask(task)">×</button>
                   </div>
                 </div>
               </template>
