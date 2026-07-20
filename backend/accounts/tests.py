@@ -1,3 +1,4 @@
+import json
 import time
 from urllib.parse import parse_qs, urlparse
 from unittest.mock import patch
@@ -276,6 +277,33 @@ class AccountApiSecurityTests(APITestCase):
         query = parse_qs(urlparse(reset_url).query)
         self.assertEqual(query['uid'], [urlsafe_base64_encode(force_bytes(self.user.pk))])
         self.assertTrue(default_token_generator.check_token(self.user, query['token'][0]))
+
+    @override_settings(
+        PASSWORD_RESET_EMAIL_ENABLED=True,
+        EMAIL_DELIVERY_PROVIDER='resend',
+        RESEND_API_KEY='re_test_api_key',
+        RESEND_API_BASE_URL='https://api.resend.com',
+        RESEND_API_TIMEOUT=10,
+    )
+    @patch('accounts.views.urlopen')
+    def test_password_reset_uses_resend_https_api(self, urlopen_mock):
+        urlopen_mock.return_value.__enter__.return_value = object()
+
+        response = self.client.post(
+            '/api/auth/password/reset/',
+            {'email': self.user.email},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 204)
+        request = urlopen_mock.call_args.args[0]
+        self.assertEqual(request.full_url, 'https://api.resend.com/emails')
+        self.assertEqual(request.get_header('Authorization'), 'Bearer re_test_api_key')
+        payload = json.loads(request.data.decode('utf-8'))
+        self.assertEqual(payload['from'], settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(payload['to'], [self.user.email])
+        self.assertEqual(payload['subject'], 'Redeeming Time 비밀번호 재설정')
+        self.assertIn('/password-reset?', payload['text'])
 
     @override_settings(PASSWORD_RESET_EMAIL_ENABLED=False)
     def test_password_reset_request_requires_an_enabled_email_service(self):

@@ -10,9 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import sys
 from datetime import timedelta
 from pathlib import Path
+import sys
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -146,19 +146,24 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Password reset emails use Django's built-in SMTP backend in production. Keep
-# the feature disabled until a transactional email provider has been configured.
+# Local and test email uses Django's configured backend. Production uses the
+# Resend HTTPS API, which works on hosts that block outbound SMTP ports.
 EMAIL_BACKEND = env(
     'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend',
+    default='django.core.mail.backends.console.EmailBackend',
 )
-EMAIL_HOST = env('EMAIL_HOST', default='')
-EMAIL_PORT = env.int('EMAIL_PORT', default=587)
-EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
-EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
-EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=10)
+EMAIL_DELIVERY_PROVIDER = env(
+    'EMAIL_DELIVERY_PROVIDER',
+    default='django' if DEBUG else 'resend',
+).strip().lower()
+if EMAIL_DELIVERY_PROVIDER not in {'django', 'resend'}:
+    raise ImproperlyConfigured('EMAIL_DELIVERY_PROVIDER must be either django or resend.')
+RESEND_API_KEY = env('RESEND_API_KEY', default='').strip()
+RESEND_API_BASE_URL = env('RESEND_API_BASE_URL', default='https://api.resend.com').rstrip('/')
+_resend_api_origin = urlparse(RESEND_API_BASE_URL)
+if _resend_api_origin.scheme != 'https' or not _resend_api_origin.netloc:
+    raise ImproperlyConfigured('RESEND_API_BASE_URL must be an absolute HTTPS URL.')
+RESEND_API_TIMEOUT = env.int('RESEND_API_TIMEOUT', default=10)
 EMAIL_FILE_PATH = env('EMAIL_FILE_PATH', default='/tmp/redeeming-time-emails')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='Redeeming Time <no-reply@redeemingtime.xyz>')
 PASSWORD_RESET_EMAIL_ENABLED = env.bool('PASSWORD_RESET_EMAIL_ENABLED', default=DEBUG)
@@ -169,10 +174,8 @@ EMAIL_VERIFICATION_ENABLED = env.bool('EMAIL_VERIFICATION_ENABLED', default=DEBU
 EMAIL_VERIFICATION_TIMEOUT = env.int('EMAIL_VERIFICATION_TIMEOUT', default=86_400)
 if EMAIL_VERIFICATION_TIMEOUT <= 0:
     raise ImproperlyConfigured('EMAIL_VERIFICATION_TIMEOUT must be positive.')
-if EMAIL_TIMEOUT <= 0:
-    raise ImproperlyConfigured('EMAIL_TIMEOUT must be positive.')
-if EMAIL_USE_TLS and EMAIL_USE_SSL:
-    raise ImproperlyConfigured('EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be True.')
+if RESEND_API_TIMEOUT <= 0:
+    raise ImproperlyConfigured('RESEND_API_TIMEOUT must be positive.')
 
 
 # Internationalization

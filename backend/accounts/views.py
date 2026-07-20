@@ -1,5 +1,8 @@
+import json
 import logging
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -51,6 +54,60 @@ class EmailVerificationUnavailable(APIException):
     default_code = 'email_verification_unavailable'
 
 
+class EmailDeliveryError(RuntimeError):
+    """Raised when the configured transactional email provider rejects a message."""
+
+
+def _email_delivery_is_configured() -> bool:
+    return settings.EMAIL_DELIVERY_PROVIDER == 'django' or bool(settings.RESEND_API_KEY)
+
+
+def _send_resend_email(*, subject: str, message: str, recipient: str) -> None:
+    if not settings.RESEND_API_KEY:
+        raise EmailDeliveryError('RESEND_API_KEY is not configured.')
+
+    payload = json.dumps(
+        {
+            'from': settings.DEFAULT_FROM_EMAIL,
+            'to': [recipient],
+            'subject': subject,
+            'text': message,
+        },
+    ).encode('utf-8')
+    request = Request(
+        f'{settings.RESEND_API_BASE_URL}/emails',
+        data=payload,
+        headers={
+            'Authorization': f'Bearer {settings.RESEND_API_KEY}',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Redeeming-Time/1.0',
+        },
+        method='POST',
+    )
+    try:
+        with urlopen(request, timeout=settings.RESEND_API_TIMEOUT):
+            return
+    except HTTPError as exc:
+        detail = exc.read().decode('utf-8', errors='replace')[:500]
+        raise EmailDeliveryError(f'Resend API rejected the email ({exc.code}): {detail}') from exc
+    except (URLError, TimeoutError) as exc:
+        reason = getattr(exc, 'reason', exc)
+        raise EmailDeliveryError(f'Resend API connection failed: {reason}') from exc
+
+
+def _deliver_email(*, subject: str, message: str, recipient: str) -> None:
+    if settings.EMAIL_DELIVERY_PROVIDER == 'resend':
+        _send_resend_email(subject=subject, message=message, recipient=recipient)
+        return
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient],
+        fail_silently=False,
+    )
+
+
 def _password_reset_url(user: User) -> str:
     query = urlencode(
         {
@@ -63,7 +120,7 @@ def _password_reset_url(user: User) -> str:
 
 def _send_password_reset_email(user: User) -> None:
     reset_url = _password_reset_url(user)
-    send_mail(
+    _deliver_email(
         subject='Redeeming Time 비밀번호 재설정',
         message=(
             '비밀번호 재설정을 요청하셨습니다. 아래 링크에서 새 비밀번호를 설정해 주세요.\n\n'
@@ -71,9 +128,7 @@ def _send_password_reset_email(user: User) -> None:
             f'이 링크는 {settings.PASSWORD_RESET_TIMEOUT // 60}분 동안만 유효합니다. '
             '요청하지 않으셨다면 이 메일을 무시해 주세요.'
         ),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=False,
+        recipient=user.email,
     )
 
 
@@ -83,7 +138,7 @@ def _email_verification_url(user: User) -> str:
 
 def _send_email_verification_email(user: User) -> None:
     verification_url = _email_verification_url(user)
-    send_mail(
+    _deliver_email(
         subject='Redeeming Time 이메일 인증',
         message=(
             'Redeeming Time 가입을 완료하려면 아래 링크에서 이메일을 인증해 주세요.\n\n'
@@ -91,9 +146,7 @@ def _send_email_verification_email(user: User) -> None:
             f'이 링크는 {settings.EMAIL_VERIFICATION_TIMEOUT // 3600}시간 동안만 유효합니다. '
             '직접 가입하지 않으셨다면 이 메일을 무시해 주세요.'
         ),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=False,
+        recipient=user.email,
     )
 from .social import (
     InactiveSocialAccount,
@@ -270,7 +323,7 @@ class PasswordResetRequestView(APIView):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if not settings.PASSWORD_RESET_EMAIL_ENABLED:
+        if not settings.PASSWORD_RESET_EMAIL_ENABLED or not _email_delivery_is_configured():
             raise PasswordResetDeliveryUnavailable()
 
         user = (
@@ -323,7 +376,7 @@ class EmailVerificationRequestView(APIView):
         serializer = EmailVerificationRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if not settings.EMAIL_VERIFICATION_ENABLED:
+        if not settings.EMAIL_VERIFICATION_ENABLED or not _email_delivery_is_configured():
             raise EmailVerificationUnavailable()
 
         user = (
@@ -378,7 +431,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_throttles()
 
     def perform_create(self, serializer):
-        if not settings.EMAIL_VERIFICATION_ENABLED:
+        if not settings.EMAIL_VERIFICATION_ENABLED or not _email_delivery_is_configured():
             raise EmailVerificationUnavailable()
 
         user = serializer.save()

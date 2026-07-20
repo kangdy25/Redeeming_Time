@@ -53,25 +53,17 @@ services:
         sync: false
       - key: SOCIAL_AUTH_KAKAO_REDIRECT_URI
         sync: false
-      # Enable only after configuring a transactional SMTP provider in Render.
+      # Resend sends over HTTPS, which is supported on Render's Free plan.
+      - key: EMAIL_DELIVERY_PROVIDER
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_API_TIMEOUT
+        value: "10"
       - key: PASSWORD_RESET_EMAIL_ENABLED
         sync: false
       - key: EMAIL_VERIFICATION_ENABLED
         sync: false
-      - key: EMAIL_HOST
-        sync: false
-      - key: EMAIL_PORT
-        sync: false
-      - key: EMAIL_USE_TLS
-        sync: false
-      - key: EMAIL_USE_SSL
-        sync: false
-      - key: EMAIL_HOST_USER
-        sync: false
-      - key: EMAIL_HOST_PASSWORD
-        sync: false
-      - key: EMAIL_TIMEOUT
-        value: "10"
       - key: DEFAULT_FROM_EMAIL
         sync: false
       - key: NUM_PROXIES

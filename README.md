@@ -135,7 +135,7 @@ Vercel (Vue Web) ── /api/* rewrite ──→ Render (Django REST Framework)
 ## 개발·배포 참고
 
 - 무료 Render Web Service는 유휴 상태에서 첫 요청이 느릴 수 있습니다.
-- 무료 Render는 SMTP 포트를 차단하므로 현재 운영 환경에서는 이메일 인증·비밀번호 재설정 메일의 실제 발송이 제한됩니다. 소셜 로그인은 정상적으로 사용할 수 있습니다.
+- 무료 Render는 SMTP 포트를 차단하지만, 이메일 인증·비밀번호 재설정 메일은 Resend HTTPS API로 발송합니다. Render에 `RESEND_API_KEY`를 설정해야 합니다.
 - OAuth 클라이언트 비밀값, JWT 서명 키, Neon 연결 문자열 등 모든 비밀값은 저장소에 커밋하지 않습니다.
 
 ## 학습 포인트

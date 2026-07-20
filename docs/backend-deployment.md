@@ -134,25 +134,21 @@ blacklist the account's existing JWT refresh tokens when the password changes.
 The request endpoint always returns the same successful response for an
 unknown email, a social-only account, or a local account.
 
-Password reset email is deliberately disabled in production until a
-transactional SMTP provider is configured. In Render, enter these values
-manually and then deploy:
+Password reset email is deliberately disabled in production until Resend's
+HTTPS API is configured. This avoids Render Free's outbound SMTP port block.
+In Render, enter these values manually and then deploy:
 
-| Variable                       | Example / purpose                           |
-| ------------------------------ | ------------------------------------------- |
-| `PASSWORD_RESET_EMAIL_ENABLED` | `True`                                      |
-| `EMAIL_HOST`                   | SMTP host supplied by the email provider    |
-| `EMAIL_PORT`                   | Usually `587`                               |
-| `EMAIL_USE_TLS`                | Usually `True`                              |
-| `EMAIL_USE_SSL`                | `True` for implicit SSL SMTP on port `465`  |
-| `EMAIL_HOST_USER`              | SMTP username                               |
-| `EMAIL_HOST_PASSWORD`          | SMTP password or API key                    |
-| `EMAIL_TIMEOUT`                | `10` seconds; prevents SMTP hangs           |
+| Variable                       | Example / purpose                              |
+| ------------------------------ | ---------------------------------------------- |
+| `EMAIL_DELIVERY_PROVIDER`      | `resend`                                       |
+| `RESEND_API_KEY`               | Resend Sending access API key (`re_…`)          |
+| `RESEND_API_BASE_URL`          | `https://api.resend.com` (optional; default)   |
+| `RESEND_API_TIMEOUT`           | `10` seconds                                    |
+| `PASSWORD_RESET_EMAIL_ENABLED` | `True`                                         |
 | `DEFAULT_FROM_EMAIL`           | `Redeeming Time <no-reply@redeemingtime.xyz>` |
 
 Optionally set `PASSWORD_RESET_TIMEOUT` in seconds; the default is `3600`.
-Never use a personal mailbox password. Use an SMTP credential from a
-transactional email provider, and keep all of these values out of Git.
+Never put the Resend API key in Git or the frontend.
 
 ## Email verification
 
@@ -162,7 +158,7 @@ remain eligible because their providers already return a verified email. The
 existing user migration marks accounts created before this feature as verified,
 so deploying it does not lock out current users.
 
-Set `EMAIL_VERIFICATION_ENABLED=True` alongside the SMTP configuration above.
+Set `EMAIL_VERIFICATION_ENABLED=True` alongside the Resend configuration above.
 The user can request a new link at `POST /api/auth/email-verification/`; links
 open `/verify-email?token=...`, expire after 24 hours by default, and become
 invalid as soon as they are used. Set `EMAIL_VERIFICATION_TIMEOUT` in seconds
@@ -175,18 +171,18 @@ Vercel 프로젝트에 `redeemingtime.xyz`를 기본 도메인으로 연결하�
 
 ```text
 FRONTEND_ORIGIN=https://redeemingtime.xyz
+EMAIL_DELIVERY_PROVIDER=resend
+RESEND_API_KEY=re_... # Render Environment에만 입력
 DEFAULT_FROM_EMAIL=Redeeming Time <no-reply@redeemingtime.xyz>
 PASSWORD_RESET_EMAIL_ENABLED=True
 EMAIL_VERIFICATION_ENABLED=True
 ```
 
-SMTP 공급자가 제공하는 `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`도 함께
-설정해야 실제 발송이 활성화됩니다. 공급자 대시보드에서 `redeemingtime.xyz`의 SPF와
-DKIM 레코드를 검증한 뒤에만 위의 두 기능 플래그를 `True`로 켭니다. 이메일 인증과
-비밀번호 재설정 링크는 `FRONTEND_ORIGIN`을 사용하므로 둘 다
+Resend 대시보드에서 `redeemingtime.xyz`의 SPF와 DKIM 레코드를 검증한 뒤에만 위의 두
+기능 플래그를 `True`로 켭니다. 이메일 인증과 비밀번호 재설정 링크는 `FRONTEND_ORIGIN`을 사용하므로 둘 다
 `https://redeemingtime.xyz`로 열립니다.
 
-### Resend SMTP 설정
+### Resend HTTPS API 설정
 
 Resend 대시보드에서 `redeemingtime.xyz`를 추가한 뒤, 표시되는 SPF·DKIM·MX 레코드를
 도메인 DNS에 **값 그대로** 추가합니다. Resend의 도메인 상태가 `Verified`가 된 다음
@@ -195,21 +191,18 @@ Environment에만 입력합니다.
 
 | Render 변수 | Resend 값 |
 | --- | --- |
-| `EMAIL_HOST` | `smtp.resend.com` |
-| `EMAIL_PORT` | `587` |
-| `EMAIL_USE_TLS` | `True` |
-| `EMAIL_USE_SSL` | `False` |
-| `EMAIL_HOST_USER` | `resend` |
-| `EMAIL_HOST_PASSWORD` | Resend API 키 (`re_…`) |
+| `EMAIL_DELIVERY_PROVIDER` | `resend` |
+| `RESEND_API_KEY` | Resend Sending access API 키 (`re_…`) |
+| `RESEND_API_BASE_URL` | `https://api.resend.com` (기본값) |
+| `RESEND_API_TIMEOUT` | `10` (기본값) |
 | `DEFAULT_FROM_EMAIL` | `Redeeming Time <no-reply@redeemingtime.xyz>` |
 | `PASSWORD_RESET_EMAIL_ENABLED` | `True` |
 | `EMAIL_VERIFICATION_ENABLED` | `True` |
 
-포트 `587`은 STARTTLS용입니다. implicit TLS 포트 `465`를 선택한다면
-`EMAIL_USE_TLS=False`, `EMAIL_USE_SSL=True`로 바꿔야 하며 두 값이 동시에 `True`이면
-애플리케이션이 시작되지 않습니다. Resend는 SPF·DKIM 검증 후 DMARC 레코드 추가도
-권장합니다. DNS 공급자가 레코드 값을 자동으로 도메인 뒤에 붙이는 경우, Resend가
-제시한 MX 대상 값 끝에 마침표를 붙여야 할 수 있습니다.
+서버는 `https://api.resend.com/emails`로 요청하므로 SMTP 포트 `25`, `465`, `587`을
+사용하지 않습니다. Resend는 SPF·DKIM 검증 후 DMARC 레코드 추가도 권장합니다. DNS
+공급자가 레코드 값을 자동으로 도메인 뒤에 붙이는 경우, Resend가 제시한 MX 대상 값
+끝에 마침표를 붙여야 할 수 있습니다.
 
 The state, callback, and exchange endpoints use dedicated throttles. Their
 short-lived handoff code requires the production shared Redis-compatible cache
