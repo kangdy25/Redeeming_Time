@@ -160,7 +160,7 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=10)
 EMAIL_FILE_PATH = env('EMAIL_FILE_PATH', default='/tmp/redeeming-time-emails')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='Redeeming Time <no-reply@redeeming-time.local>')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='Redeeming Time <no-reply@redeemingtime.xyz>')
 PASSWORD_RESET_EMAIL_ENABLED = env.bool('PASSWORD_RESET_EMAIL_ENABLED', default=DEBUG)
 PASSWORD_RESET_TIMEOUT = env.int('PASSWORD_RESET_TIMEOUT', default=3600)
 if PASSWORD_RESET_TIMEOUT <= 0:
@@ -216,6 +216,8 @@ CORS_ALLOWED_ORIGINS = env.list(
     'CORS_ALLOWED_ORIGINS',
     default=(
         [
+            'https://redeemingtime.xyz',
+            'https://www.redeemingtime.xyz',
             'https://redeeming-time.vercel.app',
         ]
         if not DEBUG
@@ -235,7 +237,7 @@ CORS_URLS_REGEX = r'^/api/.*$'
 # value, which prevents callback-code open redirects.
 FRONTEND_ORIGIN = env(
     'FRONTEND_ORIGIN',
-    default='http://localhost:5173' if DEBUG else 'https://redeeming-time.vercel.app',
+    default='http://localhost:5173' if DEBUG else 'https://redeemingtime.xyz',
 ).rstrip('/')
 _frontend_origin = urlparse(FRONTEND_ORIGIN)
 if (
@@ -279,7 +281,13 @@ if SOCIAL_AUTH_HTTP_TIMEOUT_SECONDS <= 0:
 
 CSRF_TRUSTED_ORIGINS = env.list(
     'CSRF_TRUSTED_ORIGINS',
-    default=['https://redeeming-time.vercel.app'] if not DEBUG else [],
+    default=[
+        'https://redeemingtime.xyz',
+        'https://www.redeemingtime.xyz',
+        'https://redeeming-time.vercel.app',
+    ]
+    if not DEBUG
+    else [],
 )
 if not DEBUG and CORS_ALLOW_ALL_ORIGINS:
     raise ImproperlyConfigured('CORS_ALLOW_ALL_ORIGINS must be False when DEBUG=False.')

@@ -121,7 +121,7 @@ async function deleteAccount() {
       </div>
       <footer class="profile-footer">
         <a href="#terms">이용약관</a><span>|</span><a href="#privacy">개인정보 처리방침</a
-        ><span>|</span><a href="mailto:support@redeemingtime.app">고객센터</a><span>|</span
+        ><span>|</span><a href="mailto:support@redeemingtime.xyz">고객센터</a><span>|</span
         ><button @click="deleteAccount">회원 탈퇴</button>
       </footer>
     </section>

@@ -16,10 +16,10 @@ Production starts only when all of the following are set:
 | `DATABASE_URL`                                                       | Neon **pooled** PostgreSQL connection URL for the running API                                                                     |
 | `MIGRATION_DATABASE_URL`                                             | Neon **direct** PostgreSQL connection URL, used only for Django migrations                                                        |
 | `CACHE_URL`                                                          | Shared Redis-compatible connection URL                                                                                            |
-| `ALLOWED_HOSTS`                                                      | `.onrender.com,redeeming-time.vercel.app` when using the included Vercel API proxy                                                |
-| `CORS_ALLOWED_ORIGINS`                                               | `https://redeeming-time.vercel.app`                                                                                               |
-| `CSRF_TRUSTED_ORIGINS`                                               | `https://redeeming-time.vercel.app` when cross-origin CSRF-protected flows are added                                              |
-| `FRONTEND_ORIGIN`                                                    | `https://redeeming-time.vercel.app`                                                                                               |
+| `ALLOWED_HOSTS`                                                      | `.onrender.com,redeemingtime.xyz,www.redeemingtime.xyz,redeeming-time.vercel.app`                                                |
+| `CORS_ALLOWED_ORIGINS`                                               | `https://redeemingtime.xyz,https://www.redeemingtime.xyz,https://redeeming-time.vercel.app`                                      |
+| `CSRF_TRUSTED_ORIGINS`                                               | `https://redeemingtime.xyz,https://www.redeemingtime.xyz,https://redeeming-time.vercel.app`                                      |
+| `FRONTEND_ORIGIN`                                                    | `https://redeemingtime.xyz`                                                                                                       |
 | `SOCIAL_AUTH_GOOGLE_CLIENT_ID` / `SOCIAL_AUTH_GOOGLE_CLIENT_SECRET`  | Google OAuth web-application credentials, if Google sign-in is enabled                                                            |
 | `SOCIAL_AUTH_KAKAO_CLIENT_ID` / `SOCIAL_AUTH_KAKAO_CLIENT_SECRET`    | Kakao REST API key and client secret, if Kakao sign-in is enabled                                                                 |
 | `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS callback URI registered with each enabled provider; use the Vercel `/api/.../callback/` URL with the production proxy |
@@ -82,18 +82,18 @@ the callback from the incoming API request host.
 
 ### Vercel same-origin proxy (recommended)
 
-The production `vercel.json` proxies `https://redeeming-time.vercel.app/api/*`
+The production `vercel.json` proxies `https://redeemingtime.xyz/api/*`
 to the Render service. It keeps browser API and OAuth traffic on the Vercel
 hostname, which avoids relying on the reputation of a shared Render subdomain.
 Set Vercel's production `VITE_API_BASE_URL` to `/api`, then register and
 configure these exact callback URLs instead:
 
 ```text
-https://redeeming-time.vercel.app/api/auth/social/google/callback/
-https://redeeming-time.vercel.app/api/auth/social/kakao/callback/
+https://redeemingtime.xyz/api/auth/social/google/callback/
+https://redeemingtime.xyz/api/auth/social/kakao/callback/
 ```
 
-`ALLOWED_HOSTS` must include `redeeming-time.vercel.app` because Vercel forwards
+`ALLOWED_HOSTS` must include `redeemingtime.xyz` because Vercel forwards
 that public host to Django. Do not enable CDN caching for `/api/*`; OAuth and
 authenticated API responses must remain uncached.
 
@@ -106,7 +106,7 @@ from `/v2/user/me`. Both providers require a verified email address.
 After a successful callback, the backend redirects only to:
 
 ```text
-https://redeeming-time.vercel.app/auth/callback?code=<opaque-one-time-code>
+https://redeemingtime.xyz/auth/callback?code=<opaque-one-time-code>
 ```
 
 The opaque code expires after 60 seconds and is consumed through
@@ -148,7 +148,7 @@ manually and then deploy:
 | `EMAIL_HOST_USER`              | SMTP username                               |
 | `EMAIL_HOST_PASSWORD`          | SMTP password or API key                    |
 | `EMAIL_TIMEOUT`                | `10` seconds; prevents SMTP hangs           |
-| `DEFAULT_FROM_EMAIL`           | `Redeeming Time <no-reply@your-domain.com>` |
+| `DEFAULT_FROM_EMAIL`           | `Redeeming Time <no-reply@redeemingtime.xyz>` |
 
 Optionally set `PASSWORD_RESET_TIMEOUT` in seconds; the default is `3600`.
 Never use a personal mailbox password. Use an SMTP credential from a
@@ -167,6 +167,24 @@ The user can request a new link at `POST /api/auth/email-verification/`; links
 open `/verify-email?token=...`, expire after 24 hours by default, and become
 invalid as soon as they are used. Set `EMAIL_VERIFICATION_TIMEOUT` in seconds
 only when a different expiry period is required.
+
+### `redeemingtime.xyz` 발신 도메인 설정
+
+Vercel 프로젝트에 `redeemingtime.xyz`를 기본 도메인으로 연결하고, `www.redeemingtime.xyz`
+는 해당 도메인으로 리디렉션합니다. Render 환경 변수는 다음 값으로 배포합니다.
+
+```text
+FRONTEND_ORIGIN=https://redeemingtime.xyz
+DEFAULT_FROM_EMAIL=Redeeming Time <no-reply@redeemingtime.xyz>
+PASSWORD_RESET_EMAIL_ENABLED=True
+EMAIL_VERIFICATION_ENABLED=True
+```
+
+SMTP 공급자가 제공하는 `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`도 함께
+설정해야 실제 발송이 활성화됩니다. 공급자 대시보드에서 `redeemingtime.xyz`의 SPF와
+DKIM 레코드를 검증한 뒤에만 위의 두 기능 플래그를 `True`로 켭니다. 이메일 인증과
+비밀번호 재설정 링크는 `FRONTEND_ORIGIN`을 사용하므로 둘 다
+`https://redeemingtime.xyz`로 열립니다.
 
 The state, callback, and exchange endpoints use dedicated throttles. Their
 short-lived handoff code requires the production shared Redis-compatible cache
@@ -219,7 +237,7 @@ SECRET_KEY='replace-with-a-long-random-production-secret' \
 ALLOWED_HOSTS=api.example.com \
 DATABASE_URL=postgresql://user:password@host:5432/redeeming_time \
 CACHE_URL=redis://host:6379/0 \
-CORS_ALLOWED_ORIGINS=https://redeeming-time.vercel.app \
+CORS_ALLOWED_ORIGINS=https://redeemingtime.xyz,https://www.redeemingtime.xyz,https://redeeming-time.vercel.app \
 uv run manage.py check --deploy
 
 uv run manage.py test
@@ -228,7 +246,7 @@ docker build -f Dockerfile .
 
 Then check `GET https://<your-api-host>/healthz/` and
 `GET https://<your-api-host>/readyz/`, register a test account, log in, and
-confirm that an `OPTIONS` request from `https://redeeming-time.vercel.app`
+confirm that an `OPTIONS` request from `https://redeemingtime.xyz`
 receives the matching CORS origin header. Confirm existing migrated users,
 calendars, events, and tasks are still present before deleting the old Render
 database manually.

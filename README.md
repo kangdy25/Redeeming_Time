@@ -3,9 +3,9 @@
 > 흩어진 일정과 할일을 하나의 흐름으로 정리하는 웹 플래너
 
 [![CI](https://github.com/kangdy25/Redeeming_Time/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kangdy25/Redeeming_Time/actions/workflows/ci.yml)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-000000?logo=vercel)](https://redeeming-time.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-000000?logo=vercel)](https://redeemingtime.xyz)
 
-**[웹 앱 바로가기](https://redeeming-time.vercel.app)** · **[API 문서](https://redeeming-time.vercel.app/api/docs/)**
+**[웹 앱 바로가기](https://redeemingtime.xyz)** · **[API 문서](https://redeemingtime.xyz/api/docs/)**
 
 Redeeming Time은 일정, 할일, 아이디어를 한 곳에서 관리하도록 만든 DRF 학습 프로젝트입니다.
 일정과 할일을 분리하지 않고 달력 흐름 안에서 다루며, 놓친 할일은 다음 날로 이어서 관리할 수 있습니다.
