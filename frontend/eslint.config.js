@@ -1,42 +1,47 @@
 import js from '@eslint/js';
-import reactHooks from 'eslint-plugin-react-hooks';
+import vue from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
+import vueParser from 'vue-eslint-parser';
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/.expo/**', '**/coverage/**'],
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
+      'app/**',
+      'web/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  ...vue.configs['flat/recommended'],
   {
-    files: ['**/*.{ts,tsx}'],
-    plugins: {
-      'react-hooks': reactHooks,
+    files: ['**/*.{ts,vue}'],
+    languageOptions: {
+      parser: vueParser,
+      parserOptions: { parser: tseslint.parser, extraFileExtensions: ['.vue'] },
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
       'no-undef': 'off',
-      'react-hooks/set-state-in-effect': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      'vue/multi-word-component-names': 'off',
+      'vue/max-attributes-per-line': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/html-indent': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
     },
   },
   {
-    files: ['**/*.{js,cjs}'],
-    rules: {
-      'no-undef': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
-    },
-  },
-  {
-    files: ['**/*.{test,spec}.{ts,tsx}', 'test.setup.ts', 'test.utils.tsx'],
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
-      'react-hooks/rules-of-hooks': 'off',
-    },
+    files: ['**/*.test.ts', 'test.setup.ts'],
+    rules: { '@typescript-eslint/no-unused-vars': 'off' },
   },
 );

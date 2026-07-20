@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "npm ci --workspace @redeeming-time/web --workspace @redeeming-time/shared",
+  "installCommand": "npm ci",
   "buildCommand": "npm run build:web",
-  "outputDirectory": "web/dist",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",

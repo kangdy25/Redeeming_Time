@@ -3,38 +3,40 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "workspaces": [
-    "web",
-    "app",
-    "shared"
-  ],
   "scripts": {
-    "build:web": "npm --workspace @redeeming-time/web run build",
-    "typecheck:app": "npm --workspace @redeeming-time/app run typecheck",
-    "typecheck:shared": "npm --workspace @redeeming-time/shared run typecheck",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vue-tsc --noEmit && vite build",
+    "build:web": "npm run build",
+    "typecheck": "vue-tsc --noEmit",
+    "typecheck:shared": "npm run typecheck",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings=0",
-    "format": "prettier --write \"{web,app,shared,e2e}/**/*.{ts,tsx,js,json,css,md}\" \"*.{ts,json}\"",
-    "format:check": "prettier --check \"{web,app,shared,e2e}/**/*.{ts,tsx,js,json,css,md}\" \"*.{ts,json}\""
+    "format": "prettier --write \"{src,e2e}/**/*.{ts,vue,js,json,scss,md}\" \"*.{ts,js,json}\"",
+    "format:check": "prettier --check \"{src,e2e}/**/*.{ts,vue,js,json,scss,md}\" \"*.{ts,js,json}\""
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.1.0",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@testing-library/vue": "^8.1.0",
+    "@vitejs/plugin-vue": "^6.0.0",
     "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.7.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-vue": "^10.0.0",
     "jsdom": "^25.0.1",
     "msw": "^2.6.8",
     "prettier": "^3.9.5",
     "typescript-eslint": "^8.63.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.0.0",
+    "sass": "^1.89.0"
   },
   "dependencies": {
-    "react-native-web": "^0.21.0"
+    "@tanstack/vue-query": "^5.90.0",
+    "pinia": "^3.0.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
   }
 }

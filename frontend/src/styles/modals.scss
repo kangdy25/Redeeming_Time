@@ -1,0 +1,777 @@
+/* Floating Setup Drawer Control - Violet Obsidian Glow */
+.settings-drawer {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 100;
+}
+
+.settings-toggle-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: var(--color-on-accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px; /* Scaled up */
+  box-shadow: 0 6px 20px var(--color-accent-shadow);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-toggle-btn:hover {
+  transform: rotate(30deg) scale(1.05);
+}
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* Centered Setup Modal Overlay & Backdrop */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-content-wrapper {
+  transform: scale(0.95);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.visible .modal-content-wrapper {
+  transform: scale(1);
+}
+
+.controls-panel {
+  position: relative;
+  width: min(380px, 92vw);
+  max-width: 90vw;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 20px 50px var(--color-shadow-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 12px;
+}
+
+.control-header h2 {
+  font-size: 19px; /* Scaled up */
+  font-weight: 800;
+  margin: 0;
+}
+
+.control-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-right: 4px;
+}
+
+.tab-content.hidden-tab {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+}
+
+.tab-content.active {
+  position: relative !important;
+  opacity: 1 !important;
+}
+
+.control-grid form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: none;
+  padding-bottom: 0;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.control-grid label {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0;
+  margin-bottom: 0;
+  display: block;
+}
+
+.settings-only-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-only-panel div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+}
+
+.settings-only-panel span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.settings-only-panel strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.event-form {
+  gap: 12px;
+}
+
+/* Vue modals render the form directly in the panel. Preserve the original
+ * PlannerModals control-grid typography and flex spacing contract. */
+.controls-panel > .event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controls-panel > .event-form label {
+  display: block;
+  margin-bottom: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.event-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px 12px;
+}
+
+.field-span-2 {
+  grid-column: 1 / -1;
+}
+
+.event-color-field {
+  grid-column: 1 / -1;
+}
+
+.event-color-picker .color-preset-picker__select-trigger {
+  height: 40px;
+  min-height: 40px;
+  border-radius: 8px;
+}
+
+.time-pair {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 104px;
+  gap: 10px;
+  align-items: end;
+}
+
+.repeat-field {
+  min-width: 0;
+}
+
+.compact-toggle {
+  min-height: 40px;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-bg-input) 82%, transparent);
+  color: var(--color-text-primary) !important;
+  text-transform: none !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.inline-inputs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inline-inputs > input {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.inline-inputs > input[type='time'],
+.inline-inputs > input[type='datetime-local'],
+.controls-panel input[type='date'] {
+  padding: 8px 12px;
+  font-size: 14px;
+  height: 40px;
+  letter-spacing: 0 !important;
+}
+
+.controls-panel input,
+.controls-panel select,
+.controls-panel textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  letter-spacing: 0;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.controls-panel input,
+.controls-panel select {
+  padding: 0 12px;
+}
+
+.controls-panel textarea {
+  min-height: 64px;
+  max-height: 112px;
+  padding: 10px 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.controls-panel input:focus,
+.controls-panel select:focus,
+.controls-panel textarea:focus {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.controls-panel input:disabled,
+.controls-panel select:disabled,
+.controls-panel textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.controls-panel textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.controls-panel .compact-toggle input {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  padding: 0;
+  accent-color: var(--color-accent);
+}
+
+.modal-action-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.modal-action-row .primary-button:only-child {
+  grid-column: 1 / -1;
+}
+
+.control-grid button.danger-button {
+  background: var(--color-danger-muted);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+  box-shadow: none;
+}
+
+/* Customizing Native Date & Time picker icons for Premium Dark Theme support */
+::-webkit-calendar-picker-indicator {
+  filter: var(--calendar-icon-filter);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.control-grid button {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 15px; /* Scaled up */
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 6px var(--color-accent-shadow);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.control-grid button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 10px var(--color-accent-shadow);
+}
+
+.control-grid button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* The event color picker is a form field, not a primary action button. */
+.control-grid .color-preset-picker__select-trigger {
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.control-grid .color-preset-picker__select-trigger:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-input);
+  box-shadow: none;
+  filter: none;
+}
+
+.control-grid .color-preset-picker__select-trigger:focus-visible {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.control-grid .color-preset-picker__dropdown-option {
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-primary);
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.control-grid .color-preset-picker__dropdown-option:hover:not(:disabled),
+.control-grid .color-preset-picker__dropdown-option.is-selected {
+  border-color: color-mix(in srgb, var(--preset-color) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--preset-color) 14%, var(--color-bg-input));
+  box-shadow: none;
+  filter: none;
+}
+
+.empty-copy {
+  font-size: 15px; /* Scaled up */
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 30px 0;
+}
+
+/* Date click opens an overview before the existing event composer. */
+.daily-events-panel {
+  width: min(500px, 92vw);
+  max-height: min(680px, calc(100vh - 32px));
+}
+
+.daily-events-list {
+  min-height: 124px;
+  max-height: min(420px, calc(100vh - 236px));
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.daily-events-list ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-event-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--event-color);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.daily-event-row:hover,
+.daily-event-row:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--event-color);
+  background: color-mix(in srgb, var(--event-color) 9%, var(--color-bg-input));
+  box-shadow: 0 5px 14px var(--color-shadow-subtle);
+}
+
+.daily-event-row:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+.daily-event-row__swatch {
+  width: 10px;
+  height: 10px;
+  align-self: center;
+  border: 1px solid color-mix(in srgb, var(--event-color) 72%, var(--text-primary));
+  border-radius: 3px;
+  background: var(--event-color);
+  box-shadow: inset 0 0 0 1px var(--color-surface-strong);
+}
+
+.daily-event-row__content {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.daily-event-row__time {
+  order: 2;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.daily-event-row strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+.daily-event-row__description {
+  order: 3;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-events-empty {
+  display: grid;
+  min-height: 118px;
+  margin: 0;
+  place-items: center;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.daily-events-add {
+  width: 100%;
+}
+
+/* Accessible 12-color event and category preset picker. */
+.color-preset-picker {
+  position: relative;
+  width: 100%;
+}
+
+.color-preset-picker.is-circle {
+  width: auto;
+  display: inline-block;
+}
+
+.color-preset-picker__select-trigger {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.color-preset-picker__select-trigger:hover:not(:disabled) {
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-strong);
+}
+
+.color-preset-picker__select-trigger:focus-visible,
+.color-preset-picker__circle-trigger:focus-visible,
+.color-preset-picker__dropdown-option:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+.color-preset-picker__select-trigger:disabled,
+.color-preset-picker__circle-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.color-preset-picker__select-trigger-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.color-preset-picker__select-trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.color-preset-picker__arrow {
+  font-size: 10px;
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+}
+
+/* Rotate arrow when open */
+.color-preset-picker.is-open .color-preset-picker__arrow {
+  transform: rotate(180deg);
+}
+
+/* 2. Trigger for Circle Variant */
+.color-preset-picker__circle-trigger {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--preset-color);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+  padding: 0;
+  display: block;
+}
+
+/* 3. Dropdown Menu */
+.color-preset-picker__dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  box-shadow: 0 14px 30px var(--color-shadow-strong);
+  /* backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px); */
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 6px;
+  box-sizing: border-box;
+  display: none;
+}
+
+/* Show when open */
+.color-preset-picker__dropdown.is-open {
+  display: block;
+}
+
+.color-preset-picker.opens-upward .color-preset-picker__dropdown {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+/* Variant specific dropdown widths/positioning */
+.color-preset-picker.is-select .color-preset-picker__dropdown {
+  width: 100%;
+}
+
+.color-preset-picker.is-circle .color-preset-picker__dropdown {
+  width: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 4. Dropdown Options */
+.color-preset-picker__dropdown-option {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.color-preset-picker__dropdown-option:hover:not(:disabled),
+.color-preset-picker__dropdown-option.is-selected {
+  border-color: color-mix(in srgb, var(--preset-color) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--preset-color) 14%, var(--color-bg-input));
+}
+
+.color-preset-picker__dropdown-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.color-preset-picker__swatch {
+  width: 16px;
+  height: 16px;
+  border: 1px solid color-mix(in srgb, var(--preset-color) 70%, var(--color-text-primary));
+  border-radius: 50%;
+  background: var(--preset-color);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.color-preset-picker__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.color-preset-picker__bullet {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-preset-picker__current {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Category + Add button inline style */
+.sidebar-add-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.sidebar-add-btn:hover {
+  color: var(--color-text-primary);
+}
