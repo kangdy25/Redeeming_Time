@@ -186,6 +186,31 @@ DKIM 레코드를 검증한 뒤에만 위의 두 기능 플래그를 `True`로 �
 비밀번호 재설정 링크는 `FRONTEND_ORIGIN`을 사용하므로 둘 다
 `https://redeemingtime.xyz`로 열립니다.
 
+### Resend SMTP 설정
+
+Resend 대시보드에서 `redeemingtime.xyz`를 추가한 뒤, 표시되는 SPF·DKIM·MX 레코드를
+도메인 DNS에 **값 그대로** 추가합니다. Resend의 도메인 상태가 `Verified`가 된 다음
+Sending access 권한의 API 키를 만들고, 키는 채팅이나 Git에 공유하지 말고 Render
+Environment에만 입력합니다.
+
+| Render 변수 | Resend 값 |
+| --- | --- |
+| `EMAIL_HOST` | `smtp.resend.com` |
+| `EMAIL_PORT` | `587` |
+| `EMAIL_USE_TLS` | `True` |
+| `EMAIL_USE_SSL` | `False` |
+| `EMAIL_HOST_USER` | `resend` |
+| `EMAIL_HOST_PASSWORD` | Resend API 키 (`re_…`) |
+| `DEFAULT_FROM_EMAIL` | `Redeeming Time <no-reply@redeemingtime.xyz>` |
+| `PASSWORD_RESET_EMAIL_ENABLED` | `True` |
+| `EMAIL_VERIFICATION_ENABLED` | `True` |
+
+포트 `587`은 STARTTLS용입니다. implicit TLS 포트 `465`를 선택한다면
+`EMAIL_USE_TLS=False`, `EMAIL_USE_SSL=True`로 바꿔야 하며 두 값이 동시에 `True`이면
+애플리케이션이 시작되지 않습니다. Resend는 SPF·DKIM 검증 후 DMARC 레코드 추가도
+권장합니다. DNS 공급자가 레코드 값을 자동으로 도메인 뒤에 붙이는 경우, Resend가
+제시한 MX 대상 값 끝에 마침표를 붙여야 할 수 있습니다.
+
 The state, callback, and exchange endpoints use dedicated throttles. Their
 short-lived handoff code requires the production shared Redis-compatible cache
 already listed above; do not replace it with per-process local memory.
