@@ -181,6 +181,16 @@
     overflow: visible;
   }
 
+  .password-reset-app .auth-page-main {
+    height: auto;
+    min-height: calc(100dvh - 76px);
+    padding: 16px 14px 24px;
+  }
+
+  .password-reset-app .auth-story {
+    padding: 16px 12px 24px;
+  }
+
   .auth-story {
     min-height: auto;
     padding: 30px 12px 40px;

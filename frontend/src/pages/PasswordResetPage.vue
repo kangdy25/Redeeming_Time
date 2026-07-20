@@ -58,7 +58,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="app-container">
+  <div class="app-container password-reset-app">
     <header class="top-nav">
       <RouterLink class="top-nav-left brand-logo" to="/login">
         <div class="logo-icon"><img src="/logo.png" alt="" /></div>

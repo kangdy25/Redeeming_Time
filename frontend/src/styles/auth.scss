@@ -29,6 +29,12 @@
     );
 }
 
+/* The reset page does not need the login page's taller story layout. Match the
+ * 92px application header so the panel stays within one viewport. */
+.password-reset-app .auth-page-main {
+  height: calc(100dvh - 92px);
+}
+
 :root[data-theme='light'] .auth-page-main {
   background:
     radial-gradient(
