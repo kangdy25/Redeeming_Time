@@ -27,14 +27,19 @@ function inferApiBaseUrl() {
     globalThis as typeof globalThis & { __REDEEMING_TIME_WEB_API_BASE_URL__?: string }
   ).__REDEEMING_TIME_WEB_API_BASE_URL__;
   const explicitUrl =
-    webApiBaseUrl || runtimeEnv.EXPO_PUBLIC_API_BASE_URL || runtimeEnv.VITE_API_BASE_URL;
+    webApiBaseUrl ||
+    import.meta.env.VITE_API_BASE_URL ||
+    runtimeEnv.EXPO_PUBLIC_API_BASE_URL ||
+    runtimeEnv.VITE_API_BASE_URL;
   if (explicitUrl) {
     return explicitUrl.replace(/\/$/, '');
   }
 
   const location = (globalThis as { location?: { hostname?: string; protocol?: string } }).location;
   if (location?.hostname && !['localhost', '127.0.0.1'].includes(location.hostname)) {
-    return `${location.protocol}//${location.hostname}:8000/api`;
+    // Production web requests must use Vercel's same-origin /api rewrite.
+    // A browser cannot reach the private Django port at <public-host>:8000.
+    return '/api';
   }
 
   return 'http://localhost:8000/api';

@@ -46,12 +46,16 @@ services:
       - key: SOCIAL_AUTH_GOOGLE_CLIENT_SECRET
         sync: false
       - key: SOCIAL_AUTH_GOOGLE_REDIRECT_URI
+        # https://redeemingtime.xyz/api/auth/social/google/callback/
+        # Must also be registered in Google Cloud Console.
         sync: false
       - key: SOCIAL_AUTH_KAKAO_CLIENT_ID
         sync: false
       - key: SOCIAL_AUTH_KAKAO_CLIENT_SECRET
         sync: false
       - key: SOCIAL_AUTH_KAKAO_REDIRECT_URI
+        # https://redeemingtime.xyz/api/auth/social/kakao/callback/
+        # Must also be registered in Kakao Developers.
         sync: false
       # Resend sends over HTTPS, which is supported on Render's Free plan.
       - key: EMAIL_DELIVERY_PROVIDER

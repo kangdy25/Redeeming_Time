@@ -22,11 +22,29 @@ Production starts only when all of the following are set:
 | `FRONTEND_ORIGIN`                                                    | `https://redeemingtime.xyz`                                                                                                       |
 | `SOCIAL_AUTH_GOOGLE_CLIENT_ID` / `SOCIAL_AUTH_GOOGLE_CLIENT_SECRET`  | Google OAuth web-application credentials, if Google sign-in is enabled                                                            |
 | `SOCIAL_AUTH_KAKAO_CLIENT_ID` / `SOCIAL_AUTH_KAKAO_CLIENT_SECRET`    | Kakao REST API key and client secret, if Kakao sign-in is enabled                                                                 |
-| `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS callback URI registered with each enabled provider; use the Vercel `/api/.../callback/` URL with the production proxy |
+| `SOCIAL_AUTH_GOOGLE_REDIRECT_URI` / `SOCIAL_AUTH_KAKAO_REDIRECT_URI` | Exact HTTPS callback URI registered with each enabled provider. For the production custom domain, use `https://redeemingtime.xyz/api/auth/social/google/callback/` and `https://redeemingtime.xyz/api/auth/social/kakao/callback/`. |
 | `PLANNER_TIME_ZONE`                                                  | `Asia/Seoul` for the current shared calendar-day policy                                                                           |
 
 `CORS_ALLOW_ALL_ORIGINS` must remain `False`. The browser client uses Bearer
 tokens, so CORS credentials are deliberately disabled.
+
+### Social-login callback URLs
+
+The OAuth start URL and callback URL must use the **same public host**. OAuth
+state is stored in the browser's session cookie when the flow starts; returning
+to a different Vercel hostname drops that cookie and makes the callback fail
+with `INVALID_STATE`.
+
+Set these exact values in both Render and each provider console:
+
+```text
+SOCIAL_AUTH_GOOGLE_REDIRECT_URI=https://redeemingtime.xyz/api/auth/social/google/callback/
+SOCIAL_AUTH_KAKAO_REDIRECT_URI=https://redeemingtime.xyz/api/auth/social/kakao/callback/
+```
+
+In Vercel, set the build-time `VITE_API_BASE_URL` to `/api`. The frontend also
+uses `/api` as its production fallback, which keeps browser API calls on the
+same host and lets the Vercel rewrite forward them to Render.
 
 ## Neon PostgreSQL setup and migration
 
